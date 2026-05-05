@@ -39,30 +39,13 @@ func (s *Users) GetUserByEmail(ctx context.Context, email string) (*models.User,
 		Exec(ctx, map[string]any{"email": email})
 }
 
-// ListUsersByTenant retrieves users for a specific tenant.
-func (s *Users) ListUsersByTenant(ctx context.Context, tenantID string, page models.OffsetPage) (*models.OffsetResult[models.User], error) {
-	items, err := s.Query().
-		Where("tenant_id", "=", "tenant_id").
-		OrderBy("created_at", "ASC").
-		OrderBy("id", "ASC").
-		Limit(page.PageSize()).
-		Offset(page.Offset).
-		Exec(ctx, map[string]any{"tenant_id": tenantID})
-	if err != nil {
-		return nil, err
-	}
-	return &models.OffsetResult[models.User]{Items: items, Offset: page.Offset}, nil
-}
-
-// CreateUser creates a new user within a tenant.
-func (s *Users) CreateUser(ctx context.Context, tenantID, email, displayName string) (*models.User, error) {
+// CreateUser creates a new user.
+func (s *Users) CreateUser(ctx context.Context, email, displayName string) (*models.User, error) {
 	now := time.Now()
 	u := &models.User{
 		ID:          uuid.New().String(),
-		TenantID:    tenantID,
 		Email:       email,
 		DisplayName: displayName,
-		Role:        models.UserRoleViewer,
 		Status:      models.UserStatusActive,
 		LastSeenAt:  &now,
 	}
@@ -97,30 +80,4 @@ func (s *Users) TouchLastSeen(ctx context.Context, id string) error {
 		return fmt.Errorf("updating last seen: %w", err)
 	}
 	return nil
-}
-
-// UpsertFromResolve inserts a user or updates last_seen_at on conflict with email + tenant_id.
-func (s *Users) UpsertFromResolve(ctx context.Context, tenantID, email, displayName string) (*models.User, bool, error) {
-	now := time.Now()
-	u := &models.User{
-		ID:          uuid.New().String(),
-		TenantID:    tenantID,
-		Email:       email,
-		DisplayName: displayName,
-		Role:        models.UserRoleViewer,
-		Status:      models.UserStatusActive,
-		LastSeenAt:  &now,
-	}
-	result, err := s.Insert().
-		OnConflict("email", "tenant_id").
-		DoUpdate().
-		Set("last_seen_at", "last_seen_at").
-		Set("display_name", "display_name").
-		Set("updated_at", "updated_at").
-		Exec(ctx, u)
-	if err != nil {
-		return nil, false, fmt.Errorf("upserting user from resolve: %w", err)
-	}
-	created := result.ID == u.ID
-	return result, created, nil
 }

@@ -43,23 +43,6 @@ services:
       timeout: 5s
       retries: 5
 
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: janus
-      MINIO_ROOT_PASSWORD: janusdev
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - miniodata:/data
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   # =============================================================================
   # Observability Stack
   # =============================================================================
@@ -88,7 +71,7 @@ services:
       - ./tools/dev/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
       - prometheusdata:/prometheus
     ports:
-      - "9090:9090"
+      - "9091:9090"
 
   # OTEL Collector - Central hub
   otel-collector:
@@ -134,8 +117,6 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
-      minio:
-        condition: service_healthy
     environment:
       APP_PORT: "8080"
       APP_DB_HOST: postgres
@@ -145,23 +126,23 @@ services:
       APP_DB_PASSWORD: janus
       APP_DB_SSLMODE: disable
       APP_REDIS_ADDR: redis:6379
-      APP_STORAGE_ENDPOINT: minio:9000
-      APP_STORAGE_ACCESS_KEY: janus
-      APP_STORAGE_SECRET_KEY: janusdev
-      APP_STORAGE_BUCKET: janus
-      APP_STORAGE_USE_SSL: "false"
       APP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      APP_MESH_ID: janus
+      APP_MESH_NAME: janus
+      APP_MESH_HOST: "0.0.0.0"
+      APP_MESH_PORT: "9090"
+      APP_MESH_CERT_DIR: ./certs
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
       OTEL_SERVICE_NAME: janus
     ports:
       - "8080:8080"
+      - "9090:9090"
     volumes:
       - .:/app
 
 volumes:
   pgdata:
   redisdata:
-  miniodata:
   lokidata:
   prometheusdata:
   grafanadata:

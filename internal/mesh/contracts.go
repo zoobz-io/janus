@@ -10,30 +10,32 @@ import (
 )
 
 // Identity defines operations for resolving external IdP identities
-// to internal users. This is the core flow: an app authenticates a user
-// against its own IdP, then calls janus to resolve the internal identity.
+// to internal users. An app authenticates a user against its own IdP,
+// then calls janus to look up the internal identity.
+// Users must be registered first — no JIT provisioning.
 type Identity interface {
-	// ResolveIdentity maps an external IdP subject to an internal user.
-	// If the user does not exist, it is created (JIT provisioning).
-	// If the tenant does not exist, returns an error — tenants must be
-	// created explicitly via the Tenants interface.
+	// ResolveIdentity looks up an internal user by external IdP subject.
+	// Returns an error if the user is not registered.
 	ResolveIdentity(ctx context.Context, req ResolveIdentityRequest) (*ResolveIdentityResponse, error)
 }
 
 // ResolveIdentityRequest contains the external identity to resolve.
 type ResolveIdentityRequest struct {
-	Provider        string // IdP type: "zitadel", "auth0", "github", "google"
+	Provider        string // IdP type: "zitadel", "auth0", "github", "google", "oidc"
 	ExternalSubject string // Subject ID from the IdP
-	TenantID        string // Internal tenant the user belongs to
-	Email           string // User email from IdP claims
-	DisplayName     string // User display name from IdP claims
 }
 
 // ResolveIdentityResponse contains the resolved internal identity.
 type ResolveIdentityResponse struct {
-	UserID   string // Internal user ID
-	TenantID string // Internal tenant ID
-	Created  bool   // True if the user was just provisioned
+	UserID      string           // Internal user ID
+	Email       string           // User email
+	Memberships []MembershipInfo // Tenant memberships
+}
+
+// MembershipInfo contains a user's role within a tenant.
+type MembershipInfo struct {
+	TenantID string
+	Role     string
 }
 
 // Sessions defines operations for managing mesh-wide session tokens.
@@ -65,12 +67,11 @@ type CreateSessionResponse struct {
 
 // ValidateSessionResponse contains the validated session identity.
 type ValidateSessionResponse struct {
-	Valid    bool
-	UserID   string
-	TenantID string
-	IssuedBy string
-	Email    string
-	Role     string
+	UserID      string
+	Email       string
+	IssuedBy    string
+	Memberships []MembershipInfo
+	Valid       bool
 }
 
 // Users defines read operations for user queries over the mesh.
@@ -79,8 +80,6 @@ type Users interface {
 	GetUser(ctx context.Context, id string) (*models.User, error)
 	// GetUserByEmail retrieves a user by email address.
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
-	// ListUsersByTenant retrieves a paginated list of users for a tenant.
-	ListUsersByTenant(ctx context.Context, tenantID string, page models.OffsetPage) (*models.OffsetResult[models.User], error)
 }
 
 // Tenants defines operations for tenant management over the mesh.

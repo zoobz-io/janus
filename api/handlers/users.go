@@ -9,12 +9,29 @@ import (
 )
 
 var getMyProfile = rocco.GET[rocco.NoBody, wire.UserResponse]("/me", func(r *rocco.Request[rocco.NoBody]) (wire.UserResponse, error) {
-	store := sum.MustUse[contracts.Users](r)
-	user, err := store.GetUser(r, r.Identity.ID())
+	users := sum.MustUse[contracts.Users](r)
+	memberships := sum.MustUse[contracts.Memberships](r)
+	tenants := sum.MustUse[contracts.Tenants](r)
+
+	user, err := users.GetUser(r, r.Identity.ID())
 	if err != nil {
 		return wire.UserResponse{}, ErrUserNotFound
 	}
-	return transformers.UserToResponse(user), nil
+
+	mems, err := memberships.ListByUser(r, user.ID)
+	if err != nil {
+		return wire.UserResponse{}, err
+	}
+
+	tenantNames := make(map[string]string, len(mems))
+	for _, m := range mems {
+		t, err := tenants.GetTenant(r, m.TenantID)
+		if err == nil {
+			tenantNames[m.TenantID] = t.Name
+		}
+	}
+
+	return transformers.UserToResponse(user, mems, tenantNames), nil
 }).
 	WithSummary("Get my profile").
 	WithTags("Profile").
@@ -22,12 +39,29 @@ var getMyProfile = rocco.GET[rocco.NoBody, wire.UserResponse]("/me", func(r *roc
 	WithErrors(ErrUserNotFound)
 
 var updateMyProfile = rocco.PUT[wire.UpdateProfileRequest, wire.UserResponse]("/me", func(r *rocco.Request[wire.UpdateProfileRequest]) (wire.UserResponse, error) {
-	store := sum.MustUse[contracts.Users](r)
-	user, err := store.UpdateDisplayName(r, r.Identity.ID(), r.Body.DisplayName)
+	users := sum.MustUse[contracts.Users](r)
+	memberships := sum.MustUse[contracts.Memberships](r)
+	tenants := sum.MustUse[contracts.Tenants](r)
+
+	user, err := users.UpdateDisplayName(r, r.Identity.ID(), r.Body.DisplayName)
 	if err != nil {
 		return wire.UserResponse{}, ErrUserNotFound
 	}
-	return transformers.UserToResponse(user), nil
+
+	mems, err := memberships.ListByUser(r, user.ID)
+	if err != nil {
+		return wire.UserResponse{}, err
+	}
+
+	tenantNames := make(map[string]string, len(mems))
+	for _, m := range mems {
+		t, err := tenants.GetTenant(r, m.TenantID)
+		if err == nil {
+			tenantNames[m.TenantID] = t.Name
+		}
+	}
+
+	return transformers.UserToResponse(user, mems, tenantNames), nil
 }).
 	WithSummary("Update my profile").
 	WithTags("Profile").

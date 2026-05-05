@@ -8,4 +8,5 @@ var (
 	ErrUserNotFound     = rocco.ErrNotFound.WithMessage("user not found")
 	ErrSessionNotFound  = rocco.ErrNotFound.WithMessage("session not found")
 	ErrIdentityNotFound = rocco.ErrNotFound.WithMessage("linked identity not found")
+	ErrTenantRequired   = rocco.ErrForbidden.WithMessage("tenant membership required — create a tenant via POST /me/tenants")
 )

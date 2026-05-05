@@ -2,12 +2,16 @@ package handlers
 
 import "github.com/zoobz-io/rocco"
 
-// All returns the complete set of public API endpoints.
+// All returns the authenticated API endpoints.
+// Auth handlers (login/callback/logout) are added separately via AllWithAuth
+// since they require runtime configuration.
 func All() []rocco.Endpoint {
 	return []rocco.Endpoint{
 		// Profile
 		getMyProfile,
 		updateMyProfile,
+		// Tenants
+		createMyTenant,
 		// Sessions
 		listMySessions,
 		revokeMySession,
@@ -16,4 +20,13 @@ func All() []rocco.Endpoint {
 		listMyIdentities,
 		unlinkMyIdentity,
 	}
+}
+
+// AllWithAuth returns All() plus the auth handlers (login, callback, logout).
+func AllWithAuth(auth *AuthHandlers) []rocco.Endpoint {
+	endpoints := All()
+	if auth != nil {
+		endpoints = append(endpoints, auth.Login, auth.Callback, auth.Logout)
+	}
+	return endpoints
 }

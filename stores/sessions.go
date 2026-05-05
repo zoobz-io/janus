@@ -54,6 +54,36 @@ func (s *Sessions) CreateSession(ctx context.Context, userID, issuedBy, userAgen
 	return token, sess, nil
 }
 
+// CreateSessionWithID creates a session with a specific ID (used by the OAuth cookie flow).
+// The token hash is derived from the provided ID since cookie sessions don't use bearer tokens.
+func (s *Sessions) CreateSessionWithID(ctx context.Context, id, userID, issuedBy, userAgent, ipAddress string) (string, *models.Session, error) {
+	sess := &models.Session{
+		ID:        id,
+		UserID:    userID,
+		TokenHash: hashToken(id),
+		IssuedBy:  issuedBy,
+		UserAgent: userAgent,
+		IPAddress: ipAddress,
+		ExpiresAt: time.Now().Add(DefaultSessionDuration),
+	}
+	if err := s.Set(ctx, "", sess); err != nil {
+		return "", nil, fmt.Errorf("creating session: %w", err)
+	}
+	return id, sess, nil
+}
+
+// GetSession retrieves a session by ID.
+func (s *Sessions) GetSession(ctx context.Context, id string) (*models.Session, error) {
+	return s.Select().
+		Where("id", "=", "id").
+		Exec(ctx, map[string]any{"id": id})
+}
+
+// DeleteSession removes a session by ID (no user scope check).
+func (s *Sessions) DeleteSession(ctx context.Context, id string) error {
+	return s.Delete(ctx, id)
+}
+
 // ValidateByToken looks up a session by token hash and checks expiry.
 func (s *Sessions) ValidateByToken(ctx context.Context, token string) (*models.Session, error) {
 	hash := hashToken(token)

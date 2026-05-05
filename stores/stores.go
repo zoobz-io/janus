@@ -9,6 +9,7 @@ import (
 type Stores struct {
 	Tenants          *Tenants
 	Users            *Users
+	Memberships      *Memberships
 	LinkedIdentities *LinkedIdentities
 	Sessions         *Sessions
 }
@@ -18,6 +19,7 @@ func New(db *sqlx.DB, renderer astql.Renderer) *Stores {
 	return &Stores{
 		Tenants:          NewTenants(db, renderer),
 		Users:            NewUsers(db, renderer),
+		Memberships:      NewMemberships(db, renderer),
 		LinkedIdentities: NewLinkedIdentities(db, renderer),
 		Sessions:         NewSessions(db, renderer),
 	}

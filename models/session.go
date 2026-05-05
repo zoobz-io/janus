@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/zoobzio/sum"
+	"github.com/zoobz-io/sum"
 )
 
 // Session represents an active authentication session.
