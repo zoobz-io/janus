@@ -2,7 +2,7 @@
 
 .DEFAULT_GOAL := help
 
-APP_NAME := Janus
+APP_NAME := janus
 BIN_DIR := bin
 
 help: ## Display available commands

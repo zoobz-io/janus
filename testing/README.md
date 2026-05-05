@@ -18,7 +18,7 @@ package testing
 import (
     "testing"
 
-    "github.com/zoobzio/Janus/models"
+    "github.com/zoobz-io/janus/models"
 )
 
 func NewUser(t *testing.T) *models.User {
@@ -54,7 +54,7 @@ package testing
 import (
     "context"
 
-    "github.com/zoobzio/Janus/models"
+    "github.com/zoobz-io/janus/models"
 )
 
 type MockUsers struct {
@@ -98,7 +98,7 @@ import (
 
     "github.com/zoobzio/sum"
     sumtest "github.com/zoobzio/sum/testing"
-    "github.com/zoobzio/Janus/contracts"
+    "github.com/zoobz-io/janus/contracts"
 )
 
 type RegistryOption func(k sum.Key)
@@ -133,18 +133,18 @@ import (
     "testing"
 
     rtesting "github.com/zoobzio/rocco/testing"
-    vickytest "github.com/zoobzio/Janus/testing"
+    janustest "github.com/zoobz-io/janus/testing"
 )
 
 func TestGetMe(t *testing.T) {
-    user := vickytest.NewUser(t)
-    mu := &vickytest.MockUsers{
+    user := janustest.NewUser(t)
+    mu := &janustest.MockUsers{
         OnGet: func(ctx context.Context, key string) (*models.User, error) {
             return user, nil
         },
     }
 
-    _ = vickytest.SetupRegistry(t, vickytest.WithUsers(mu))
+    _ = janustest.SetupRegistry(t, janustest.WithUsers(mu))
 
     // Test handler...
 }

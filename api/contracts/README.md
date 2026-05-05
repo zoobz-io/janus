@@ -15,7 +15,7 @@ package contracts
 import (
     "context"
 
-    "github.com/zoobzio/Janus/models"
+    "github.com/zoobz-io/janus/models"
 )
 
 type Users interface {

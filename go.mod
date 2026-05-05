@@ -1,4 +1,4 @@
-module github.com/zoobzio/Janus
+module github.com/zoobz-io/janus
 
 go 1.25.0
 

@@ -6,15 +6,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: Janus
-      POSTGRES_USER: Janus
-      POSTGRES_PASSWORD: Janus
+      POSTGRES_DB: janus
+      POSTGRES_USER: janus
+      POSTGRES_PASSWORD: janus
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U Janus"]
+      test: ["CMD-SHELL", "pg_isready -U janus"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -28,7 +28,7 @@ services:
       - ./migrations:/migrations:ro
     environment:
       GOOSE_DRIVER: postgres
-      GOOSE_DBSTRING: "host=postgres port=5432 user=Janus password=Janus dbname=Janus sslmode=disable"
+      GOOSE_DBSTRING: "host=postgres port=5432 user=janus password=janus dbname=janus sslmode=disable"
       GOOSE_MIGRATION_DIR: /migrations
 
   redis:
@@ -47,8 +47,8 @@ services:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: Janus
-      MINIO_ROOT_PASSWORD: Janusdev
+      MINIO_ROOT_USER: janus
+      MINIO_ROOT_PASSWORD: janusdev
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -140,19 +140,19 @@ services:
       APP_PORT: "8080"
       APP_DB_HOST: postgres
       APP_DB_PORT: "5432"
-      APP_DB_NAME: Janus
-      APP_DB_USER: Janus
-      APP_DB_PASSWORD: Janus
+      APP_DB_NAME: janus
+      APP_DB_USER: janus
+      APP_DB_PASSWORD: janus
       APP_DB_SSLMODE: disable
       APP_REDIS_ADDR: redis:6379
       APP_STORAGE_ENDPOINT: minio:9000
-      APP_STORAGE_ACCESS_KEY: Janus
-      APP_STORAGE_SECRET_KEY: Janusdev
-      APP_STORAGE_BUCKET: Janus
+      APP_STORAGE_ACCESS_KEY: janus
+      APP_STORAGE_SECRET_KEY: janusdev
+      APP_STORAGE_BUCKET: janus
       APP_STORAGE_USE_SSL: "false"
       APP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
-      OTEL_SERVICE_NAME: Janus
+      OTEL_SERVICE_NAME: janus
     ports:
       - "8080:8080"
     volumes:
