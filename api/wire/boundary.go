@@ -8,4 +8,8 @@ func RegisterBoundaries(k sum.Key) {
 	sum.NewBoundary[TenantResponse](k)
 	sum.NewBoundary[SessionListResponse](k)
 	sum.NewBoundary[LinkedIdentityListResponse](k)
+	sum.NewBoundary[ApplicationListResponse](k)
+	sum.NewBoundary[TenantApplicationListResponse](k)
+	sum.NewBoundary[UserApplicationListResponse](k)
+	sum.NewBoundary[MemberListResponse](k)
 }

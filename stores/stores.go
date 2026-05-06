@@ -7,20 +7,26 @@ import (
 
 // Stores aggregates all data store instances for the application.
 type Stores struct {
-	Tenants          *Tenants
-	Users            *Users
-	Memberships      *Memberships
-	LinkedIdentities *LinkedIdentities
-	Sessions         *Sessions
+	Tenants              *Tenants
+	Users                *Users
+	Memberships          *Memberships
+	LinkedIdentities     *LinkedIdentities
+	Sessions             *Sessions
+	Applications         *Applications
+	TenantApplications   *TenantApplications
+	UserApplications     *UserApplications
 }
 
 // New initializes all stores and returns an aggregated Stores instance.
 func New(db *sqlx.DB, renderer astql.Renderer) *Stores {
 	return &Stores{
-		Tenants:          NewTenants(db, renderer),
-		Users:            NewUsers(db, renderer),
-		Memberships:      NewMemberships(db, renderer),
-		LinkedIdentities: NewLinkedIdentities(db, renderer),
-		Sessions:         NewSessions(db, renderer),
+		Tenants:              NewTenants(db, renderer),
+		Users:                NewUsers(db, renderer),
+		Memberships:          NewMemberships(db, renderer),
+		LinkedIdentities:     NewLinkedIdentities(db, renderer),
+		Sessions:             NewSessions(db, renderer),
+		Applications:         NewApplications(db, renderer),
+		TenantApplications:   NewTenantApplications(db, renderer),
+		UserApplications:     NewUserApplications(db, renderer),
 	}
 }

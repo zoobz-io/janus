@@ -12,12 +12,16 @@ import (
 	"strings"
 
 	"github.com/zoobz-io/aegis"
+	directorypb "github.com/zoobz-io/aegis/proto/directory/v1"
+	identitypb "github.com/zoobz-io/aegis/proto/identity/v1"
+	sessionpb "github.com/zoobz-io/aegis/proto/session/v1"
+	astqlpg "github.com/zoobz-io/astql/postgres"
 	"github.com/zoobz-io/capitan"
 	"github.com/zoobz-io/cereal"
 	"github.com/zoobz-io/rocco/oauth"
 	"github.com/zoobz-io/rocco/session"
+	"github.com/zoobz-io/sctx"
 	"github.com/zoobz-io/sum"
-	astqlpg "github.com/zoobz-io/astql/postgres"
 	"google.golang.org/grpc"
 
 	apicontracts "github.com/zoobz-io/janus/api/contracts"
@@ -121,6 +125,9 @@ func run() error {
 	sum.Register[apicontracts.LinkedIdentities](k, allStores.LinkedIdentities)
 	sum.Register[apicontracts.Memberships](k, allStores.Memberships)
 	sum.Register[apicontracts.Tenants](k, allStores.Tenants)
+	sum.Register[apicontracts.Applications](k, allStores.Applications)
+	sum.Register[apicontracts.TenantApplications](k, allStores.TenantApplications)
+	sum.Register[apicontracts.UserApplications](k, allStores.UserApplications)
 
 	// =========================================================================
 	// 6. Authentication (cookie + bearer)
@@ -151,7 +158,10 @@ func run() error {
 	// 7. OAuth login/callback/logout/register handlers
 	// =========================================================================
 
-	meshServer := mesh.NewServer(allStores.Tenants, allStores.Users, allStores.Memberships, allStores.LinkedIdentities, allStores.Sessions)
+	identityServer := mesh.NewIdentityServer(
+		allStores.Users, allStores.LinkedIdentities, allStores.Tenants, allStores.Memberships,
+		allStores.Applications, allStores.TenantApplications, allStores.UserApplications,
+	)
 
 	// Build OAuth provider config from OIDC issuer.
 	issuer := strings.TrimSuffix(authCfg.Issuer, "/")
@@ -170,7 +180,7 @@ func run() error {
 		Store:       sessionStore,
 		Cookie:      cookieCfg,
 		RedirectURL: authCfg.PostLoginRedirect,
-		Resolve:     resolveOAuth(issuer, meshServer),
+		Resolve:     resolveOAuth(issuer, identityServer),
 	}
 
 	authHandlers, err := handlers.NewAuthHandlers(sessionCfg)
@@ -187,6 +197,9 @@ func run() error {
 	sum.NewBoundary[models.Membership](k)
 	sum.NewBoundary[models.LinkedIdentity](k)
 	sum.NewBoundary[models.Session](k)
+	sum.NewBoundary[models.Application](k)
+	sum.NewBoundary[models.TenantApplication](k)
+	sum.NewBoundary[models.UserApplication](k)
 	wire.RegisterBoundaries(k)
 
 	sum.Freeze(k)
@@ -211,20 +224,104 @@ func run() error {
 	capitan.Emit(ctx, events.StartupApertureReady)
 
 	// =========================================================================
-	// 10. Aegis mesh node
+	// 10. Aegis mesh node with sctx auth
 	// =========================================================================
 
 	meshCfg := sum.MustUse[config.Mesh](ctx)
+
+	// Bootstrap sctx admin from file-based keychain.
+	keychain := aegis.NewFileKeychain(meshCfg.CertDir)
+	admin, err := aegis.NewAdminFromKeychain(ctx, keychain, meshCfg.ID)
+	if err != nil {
+		return fmt.Errorf("failed to create sctx admin: %w", err)
+	}
+
+	// Create guards. We need a self-token to create guards, which requires
+	// a temporary assertion against our own cert.
+	nodeCert, err := keychain.LoadCertificate(ctx, meshCfg.ID)
+	if err != nil {
+		return fmt.Errorf("failed to load node certificate: %w", err)
+	}
+	nodeKey, err := keychain.LoadPrivateKey(ctx, meshCfg.ID)
+	if err != nil {
+		return fmt.Errorf("failed to load node private key: %w", err)
+	}
+	nodeAssertion, err := sctx.CreateAssertion(nodeKey, nodeCert)
+	if err != nil {
+		return fmt.Errorf("failed to create node assertion: %w", err)
+	}
+	nodeToken, err := admin.Generate(ctx, nodeCert, nodeAssertion)
+	if err != nil {
+		return fmt.Errorf("failed to generate node token: %w", err)
+	}
+
+	// Define guards for each gRPC service method.
+	identityResolveGuard, err := admin.CreateGuard(ctx, nodeToken, "identity:resolve")
+	if err != nil {
+		return fmt.Errorf("failed to create guard: %w", err)
+	}
+	identityRegisterGuard, err := admin.CreateGuard(ctx, nodeToken, "identity:register")
+	if err != nil {
+		return fmt.Errorf("failed to create guard: %w", err)
+	}
+	identityReadGuard, err := admin.CreateGuard(ctx, nodeToken, "identity:read")
+	if err != nil {
+		return fmt.Errorf("failed to create guard: %w", err)
+	}
+	sessionManageGuard, err := admin.CreateGuard(ctx, nodeToken, "session:manage")
+	if err != nil {
+		return fmt.Errorf("failed to create guard: %w", err)
+	}
+	directoryReadGuard, err := admin.CreateGuard(ctx, nodeToken, "directory:read")
+	if err != nil {
+		return fmt.Errorf("failed to create guard: %w", err)
+	}
+	directoryWriteGuard, err := admin.CreateGuard(ctx, nodeToken, "directory:write")
+	if err != nil {
+		return fmt.Errorf("failed to create guard: %w", err)
+	}
+
+	// Create gRPC service implementations.
+	sessionServer := mesh.NewSessionServer(
+		allStores.Sessions, allStores.Users, allStores.Tenants,
+		allStores.Applications, allStores.TenantApplications, allStores.UserApplications, allStores.Memberships,
+	)
+	directoryServer := mesh.NewDirectoryServer(allStores.Users, allStores.Tenants, allStores.Memberships)
 
 	node, err := aegis.NewNodeBuilder().
 		WithID(meshCfg.ID).
 		WithName(meshCfg.Name).
 		WithAddress(meshCfg.Addr()).
-		WithServices(aegis.ServiceInfo{Name: "identity", Version: "v1"}).
-		WithServiceRegistration(func(_ *grpc.Server) {
-			// gRPC service registration will be added when aegis protos are updated.
-		}).
 		WithCertDir(meshCfg.CertDir).
+		WithAdmin(admin).
+		WithServices(
+			aegis.ServiceInfo{Name: "identity", Version: "v1"},
+			aegis.ServiceInfo{Name: "session", Version: "v1"},
+			aegis.ServiceInfo{Name: "directory", Version: "v1"},
+		).
+		// Identity guards.
+		WithGuard(identitypb.IdentityService_ResolveIdentity_FullMethodName, identityResolveGuard).
+		WithGuard(identitypb.IdentityService_Register_FullMethodName, identityRegisterGuard).
+		WithGuard(identitypb.IdentityService_ListProviders_FullMethodName, identityReadGuard).
+		// Session guards.
+		WithGuard(sessionpb.SessionService_CreateSession_FullMethodName, sessionManageGuard).
+		WithGuard(sessionpb.SessionService_ValidateSession_FullMethodName, sessionManageGuard).
+		WithGuard(sessionpb.SessionService_RevokeSession_FullMethodName, sessionManageGuard).
+		WithGuard(sessionpb.SessionService_RevokeUserSessions_FullMethodName, sessionManageGuard).
+		WithGuard(sessionpb.SessionService_ListUserSessions_FullMethodName, sessionManageGuard).
+		WithGuard(sessionpb.SessionService_SubscribeSessionEvents_FullMethodName, sessionManageGuard).
+		// Directory guards.
+		WithGuard(directorypb.DirectoryService_GetUser_FullMethodName, directoryReadGuard).
+		WithGuard(directorypb.DirectoryService_GetUserByEmail_FullMethodName, directoryReadGuard).
+		WithGuard(directorypb.DirectoryService_GetTenant_FullMethodName, directoryReadGuard).
+		WithGuard(directorypb.DirectoryService_CreateTenant_FullMethodName, directoryWriteGuard).
+		WithGuard(directorypb.DirectoryService_UpdateTenant_FullMethodName, directoryWriteGuard).
+		// Service registration.
+		WithServiceRegistration(func(s *grpc.Server) {
+			identitypb.RegisterIdentityServiceServer(s, identityServer)
+			sessionpb.RegisterSessionServiceServer(s, sessionServer)
+			directorypb.RegisterDirectoryServiceServer(s, directoryServer)
+		}).
 		Build()
 	if err != nil {
 		return fmt.Errorf("failed to build mesh node: %w", err)
@@ -252,7 +349,7 @@ func run() error {
 // It looks up the user by linked identity. If not found, creates the user
 // and links the identity (but does not create a tenant — the user must
 // create one via POST /me/tenants after login).
-func resolveOAuth(issuer string, meshServer *mesh.Server) func(context.Context, *oauth.TokenResponse) (*session.Data, error) {
+func resolveOAuth(issuer string, identitySvc *mesh.IdentityServer) func(context.Context, *oauth.TokenResponse) (*session.Data, error) {
 	userinfoURL := issuer + "/oidc/v1/userinfo"
 
 	return func(ctx context.Context, tokens *oauth.TokenResponse) (*session.Data, error) {
@@ -265,25 +362,30 @@ func resolveOAuth(issuer string, meshServer *mesh.Server) func(context.Context, 
 		}
 
 		// Try to resolve existing user.
-		resp, err := meshServer.ResolveIdentity(ctx, mesh.ResolveIdentityRequest{
-			Provider:        "oidc",
-			ExternalSubject: sub,
+		resp, err := identitySvc.ResolveIdentity(ctx, &identitypb.ResolveIdentityRequest{
+			Provider:       "oidc",
+			ProviderUserId: sub,
 		})
 		if err == nil {
 			return &session.Data{
-				UserID: resp.UserID,
+				UserID: resp.UserId,
 				Email:  email,
 			}, nil
 		}
 
 		// User not found — create user + link identity (no tenant yet).
-		resp, err = meshServer.Register(ctx, "", "", email, name, "oidc", sub)
+		regResp, err := identitySvc.Register(ctx, &identitypb.RegisterRequest{
+			Email:          email,
+			Name:           name,
+			Provider:       "oidc",
+			ProviderUserId: sub,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("creating user: %w", err)
 		}
 
 		return &session.Data{
-			UserID: resp.UserID,
+			UserID: regResp.UserId,
 			Email:  email,
 		}, nil
 	}

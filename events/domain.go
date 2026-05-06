@@ -13,6 +13,10 @@ var (
 	IdentityUnlinked = capitan.NewSignal("janus.identity.unlinked", "External identity unlinked from user")
 	TenantCreated = capitan.NewSignal("janus.tenant.created", "New tenant provisioned")
 	TenantUpdated = capitan.NewSignal("janus.tenant.updated", "Tenant updated")
+	TenantAppAuthorized = capitan.NewSignal("janus.tenant.app.authorized", "Tenant authorized for application")
+	TenantAppRevoked    = capitan.NewSignal("janus.tenant.app.revoked", "Tenant authorization for application revoked")
+	UserAppGranted      = capitan.NewSignal("janus.user.app.granted", "User granted access to application")
+	UserAppRevoked      = capitan.NewSignal("janus.user.app.revoked", "User access to application revoked")
 )
 
 // Domain event field keys.
@@ -23,5 +27,6 @@ var (
 	IdentityIDKey = capitan.NewStringKey("identity_id")
 	ProviderKey   = capitan.NewStringKey("provider")
 	IssuedByKey   = capitan.NewStringKey("issued_by")
-	EmailKey      = capitan.NewStringKey("email")
+	EmailKey        = capitan.NewStringKey("email")
+	ApplicationIDKey = capitan.NewStringKey("application_id")
 )
