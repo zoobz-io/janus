@@ -13,6 +13,7 @@ import (
 
 	"github.com/zoobz-io/aegis"
 	directorypb "github.com/zoobz-io/aegis/proto/directory/v1"
+	entitlementpb "github.com/zoobz-io/aegis/proto/entitlement/v1"
 	identitypb "github.com/zoobz-io/aegis/proto/identity/v1"
 	sessionpb "github.com/zoobz-io/aegis/proto/session/v1"
 	astqlpg "github.com/zoobz-io/astql/postgres"
@@ -32,6 +33,7 @@ import (
 	"github.com/zoobz-io/janus/internal/auth"
 	"github.com/zoobz-io/janus/internal/boot"
 	"github.com/zoobz-io/janus/internal/mesh"
+	"github.com/zoobz-io/janus/internal/observe"
 	"github.com/zoobz-io/janus/models"
 	"github.com/zoobz-io/janus/stores"
 )
@@ -223,6 +225,10 @@ func run() error {
 	defer ap.Close()
 	capitan.Emit(ctx, events.StartupApertureReady)
 
+	if _, schemaErr := observe.StartSchemaSync(ctx, db, ap); schemaErr != nil {
+		return fmt.Errorf("failed to start aperture schema sync: %w", schemaErr)
+	}
+
 	// =========================================================================
 	// 10. Aegis mesh node with sctx auth
 	// =========================================================================
@@ -280,6 +286,10 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("failed to create guard: %w", err)
 	}
+	entitlementManageGuard, err := admin.CreateGuard(ctx, nodeToken, "entitlement:manage")
+	if err != nil {
+		return fmt.Errorf("failed to create guard: %w", err)
+	}
 
 	// Create gRPC service implementations.
 	sessionServer := mesh.NewSessionServer(
@@ -287,6 +297,9 @@ func run() error {
 		allStores.Applications, allStores.TenantApplications, allStores.UserApplications, allStores.Memberships,
 	)
 	directoryServer := mesh.NewDirectoryServer(allStores.Users, allStores.Tenants, allStores.Memberships)
+	entitlementServer := mesh.NewEntitlementServer(
+		allStores.Applications, allStores.TenantApplications, allStores.UserApplications, allStores.Memberships,
+	)
 
 	node, err := aegis.NewNodeBuilder().
 		WithID(meshCfg.ID).
@@ -298,6 +311,7 @@ func run() error {
 			aegis.ServiceInfo{Name: "identity", Version: "v1"},
 			aegis.ServiceInfo{Name: "session", Version: "v1"},
 			aegis.ServiceInfo{Name: "directory", Version: "v1"},
+			aegis.ServiceInfo{Name: "entitlement", Version: "v1"},
 		).
 		// Identity guards.
 		WithGuard(identitypb.IdentityService_ResolveIdentity_FullMethodName, identityResolveGuard).
@@ -316,11 +330,20 @@ func run() error {
 		WithGuard(directorypb.DirectoryService_GetTenant_FullMethodName, directoryReadGuard).
 		WithGuard(directorypb.DirectoryService_CreateTenant_FullMethodName, directoryWriteGuard).
 		WithGuard(directorypb.DirectoryService_UpdateTenant_FullMethodName, directoryWriteGuard).
+		// Entitlement guards.
+		WithGuard(entitlementpb.EntitlementService_AuthorizeApplication_FullMethodName, entitlementManageGuard).
+		WithGuard(entitlementpb.EntitlementService_RevokeApplication_FullMethodName, entitlementManageGuard).
+		WithGuard(entitlementpb.EntitlementService_ListTenantApplications_FullMethodName, entitlementManageGuard).
+		WithGuard(entitlementpb.EntitlementService_GrantUserAccess_FullMethodName, entitlementManageGuard).
+		WithGuard(entitlementpb.EntitlementService_RevokeUserAccess_FullMethodName, entitlementManageGuard).
+		WithGuard(entitlementpb.EntitlementService_UpdateUserAccess_FullMethodName, entitlementManageGuard).
+		WithGuard(entitlementpb.EntitlementService_ListUserAccess_FullMethodName, entitlementManageGuard).
 		// Service registration.
 		WithServiceRegistration(func(s *grpc.Server) {
 			identitypb.RegisterIdentityServiceServer(s, identityServer)
 			sessionpb.RegisterSessionServiceServer(s, sessionServer)
 			directorypb.RegisterDirectoryServiceServer(s, directoryServer)
+			entitlementpb.RegisterEntitlementServiceServer(s, entitlementServer)
 		}).
 		Build()
 	if err != nil {

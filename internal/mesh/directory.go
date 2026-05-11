@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zoobz-io/capitan"
 	directorypb "github.com/zoobz-io/aegis/proto/directory/v1"
 
 	"github.com/zoobz-io/janus/events"
@@ -71,7 +70,7 @@ func (s *DirectoryServer) CreateTenant(ctx context.Context, req *directorypb.Cre
 		}
 	}
 
-	capitan.Emit(ctx, events.TenantCreated, events.TenantIDKey.Field(tenant.ID))
+	events.TenantCreated.Emit(ctx, events.TenantEvent{TenantID: tenant.ID})
 
 	return &directorypb.CreateTenantResponse{
 		TenantId: tenant.ID,
@@ -95,7 +94,7 @@ func (s *DirectoryServer) UpdateTenant(ctx context.Context, req *directorypb.Upd
 		return nil, fmt.Errorf("updating tenant: %w", err)
 	}
 
-	capitan.Emit(ctx, events.TenantUpdated, events.TenantIDKey.Field(req.TenantId))
+	events.TenantUpdated.Emit(ctx, events.TenantEvent{TenantID: req.TenantId})
 
 	return &directorypb.UpdateTenantResponse{}, nil
 }

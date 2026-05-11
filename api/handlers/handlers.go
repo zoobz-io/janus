@@ -19,19 +19,8 @@ func All() []rocco.Endpoint {
 		// Linked Identities
 		listMyIdentities,
 		unlinkMyIdentity,
-		// Members
-		listTenantMembers,
-		addTenantMember,
-		updateTenantMemberRole,
-		removeTenantMember,
-		// Applications
+		// Applications (read-only)
 		listApplications,
-		listTenantApplications,
-		authorizeTenantApplication,
-		revokeTenantApplication,
-		listUserApplications,
-		grantUserApplication,
-		revokeUserApplication,
 		listMyApplications,
 	}
 }

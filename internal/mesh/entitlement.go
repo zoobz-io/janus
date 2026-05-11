@@ -74,6 +74,8 @@ func (e *entitlementChecker) authorizedTenants(ctx context.Context, userID, appS
 			TenantId:   tenant.ID,
 			TenantName: tenant.Name,
 			Role:       mem.Role,
+			AppRoles:   ua.Roles,
+			AppScopes:  ua.Scopes,
 		})
 	}
 

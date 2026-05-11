@@ -24,6 +24,15 @@ func NewUserApplications(db *sqlx.DB, renderer astql.Renderer) *UserApplications
 	}
 }
 
+// ListByTenantAndApp retrieves all user grants for an application within a tenant.
+func (s *UserApplications) ListByTenantAndApp(ctx context.Context, tenantID, applicationID string) ([]*models.UserApplication, error) {
+	return s.Query().
+		Where("tenant_id", "=", "tenant_id").
+		Where("application_id", "=", "application_id").
+		OrderBy("created_at", "ASC").
+		Exec(ctx, map[string]any{"tenant_id": tenantID, "application_id": applicationID})
+}
+
 // ListByUser retrieves all application grants for a user within a tenant.
 func (s *UserApplications) ListByUser(ctx context.Context, userID, tenantID string) ([]*models.UserApplication, error) {
 	return s.Query().
@@ -50,16 +59,42 @@ func (s *UserApplications) GetByUserAndApp(ctx context.Context, userID, tenantID
 	return results[0], nil
 }
 
-// Grant delegates access to an application for a user within a tenant.
-func (s *UserApplications) Grant(ctx context.Context, userID, tenantID, applicationID string) (*models.UserApplication, error) {
+// Grant delegates access to an application for a user within a tenant
+// with the given application-specific roles and scopes.
+func (s *UserApplications) Grant(ctx context.Context, userID, tenantID, applicationID string, roles, scopes []string) (*models.UserApplication, error) {
+	if roles == nil {
+		roles = []string{}
+	}
+	if scopes == nil {
+		scopes = []string{}
+	}
 	ua := &models.UserApplication{
 		ID:            uuid.New().String(),
 		UserID:        userID,
 		TenantID:      tenantID,
 		ApplicationID: applicationID,
+		Roles:         roles,
+		Scopes:        scopes,
 	}
 	if err := s.Set(ctx, "", ua); err != nil {
 		return nil, fmt.Errorf("granting user application: %w", err)
+	}
+	return ua, nil
+}
+
+// UpdateAccess updates the roles and scopes on an existing user-application grant.
+func (s *UserApplications) UpdateAccess(ctx context.Context, userID, tenantID, applicationID string, roles, scopes []string) (*models.UserApplication, error) {
+	ua, err := s.GetByUserAndApp(ctx, userID, tenantID, applicationID)
+	if err != nil {
+		return nil, err
+	}
+	if ua == nil {
+		return nil, ErrNotFound
+	}
+	ua.Roles = roles
+	ua.Scopes = scopes
+	if err := s.Set(ctx, ua.ID, ua); err != nil {
+		return nil, fmt.Errorf("updating user application access: %w", err)
 	}
 	return ua, nil
 }

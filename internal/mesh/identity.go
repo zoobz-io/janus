@@ -3,7 +3,6 @@ package mesh
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/zoobz-io/capitan"
 	identitypb "github.com/zoobz-io/aegis/proto/identity/v1"
@@ -49,8 +48,6 @@ func NewIdentityServer(
 }
 
 // ResolveIdentity looks up an internal user by external IdP provider and subject.
-// The response is scoped to the calling application — if the user does not
-// have an entitlement for the caller's app, an error is returned.
 func (s *IdentityServer) ResolveIdentity(ctx context.Context, req *identitypb.ResolveIdentityRequest) (*identitypb.ResolveIdentityResponse, error) {
 	link, err := s.linkedIdentities.GetByProviderSubject(ctx, req.Provider, req.ProviderUserId)
 	if err != nil {
@@ -66,13 +63,13 @@ func (s *IdentityServer) ResolveIdentity(ctx context.Context, req *identitypb.Re
 	}
 
 	if touchErr := s.users.TouchLastSeen(ctx, user.ID); touchErr != nil {
-		log.Printf("mesh: failed to touch last_seen for user %s: %v", user.ID, touchErr)
+		capitan.Warn(ctx, events.LastSeenUpdateFailed, events.OpUserIDKey.Field(user.ID), events.OpErrorKey.Field(touchErr))
 	}
 
 	// Check entitlement for the calling application.
 	appSlug, err := callerAppSlug(ctx)
 	if err != nil {
-		log.Printf("mesh: no caller identity for entitlement check: %v", err)
+		capitan.Warn(ctx, events.EntitlementCheckSkipped, events.OpErrorKey.Field(err))
 		return &identitypb.ResolveIdentityResponse{
 			UserId:  user.ID,
 			Created: false,
@@ -105,8 +102,8 @@ func (s *IdentityServer) Register(ctx context.Context, req *identitypb.RegisterR
 		return nil, fmt.Errorf("linking identity: %w", err)
 	}
 
-	capitan.Emit(ctx, events.UserCreated, events.UserIDKey.Field(user.ID), events.EmailKey.Field(req.Email))
-	capitan.Emit(ctx, events.IdentityLinked, events.UserIDKey.Field(user.ID), events.ProviderKey.Field(req.Provider))
+	events.UserCreated.Emit(ctx, events.UserEvent{UserID: user.ID, Email: req.Email})
+	events.IdentityLinked.Emit(ctx, events.IdentityEvent{UserID: user.ID, Provider: req.Provider})
 
 	resp := &identitypb.RegisterResponse{
 		UserId: user.ID,
@@ -122,7 +119,7 @@ func (s *IdentityServer) Register(ctx context.Context, req *identitypb.RegisterR
 			return nil, fmt.Errorf("creating owner membership: %w", err)
 		}
 
-		capitan.Emit(ctx, events.TenantCreated, events.TenantIDKey.Field(tenant.ID))
+		events.TenantCreated.Emit(ctx, events.TenantEvent{TenantID: tenant.ID})
 		resp.TenantId = tenant.ID
 	}
 

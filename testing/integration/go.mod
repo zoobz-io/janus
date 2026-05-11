@@ -4,12 +4,12 @@ go 1.25.0
 
 require (
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/lib/pq v1.10.9
+	github.com/lib/pq v1.12.3
 	github.com/redis/go-redis/v9 v9.9.0
 	github.com/testcontainers/testcontainers-go v0.37.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.37.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.37.0
-	github.com/zoobz-io/aegis v0.0.6
+	github.com/zoobz-io/aegis v0.0.10
 	github.com/zoobz-io/astql v1.0.7
 	github.com/zoobz-io/cereal v0.1.2
 	github.com/zoobz-io/janus v0.0.0

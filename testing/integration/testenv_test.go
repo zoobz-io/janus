@@ -127,12 +127,19 @@ func TestMain(m *testing.M) {
 }
 
 func runMigrations(db *sqlx.DB) error {
-	migration, err := os.ReadFile("../../migrations/001_initial.sql")
-	if err != nil {
-		return fmt.Errorf("reading migration file: %w", err)
+	files := []string{
+		"../../migrations/001_initial.sql",
+		"../../migrations/002_user_application_roles_scopes.sql",
+		"../../migrations/003_aperture_schema.sql",
 	}
-	if _, err := db.Exec(string(migration)); err != nil {
-		return fmt.Errorf("executing migration: %w", err)
+	for _, f := range files {
+		migration, err := os.ReadFile(f)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", f, err)
+		}
+		if _, err := db.Exec(string(migration)); err != nil {
+			return fmt.Errorf("executing %s: %w", f, err)
+		}
 	}
 	return nil
 }

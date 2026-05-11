@@ -14,4 +14,5 @@ var (
 	ErrMembershipNotFound  = rocco.ErrNotFound.WithMessage("membership not found")
 	ErrApplicationNotFound = rocco.ErrNotFound.WithMessage("application not found")
 	ErrAlreadyExists       = rocco.ErrConflict.WithMessage("already exists")
+	ErrLastOwner           = rocco.ErrForbidden.WithMessage("cannot remove or demote the last owner")
 )

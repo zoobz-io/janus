@@ -3,7 +3,6 @@ package mesh
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/zoobz-io/aegis"
 	"github.com/zoobz-io/capitan"
@@ -57,11 +56,11 @@ func (s *SessionServer) CreateSession(ctx context.Context, req *sessionpb.Create
 		return nil, fmt.Errorf("creating session: %w", err)
 	}
 
-	capitan.Emit(ctx, events.SessionCreated,
-		events.SessionIDKey.Field(sess.ID),
-		events.UserIDKey.Field(req.UserId),
-		events.IssuedByKey.Field(issuedBy),
-	)
+	events.SessionCreated.Emit(ctx, events.SessionEvent{
+		SessionID: sess.ID,
+		UserID:    req.UserId,
+		IssuedBy:  issuedBy,
+	})
 
 	return &sessionpb.CreateSessionResponse{
 		Token:     token,
@@ -84,7 +83,7 @@ func (s *SessionServer) ValidateSession(ctx context.Context, req *sessionpb.Vali
 	// Check entitlement for the calling application.
 	appSlug, err := callerAppSlug(ctx)
 	if err != nil {
-		log.Printf("mesh: no caller identity for entitlement check: %v", err)
+		capitan.Warn(ctx, events.EntitlementCheckSkipped, events.OpErrorKey.Field(err))
 		return &sessionpb.ValidateSessionResponse{
 			Valid:     true,
 			UserId:   sess.UserID,
@@ -113,7 +112,7 @@ func (s *SessionServer) RevokeSession(ctx context.Context, req *sessionpb.Revoke
 	if err := s.sessions.RevokeByToken(ctx, req.Token); err != nil {
 		return nil, fmt.Errorf("revoking session: %w", err)
 	}
-	capitan.Emit(ctx, events.SessionRevoked)
+	events.SessionRevoked.Emit(ctx, events.SessionEvent{})
 	return &sessionpb.RevokeSessionResponse{}, nil
 }
 
@@ -123,7 +122,7 @@ func (s *SessionServer) RevokeUserSessions(ctx context.Context, req *sessionpb.R
 	if err != nil {
 		return nil, fmt.Errorf("revoking user sessions: %w", err)
 	}
-	capitan.Emit(ctx, events.SessionRevoked, events.UserIDKey.Field(req.UserId))
+	events.SessionRevoked.Emit(ctx, events.SessionEvent{UserID: req.UserId})
 	return &sessionpb.RevokeUserSessionsResponse{
 		RevokedCount: uint32(count), //nolint:gosec // count is bounded by session table rows
 	}, nil

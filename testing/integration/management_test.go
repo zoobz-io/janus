@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/zoobz-io/janus/internal/authz"
 	"github.com/zoobz-io/janus/models"
 )
 
@@ -96,7 +97,7 @@ func TestEntitlementFlow(t *testing.T) {
 	})
 
 	t.Run("GrantUserAppAccess", func(t *testing.T) {
-		ua, err := testStores.UserApplications.Grant(ctx, user.ID, tenant.ID, app.ID)
+		ua, err := testStores.UserApplications.Grant(ctx, user.ID, tenant.ID, app.ID, []string{"editor"}, []string{"projects:write"})
 		if err != nil {
 			t.Fatalf("Grant: %v", err)
 		}
@@ -135,6 +136,46 @@ func TestEntitlementFlow(t *testing.T) {
 		found, _ := testStores.TenantApplications.GetByTenantAndApp(ctx, tenant.ID, app.ID)
 		if found != nil {
 			t.Fatal("expected nil after revoke")
+		}
+	})
+}
+
+func TestOwnerProtection(t *testing.T) {
+	ctx := context.Background()
+	t.Cleanup(func() { cleanAll(t) })
+
+	owner, _ := testStores.Users.CreateUser(ctx, "sole-owner@example.com", "Sole Owner")
+	coowner, _ := testStores.Users.CreateUser(ctx, "co-owner@example.com", "Co Owner")
+	tenant, _ := testStores.Tenants.CreateTenant(ctx, "OwnerCorp", "ownercorp")
+	testStores.Memberships.Create(ctx, owner.ID, tenant.ID, models.UserRoleOwner)
+
+	t.Run("CannotRemoveLastOwner", func(t *testing.T) {
+		err := authz.RequireOwnerExists(ctx, testStores.Memberships, tenant.ID, owner.ID)
+		if err == nil {
+			t.Fatal("expected ErrLastOwner")
+		}
+		if err != authz.ErrLastOwner {
+			t.Fatalf("expected ErrLastOwner, got %v", err)
+		}
+	})
+
+	t.Run("CanRemoveOwnerWhenCoOwnerExists", func(t *testing.T) {
+		testStores.Memberships.Create(ctx, coowner.ID, tenant.ID, models.UserRoleOwner)
+
+		err := authz.RequireOwnerExists(ctx, testStores.Memberships, tenant.ID, owner.ID)
+		if err != nil {
+			t.Fatalf("expected no error with co-owner, got %v", err)
+		}
+	})
+
+	t.Run("CannotDemoteToLastOwner", func(t *testing.T) {
+		// Remove co-owner so only one owner remains.
+		mem, _ := testStores.Memberships.GetByUserAndTenant(ctx, coowner.ID, tenant.ID)
+		testStores.Memberships.Delete(ctx, mem.ID)
+
+		err := authz.RequireOwnerExists(ctx, testStores.Memberships, tenant.ID, owner.ID)
+		if err != authz.ErrLastOwner {
+			t.Fatalf("expected ErrLastOwner after co-owner removed, got %v", err)
 		}
 	})
 }

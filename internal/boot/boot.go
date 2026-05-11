@@ -2,12 +2,12 @@
 //
 // Each function reads config via sum.MustUse, builds the client, and returns it.
 // Callers own lifecycle — defer Close on returned clients.
+// Callers emit startup events after successful connection.
 package boot
 
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/jmoiron/sqlx"
 	goredis "github.com/redis/go-redis/v9"
@@ -26,7 +26,6 @@ func Database(ctx context.Context) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("connecting to database: %w", err)
 	}
-	log.Println("database connected")
 	return db, nil
 }
 
@@ -40,7 +39,6 @@ func Redis(ctx context.Context) (*goredis.Client, error) {
 		_ = client.Close()
 		return nil, fmt.Errorf("connecting to redis: %w", err)
 	}
-	log.Println("redis connected")
 	return client, nil
 }
 
@@ -55,7 +53,6 @@ func OTEL(ctx context.Context, serviceName string) (*intotel.Providers, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating otel providers: %w", err)
 	}
-	log.Println("observability initialized")
 	return providers, nil
 }
 
@@ -70,6 +67,5 @@ func Aperture(_ context.Context, providers *intotel.Providers) (*aperture.Apertu
 	if err != nil {
 		return nil, fmt.Errorf("creating aperture: %w", err)
 	}
-	log.Println("aperture initialized")
 	return ap, nil
 }

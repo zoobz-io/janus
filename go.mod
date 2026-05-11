@@ -7,13 +7,15 @@ toolchain go1.25.3
 require (
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
+	github.com/lib/pq v1.12.3
 	github.com/redis/go-redis/v9 v9.9.0
-	github.com/zoobz-io/aegis v0.0.6
+	github.com/zoobz-io/aegis v0.0.10
 	github.com/zoobz-io/aperture v1.0.3
 	github.com/zoobz-io/astql v1.0.7
 	github.com/zoobz-io/capitan v1.0.2
 	github.com/zoobz-io/cereal v0.1.2
 	github.com/zoobz-io/check v0.0.5
+	github.com/zoobz-io/flux v1.0.2
 	github.com/zoobz-io/grub v1.0.18
 	github.com/zoobz-io/rocco v0.1.19
 	github.com/zoobz-io/sctx v1.0.3
@@ -39,11 +41,13 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
 	github.com/zoobz-io/atom v1.0.1 // indirect
+	github.com/zoobz-io/clockz v1.0.2 // indirect
 	github.com/zoobz-io/dbml v1.0.1 // indirect
 	github.com/zoobz-io/edamame v1.0.2 // indirect
 	github.com/zoobz-io/fig v0.0.3 // indirect
 	github.com/zoobz-io/lucene v0.0.4 // indirect
 	github.com/zoobz-io/openapi v1.0.2 // indirect
+	github.com/zoobz-io/pipz v1.0.5 // indirect
 	github.com/zoobz-io/scio v0.0.5 // indirect
 	github.com/zoobz-io/sentinel v1.0.4 // indirect
 	github.com/zoobz-io/slush v0.0.3 // indirect

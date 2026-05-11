@@ -382,7 +382,7 @@ func TestUserApplications(t *testing.T) {
 	testStores.Memberships.Create(ctx, user.ID, tenant.ID, models.UserRoleViewer)
 
 	t.Run("GrantAndList", func(t *testing.T) {
-		ua, err := testStores.UserApplications.Grant(ctx, user.ID, tenant.ID, app.ID)
+		ua, err := testStores.UserApplications.Grant(ctx, user.ID, tenant.ID, app.ID, []string{"viewer"}, []string{"read"})
 		if err != nil {
 			t.Fatalf("Grant: %v", err)
 		}
