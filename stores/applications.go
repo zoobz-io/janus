@@ -46,6 +46,27 @@ func (s *Applications) ListApplications(ctx context.Context) ([]*models.Applicat
 		Exec(ctx, map[string]any{"status": models.ApplicationStatusActive})
 }
 
+// ListAll retrieves every application regardless of status (admin API).
+func (s *Applications) ListAll(ctx context.Context) ([]*models.Application, error) {
+	return s.Query().
+		OrderBy("name", "ASC").
+		Exec(ctx, nil)
+}
+
+// Update updates an application's name and status (admin API).
+func (s *Applications) Update(ctx context.Context, id, name string, status models.ApplicationStatus) (*models.Application, error) {
+	a, err := s.GetApplication(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	a.Name = name
+	a.Status = status
+	if err := s.Set(ctx, id, a); err != nil {
+		return nil, fmt.Errorf("updating application: %w", err)
+	}
+	return a, nil
+}
+
 // CreateApplication creates a new application.
 func (s *Applications) CreateApplication(ctx context.Context, name, slug string) (*models.Application, error) {
 	a := &models.Application{

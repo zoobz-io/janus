@@ -28,11 +28,11 @@ func (r UpdateMemberRoleRequest) Validate() error {
 
 // MemberResponse is the public API response for a tenant member.
 type MemberResponse struct {
-	ID          string `json:"id" description:"Membership ID" example:"550e8400-e29b-41d4-a716-446655440000"`
-	UserID      string `json:"user_id" description:"User ID" example:"550e8400-e29b-41d4-a716-446655440000"`
-	TenantID    string `json:"tenant_id" description:"Tenant ID" example:"660e8400-e29b-41d4-a716-446655440000"`
-	Role        string `json:"role" description:"Role" example:"admin"`
-	CreatedAt   string `json:"created_at" description:"When the membership was created" example:"2026-05-01T12:00:00Z"`
+	ID        string `json:"id" description:"Membership ID" example:"550e8400-e29b-41d4-a716-446655440000"`
+	UserID    string `json:"user_id" description:"User ID" example:"550e8400-e29b-41d4-a716-446655440000"`
+	TenantID  string `json:"tenant_id" description:"Tenant ID" example:"660e8400-e29b-41d4-a716-446655440000"`
+	Role      string `json:"role" description:"Role" example:"admin"`
+	CreatedAt string `json:"created_at" description:"When the membership was created" example:"2026-05-01T12:00:00Z"`
 }
 
 // MemberListResponse is the public API response for a list of members.

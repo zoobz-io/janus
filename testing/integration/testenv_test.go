@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -58,11 +59,11 @@ func TestMain(m *testing.M) {
 	sum.NewBoundary[models.Tenant](k)
 	sum.NewBoundary[models.User](k)
 	sum.NewBoundary[models.Membership](k)
-	sum.NewBoundary[models.LinkedIdentity](k)
+	sum.NewBoundary[models.Account](k)
 	sum.NewBoundary[models.Session](k)
 	sum.NewBoundary[models.Application](k)
-	sum.NewBoundary[models.TenantApplication](k)
-	sum.NewBoundary[models.UserApplication](k)
+	sum.NewBoundary[models.License](k)
+	sum.NewBoundary[models.Grant](k)
 	sum.Freeze(k)
 
 	pgContainer, err := postgres.Run(ctx, "postgres:16",
@@ -128,16 +129,18 @@ func TestMain(m *testing.M) {
 
 func runMigrations(db *sqlx.DB) error {
 	files := []string{
-		"../../migrations/001_initial.sql",
-		"../../migrations/002_user_application_roles_scopes.sql",
-		"../../migrations/003_aperture_schema.sql",
+		"../../migrations/001_initial_schema.sql",
+		"../../migrations/002_aperture_config.sql",
 	}
 	for _, f := range files {
 		migration, err := os.ReadFile(f)
 		if err != nil {
 			return fmt.Errorf("reading %s: %w", f, err)
 		}
-		if _, err := db.Exec(string(migration)); err != nil {
+		// The migrations are goose files; run only the Up section so the
+		// Down (DROP) statements don't execute against the test database.
+		up := strings.SplitN(string(migration), "-- +goose Down", 2)[0]
+		if _, err := db.Exec(up); err != nil {
 			return fmt.Errorf("executing %s: %w", f, err)
 		}
 	}
@@ -158,10 +161,13 @@ func cleanTable(t *testing.T, tables ...string) {
 func cleanAll(t *testing.T) {
 	t.Helper()
 	cleanTable(t,
-		"user_applications",
-		"tenant_applications",
+		"grants",
+		"features",
+		"tiers",
+		"scopes",
+		"licenses",
 		"sessions",
-		"linked_identities",
+		"accounts",
 		"memberships",
 		"applications",
 		"tenants",

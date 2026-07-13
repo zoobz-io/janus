@@ -12,9 +12,8 @@ NNN_description.sql
 - Descriptive name in snake_case
 
 Examples:
-- `001_extensions.sql`
-- `002_create_users.sql`
-- `003_add_user_avatar.sql`
+- `001_initial_schema.sql`
+- `002_aperture_config.sql`
 
 ## Format
 

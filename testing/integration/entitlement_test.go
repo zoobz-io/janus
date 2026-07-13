@@ -42,7 +42,7 @@ func TestEntitlementAuthz(t *testing.T) {
 			t.Fatalf("owner should pass admin check: %v", err)
 		}
 
-		ta, err := testStores.TenantApplications.Authorize(ctx, tenant.ID, app.ID)
+		ta, err := testStores.Licenses.Authorize(ctx, tenant.ID, app.ID)
 		if err != nil {
 			t.Fatalf("Authorize: %v", err)
 		}
@@ -69,7 +69,7 @@ func TestEntitlementAuthz(t *testing.T) {
 		roles := []string{"editor", "reviewer"}
 		scopes := []string{"projects:read", "builds:write"}
 
-		ua, err := testStores.UserApplications.Grant(ctx, viewer.ID, tenant.ID, app.ID, roles, scopes)
+		ua, err := testStores.Grants.Grant(ctx, viewer.ID, tenant.ID, app.ID, roles, scopes)
 		if err != nil {
 			t.Fatalf("Grant: %v", err)
 		}
@@ -82,7 +82,7 @@ func TestEntitlementAuthz(t *testing.T) {
 	})
 
 	t.Run("GetByUserAndAppReturnsRolesScopes", func(t *testing.T) {
-		ua, err := testStores.UserApplications.GetByUserAndApp(ctx, viewer.ID, tenant.ID, app.ID)
+		ua, err := testStores.Grants.GetByUserAndApp(ctx, viewer.ID, tenant.ID, app.ID)
 		if err != nil {
 			t.Fatalf("GetByUserAndApp: %v", err)
 		}
@@ -98,7 +98,7 @@ func TestEntitlementAuthz(t *testing.T) {
 	})
 
 	t.Run("UpdateAccess", func(t *testing.T) {
-		updated, err := testStores.UserApplications.UpdateAccess(ctx, viewer.ID, tenant.ID, app.ID, []string{"admin"}, []string{"*"})
+		updated, err := testStores.Grants.UpdateAccess(ctx, viewer.ID, tenant.ID, app.ID, []string{"admin"}, []string{"*"})
 		if err != nil {
 			t.Fatalf("UpdateAccess: %v", err)
 		}
@@ -110,14 +110,14 @@ func TestEntitlementAuthz(t *testing.T) {
 		}
 
 		// Verify persistence.
-		fetched, _ := testStores.UserApplications.GetByUserAndApp(ctx, viewer.ID, tenant.ID, app.ID)
+		fetched, _ := testStores.Grants.GetByUserAndApp(ctx, viewer.ID, tenant.ID, app.ID)
 		if len(fetched.Roles) != 1 || fetched.Roles[0] != "admin" {
 			t.Fatalf("expected persisted roles [admin], got %v", fetched.Roles)
 		}
 	})
 
 	t.Run("ListByTenantAndApp", func(t *testing.T) {
-		uas, err := testStores.UserApplications.ListByTenantAndApp(ctx, tenant.ID, app.ID)
+		uas, err := testStores.Grants.ListByTenantAndApp(ctx, tenant.ID, app.ID)
 		if err != nil {
 			t.Fatalf("ListByTenantAndApp: %v", err)
 		}
@@ -130,8 +130,8 @@ func TestEntitlementAuthz(t *testing.T) {
 	})
 
 	t.Run("GrantEmptyRolesScopes", func(t *testing.T) {
-		testStores.UserApplications.Revoke(ctx, viewer.ID, tenant.ID, app.ID)
-		ua, err := testStores.UserApplications.Grant(ctx, viewer.ID, tenant.ID, app.ID, nil, nil)
+		testStores.Grants.Revoke(ctx, viewer.ID, tenant.ID, app.ID)
+		ua, err := testStores.Grants.Grant(ctx, viewer.ID, tenant.ID, app.ID, nil, nil)
 		if err != nil {
 			t.Fatalf("Grant with nil: %v", err)
 		}
@@ -141,10 +141,10 @@ func TestEntitlementAuthz(t *testing.T) {
 	})
 
 	t.Run("RevokeApp", func(t *testing.T) {
-		if err := testStores.TenantApplications.Revoke(ctx, tenant.ID, app.ID); err != nil {
+		if err := testStores.Licenses.Revoke(ctx, tenant.ID, app.ID); err != nil {
 			t.Fatalf("Revoke: %v", err)
 		}
-		found, _ := testStores.TenantApplications.GetByTenantAndApp(ctx, tenant.ID, app.ID)
+		found, _ := testStores.Licenses.GetByTenantAndApp(ctx, tenant.ID, app.ID)
 		if found != nil {
 			t.Fatal("expected nil after revoke")
 		}
@@ -166,7 +166,7 @@ func TestEntitlementServer(t *testing.T) {
 	testStores.Memberships.Create(ctx, target.ID, tenant.ID, models.UserRoleViewer)
 
 	srv := mesh.NewEntitlementServer(
-		testStores.Applications, testStores.TenantApplications, testStores.UserApplications, testStores.Memberships,
+		testStores.Applications, testStores.Licenses, testStores.Grants, testStores.Memberships,
 	)
 
 	// Inject security context so resolveApp finds the application by slug.
@@ -181,7 +181,7 @@ func TestEntitlementServer(t *testing.T) {
 			t.Fatalf("AuthorizeApplication: %v", err)
 		}
 
-		tas, _ := testStores.TenantApplications.ListByTenant(ctx, tenant.ID)
+		tas, _ := testStores.Licenses.ListByTenant(ctx, tenant.ID)
 		if len(tas) != 1 {
 			t.Fatalf("expected 1 tenant app, got %d", len(tas))
 		}
@@ -284,7 +284,7 @@ func TestEntitlementServer(t *testing.T) {
 			t.Fatalf("RevokeApplication: %v", err)
 		}
 
-		found, _ := testStores.TenantApplications.GetByTenantAndApp(ctx, tenant.ID, app.ID)
+		found, _ := testStores.Licenses.GetByTenantAndApp(ctx, tenant.ID, app.ID)
 		if found != nil {
 			t.Fatal("expected nil after revoke")
 		}

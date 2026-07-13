@@ -26,15 +26,15 @@ var listApplications = rocco.GET[rocco.NoBody, wire.ApplicationListResponse]("/a
 
 // Self-service — what apps do I have access to in a tenant?
 
-var listMyApplications = rocco.GET[rocco.NoBody, wire.UserApplicationListResponse]("/me/tenants/{tenant_id}/applications", func(r *rocco.Request[rocco.NoBody]) (wire.UserApplicationListResponse, error) {
+var listMyApplications = rocco.GET[rocco.NoBody, wire.GrantListResponse]("/me/tenants/{tenant_id}/applications", func(r *rocco.Request[rocco.NoBody]) (wire.GrantListResponse, error) {
 	tenantID := pathID(r.Params, "tenant_id")
-	store := sum.MustUse[contracts.UserApplications](r)
+	store := sum.MustUse[contracts.Grants](r)
 	uas, err := store.ListByUser(r, r.Identity.ID(), tenantID)
 	if err != nil {
-		return wire.UserApplicationListResponse{}, err
+		return wire.GrantListResponse{}, err
 	}
-	return wire.UserApplicationListResponse{
-		Grants: transformers.UserApplicationsToResponse(uas),
+	return wire.GrantListResponse{
+		Grants: transformers.GrantsToResponse(uas),
 	}, nil
 }).
 	WithSummary("List my application grants within a tenant").

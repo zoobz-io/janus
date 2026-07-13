@@ -75,3 +75,36 @@ func (s *Memberships) Create(ctx context.Context, userID, tenantID string, role 
 	}
 	return m, nil
 }
+
+// UpdateRole changes a user's role within a tenant. Returns ErrNotFound if the
+// membership does not exist.
+func (s *Memberships) UpdateRole(ctx context.Context, userID, tenantID string, role models.UserRole) (*models.Membership, error) {
+	m, err := s.GetByUserAndTenant(ctx, userID, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	if m == nil {
+		return nil, ErrNotFound
+	}
+	m.Role = role
+	if err := s.Set(ctx, m.ID, m); err != nil {
+		return nil, fmt.Errorf("updating membership role: %w", err)
+	}
+	return m, nil
+}
+
+// Remove deletes a user's membership in a tenant. Returns ErrNotFound if the
+// membership does not exist.
+func (s *Memberships) Remove(ctx context.Context, userID, tenantID string) error {
+	m, err := s.GetByUserAndTenant(ctx, userID, tenantID)
+	if err != nil {
+		return err
+	}
+	if m == nil {
+		return ErrNotFound
+	}
+	if err := s.Delete(ctx, m.ID); err != nil {
+		return fmt.Errorf("removing membership: %w", err)
+	}
+	return nil
+}

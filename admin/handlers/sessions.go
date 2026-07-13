@@ -1,0 +1,50 @@
+package handlers
+
+import (
+	"github.com/zoobz-io/rocco"
+	"github.com/zoobz-io/sum"
+
+	"github.com/zoobz-io/janus/admin/contracts"
+	"github.com/zoobz-io/janus/admin/transformers"
+	"github.com/zoobz-io/janus/admin/wire"
+)
+
+var listUserSessions = rocco.GET[rocco.NoBody, wire.SessionListResponse]("/users/{user_id}/sessions", func(r *rocco.Request[rocco.NoBody]) (wire.SessionListResponse, error) {
+	sessions := sum.MustUse[contracts.Sessions](r)
+	list, err := sessions.ListSessionsByUser(r, pathID(r.Params, "user_id"))
+	if err != nil {
+		return wire.SessionListResponse{}, err
+	}
+	return wire.SessionListResponse{Sessions: transformers.SessionsToResponse(list)}, nil
+}).
+	WithSummary("List a user's sessions").
+	WithTags("Users").
+	WithPathParams("user_id").
+	WithAuthentication()
+
+var revokeUserSession = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/users/{user_id}/sessions/{session_id}", func(r *rocco.Request[rocco.NoBody]) (rocco.NoBody, error) {
+	sessions := sum.MustUse[contracts.Sessions](r)
+	if err := sessions.RevokeSession(r, pathID(r.Params, "session_id"), pathID(r.Params, "user_id")); err != nil {
+		return rocco.NoBody{}, ErrSessionNotFound
+	}
+	return rocco.NoBody{}, nil
+}).
+	WithSummary("Revoke a user's session").
+	WithTags("Users").
+	WithPathParams("user_id", "session_id").
+	WithSuccessStatus(204).
+	WithAuthentication().
+	WithErrors(ErrSessionNotFound)
+
+var revokeAllUserSessions = rocco.DELETE[rocco.NoBody, wire.RevokeAllSessionsResponse]("/users/{user_id}/sessions", func(r *rocco.Request[rocco.NoBody]) (wire.RevokeAllSessionsResponse, error) {
+	sessions := sum.MustUse[contracts.Sessions](r)
+	count, err := sessions.RevokeUserSessions(r, pathID(r.Params, "user_id"))
+	if err != nil {
+		return wire.RevokeAllSessionsResponse{}, err
+	}
+	return wire.RevokeAllSessionsResponse{RevokedCount: count}, nil
+}).
+	WithSummary("Revoke all of a user's sessions").
+	WithTags("Users").
+	WithPathParams("user_id").
+	WithAuthentication()

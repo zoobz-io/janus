@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zoobz-io/capitan"
 	identitypb "github.com/zoobz-io/aegis/proto/identity/v1"
+	"github.com/zoobz-io/capitan"
 
 	"github.com/zoobz-io/janus/events"
 	"github.com/zoobz-io/janus/models"
@@ -15,46 +15,50 @@ import (
 // IdentityServer implements identitypb.IdentityServiceServer.
 type IdentityServer struct {
 	identitypb.UnimplementedIdentityServiceServer
-	users            *stores.Users
-	linkedIdentities *stores.LinkedIdentities
-	tenants          *stores.Tenants
-	memberships      *stores.Memberships
-	entitlement      *entitlementChecker
+	users       *stores.Users
+	accounts    *stores.Accounts
+	tenants     *stores.Tenants
+	memberships *stores.Memberships
+	entitlement *entitlementChecker
 }
 
 // NewIdentityServer creates a new IdentityServer.
 func NewIdentityServer(
 	users *stores.Users,
-	linkedIdentities *stores.LinkedIdentities,
+	accounts *stores.Accounts,
 	tenants *stores.Tenants,
 	memberships *stores.Memberships,
 	applications *stores.Applications,
-	tenantApplications *stores.TenantApplications,
-	userApplications *stores.UserApplications,
+	licenses *stores.Licenses,
+	grants *stores.Grants,
+	features *stores.Features,
+	scopes *stores.Scopes,
 ) *IdentityServer {
 	return &IdentityServer{
-		users:            users,
-		linkedIdentities: linkedIdentities,
-		tenants:          tenants,
-		memberships:      memberships,
+		users:       users,
+		accounts:    accounts,
+		tenants:     tenants,
+		memberships: memberships,
 		entitlement: &entitlementChecker{
-			applications:       applications,
-			tenantApplications: tenantApplications,
-			userApplications:   userApplications,
-			memberships:        memberships,
-			tenants:            tenants,
+			applications: applications,
+			licenses:     licenses,
+			grants:       grants,
+			memberships:  memberships,
+			tenants:      tenants,
+			features:     features,
+			scopes:       scopes,
 		},
 	}
 }
 
 // ResolveIdentity looks up an internal user by external IdP provider and subject.
 func (s *IdentityServer) ResolveIdentity(ctx context.Context, req *identitypb.ResolveIdentityRequest) (*identitypb.ResolveIdentityResponse, error) {
-	link, err := s.linkedIdentities.GetByProviderSubject(ctx, req.Provider, req.ProviderUserId)
+	link, err := s.accounts.GetByProviderSubject(ctx, req.Provider, req.ProviderUserId)
 	if err != nil {
-		return nil, fmt.Errorf("looking up linked identity: %w", err)
+		return nil, fmt.Errorf("looking up account: %w", err)
 	}
 	if link == nil {
-		return nil, fmt.Errorf("user not registered: no linked identity for %s/%s", req.Provider, req.ProviderUserId)
+		return nil, fmt.Errorf("user not registered: no account for %s/%s", req.Provider, req.ProviderUserId)
 	}
 
 	user, err := s.users.GetUser(ctx, link.UserID)
@@ -98,7 +102,7 @@ func (s *IdentityServer) Register(ctx context.Context, req *identitypb.RegisterR
 		return nil, fmt.Errorf("creating user: %w", err)
 	}
 
-	if _, err := s.linkedIdentities.Link(ctx, user.ID, req.Provider, req.ProviderUserId); err != nil {
+	if _, err := s.accounts.Link(ctx, user.ID, req.Provider, req.ProviderUserId); err != nil {
 		return nil, fmt.Errorf("linking identity: %w", err)
 	}
 
@@ -128,9 +132,9 @@ func (s *IdentityServer) Register(ctx context.Context, req *identitypb.RegisterR
 
 // ListProviders returns the external OAuth providers linked to a user.
 func (s *IdentityServer) ListProviders(ctx context.Context, req *identitypb.ListProvidersRequest) (*identitypb.ListProvidersResponse, error) {
-	identities, err := s.linkedIdentities.ListByUser(ctx, req.UserId)
+	identities, err := s.accounts.ListByUser(ctx, req.UserId)
 	if err != nil {
-		return nil, fmt.Errorf("listing linked identities: %w", err)
+		return nil, fmt.Errorf("listing accounts: %w", err)
 	}
 
 	providers := make([]*identitypb.Provider, len(identities))

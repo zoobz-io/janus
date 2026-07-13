@@ -16,9 +16,9 @@ func All() []rocco.Endpoint {
 		listMySessions,
 		revokeMySession,
 		revokeAllMySessions,
-		// Linked Identities
-		listMyIdentities,
-		unlinkMyIdentity,
+		// Accounts
+		listMyAccounts,
+		unlinkMyAccount,
 		// Applications (read-only)
 		listApplications,
 		listMyApplications,

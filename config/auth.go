@@ -7,12 +7,12 @@ import (
 
 // Auth holds OAuth and session cookie configuration.
 type Auth struct {
-	Issuer             string `env:"APP_AUTH_ISSUER" default:"http://localhost:8085"`
-	ClientID           string `env:"APP_AUTH_CLIENT_ID"`
-	ClientSecret       string `env:"APP_AUTH_CLIENT_SECRET" secret:"app/auth-client-secret"`
-	RedirectURI        string `env:"APP_AUTH_REDIRECT_URI" default:"http://localhost:8080/auth/callback"`
-	CookieSignKey      string `env:"APP_AUTH_COOKIE_KEY" secret:"app/auth-cookie-key"`
-	PostLoginRedirect  string `env:"APP_AUTH_POST_LOGIN_REDIRECT" default:"/me"`
+	Issuer            string `env:"APP_AUTH_ISSUER" default:"http://localhost:8085"`
+	ClientID          string `env:"APP_AUTH_CLIENT_ID"`
+	ClientSecret      string `env:"APP_AUTH_CLIENT_SECRET" secret:"app/auth-client-secret"`
+	RedirectURI       string `env:"APP_AUTH_REDIRECT_URI" default:"http://localhost:8080/auth/callback"`
+	CookieSignKey     string `env:"APP_AUTH_COOKIE_KEY" secret:"app/auth-cookie-key"`
+	PostLoginRedirect string `env:"APP_AUTH_POST_LOGIN_REDIRECT" default:"/me"`
 }
 
 // CookieKey returns the cookie signing key as bytes.

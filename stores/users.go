@@ -68,6 +68,38 @@ func (s *Users) UpdateDisplayName(ctx context.Context, id, displayName string) (
 	return u, nil
 }
 
+// List retrieves a paginated list of all users (admin API).
+func (s *Users) List(ctx context.Context, page models.OffsetPage) (*models.OffsetResult[models.User], error) {
+	items, err := s.Query().
+		OrderBy("created_at", "ASC").
+		OrderBy("id", "ASC").
+		Limit(page.PageSize()).
+		Offset(page.Offset).
+		Exec(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	total, countErr := s.Count().Exec(ctx, nil)
+	if countErr != nil {
+		return nil, countErr
+	}
+	return &models.OffsetResult[models.User]{Items: items, Total: int64(total), Offset: page.Offset}, nil
+}
+
+// Update updates a user's display name and status (admin API).
+func (s *Users) Update(ctx context.Context, id, displayName string, status models.UserStatus) (*models.User, error) {
+	u, err := s.GetUser(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	u.DisplayName = displayName
+	u.Status = status
+	if err := s.Set(ctx, id, u); err != nil {
+		return nil, fmt.Errorf("updating user: %w", err)
+	}
+	return u, nil
+}
+
 // TouchLastSeen updates the user's last_seen_at timestamp.
 func (s *Users) TouchLastSeen(ctx context.Context, id string) error {
 	u, err := s.GetUser(ctx, id)

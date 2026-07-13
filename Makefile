@@ -14,12 +14,20 @@ help: ## Display available commands
 # Build & Run
 # =============================================================================
 
-build: ## Build the application binary
+build: ## Build all binaries (api, admin, mesh)
 	@mkdir -p $(BIN_DIR)
-	@go build -o $(BIN_DIR)/$(APP_NAME) ./cmd/app
+	@go build -o $(BIN_DIR)/$(APP_NAME)-api ./cmd/api
+	@go build -o $(BIN_DIR)/$(APP_NAME)-admin ./cmd/admin
+	@go build -o $(BIN_DIR)/$(APP_NAME)-mesh ./cmd/mesh
 
-run: ## Run the application locally
-	@go run ./cmd/app
+run: ## Run the public API locally
+	@go run ./cmd/api
+
+run-admin: ## Run the admin API locally
+	@go run ./cmd/admin
+
+run-mesh: ## Run the mesh gRPC node locally
+	@go run ./cmd/mesh
 
 # =============================================================================
 # Docker Development Environment

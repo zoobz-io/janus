@@ -4,6 +4,7 @@ package integration
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/zoobz-io/janus/models"
@@ -226,14 +227,14 @@ func TestMemberships(t *testing.T) {
 	})
 }
 
-func TestLinkedIdentities(t *testing.T) {
+func TestAccounts(t *testing.T) {
 	ctx := context.Background()
 	t.Cleanup(func() { cleanAll(t) })
 
 	user, _ := testStores.Users.CreateUser(ctx, "linked@example.com", "Linked")
 
 	t.Run("LinkAndResolve", func(t *testing.T) {
-		link, err := testStores.LinkedIdentities.Link(ctx, user.ID, "github", "gh-123")
+		link, err := testStores.Accounts.Link(ctx, user.ID, "github", "gh-123")
 		if err != nil {
 			t.Fatalf("Link: %v", err)
 		}
@@ -241,19 +242,19 @@ func TestLinkedIdentities(t *testing.T) {
 			t.Fatalf("expected provider github, got %s", link.Provider)
 		}
 
-		found, err := testStores.LinkedIdentities.GetByProviderSubject(ctx, "github", "gh-123")
+		found, err := testStores.Accounts.GetByProviderSubject(ctx, "github", "gh-123")
 		if err != nil {
 			t.Fatalf("GetByProviderSubject: %v", err)
 		}
 		if found == nil || found.UserID != user.ID {
-			t.Fatal("expected to find linked identity for user")
+			t.Fatal("expected to find account for user")
 		}
 	})
 
 	t.Run("ListByUser", func(t *testing.T) {
-		testStores.LinkedIdentities.Link(ctx, user.ID, "google", "goog-456")
+		testStores.Accounts.Link(ctx, user.ID, "google", "goog-456")
 
-		identities, err := testStores.LinkedIdentities.ListByUser(ctx, user.ID)
+		identities, err := testStores.Accounts.ListByUser(ctx, user.ID)
 		if err != nil {
 			t.Fatalf("ListByUser: %v", err)
 		}
@@ -263,12 +264,12 @@ func TestLinkedIdentities(t *testing.T) {
 	})
 
 	t.Run("Unlink", func(t *testing.T) {
-		found, _ := testStores.LinkedIdentities.GetByProviderSubject(ctx, "github", "gh-123")
-		if err := testStores.LinkedIdentities.Unlink(ctx, found.ID, user.ID); err != nil {
+		found, _ := testStores.Accounts.GetByProviderSubject(ctx, "github", "gh-123")
+		if err := testStores.Accounts.Unlink(ctx, found.ID, user.ID); err != nil {
 			t.Fatalf("Unlink: %v", err)
 		}
 
-		gone, _ := testStores.LinkedIdentities.GetByProviderSubject(ctx, "github", "gh-123")
+		gone, _ := testStores.Accounts.GetByProviderSubject(ctx, "github", "gh-123")
 		if gone != nil {
 			t.Fatal("expected nil after unlink")
 		}
@@ -318,7 +319,7 @@ func TestApplications(t *testing.T) {
 	})
 }
 
-func TestTenantApplications(t *testing.T) {
+func TestLicenses(t *testing.T) {
 	ctx := context.Background()
 	t.Cleanup(func() { cleanAll(t) })
 
@@ -326,7 +327,7 @@ func TestTenantApplications(t *testing.T) {
 	app, _ := testStores.Applications.CreateApplication(ctx, "Nexus", "nexus")
 
 	t.Run("AuthorizeAndList", func(t *testing.T) {
-		ta, err := testStores.TenantApplications.Authorize(ctx, tenant.ID, app.ID)
+		ta, err := testStores.Licenses.Authorize(ctx, tenant.ID, app.ID)
 		if err != nil {
 			t.Fatalf("Authorize: %v", err)
 		}
@@ -334,7 +335,7 @@ func TestTenantApplications(t *testing.T) {
 			t.Fatalf("expected tenant ID %s, got %s", tenant.ID, ta.TenantID)
 		}
 
-		list, err := testStores.TenantApplications.ListByTenant(ctx, tenant.ID)
+		list, err := testStores.Licenses.ListByTenant(ctx, tenant.ID)
 		if err != nil {
 			t.Fatalf("ListByTenant: %v", err)
 		}
@@ -344,15 +345,15 @@ func TestTenantApplications(t *testing.T) {
 	})
 
 	t.Run("GetByTenantAndApp", func(t *testing.T) {
-		found, err := testStores.TenantApplications.GetByTenantAndApp(ctx, tenant.ID, app.ID)
+		found, err := testStores.Licenses.GetByTenantAndApp(ctx, tenant.ID, app.ID)
 		if err != nil {
 			t.Fatalf("GetByTenantAndApp: %v", err)
 		}
 		if found == nil {
-			t.Fatal("expected to find tenant application")
+			t.Fatal("expected to find license")
 		}
 
-		notFound, err := testStores.TenantApplications.GetByTenantAndApp(ctx, tenant.ID, "nonexistent")
+		notFound, err := testStores.Licenses.GetByTenantAndApp(ctx, tenant.ID, "nonexistent")
 		if err != nil {
 			t.Fatalf("GetByTenantAndApp (not found): %v", err)
 		}
@@ -362,17 +363,17 @@ func TestTenantApplications(t *testing.T) {
 	})
 
 	t.Run("Revoke", func(t *testing.T) {
-		if err := testStores.TenantApplications.Revoke(ctx, tenant.ID, app.ID); err != nil {
+		if err := testStores.Licenses.Revoke(ctx, tenant.ID, app.ID); err != nil {
 			t.Fatalf("Revoke: %v", err)
 		}
-		found, _ := testStores.TenantApplications.GetByTenantAndApp(ctx, tenant.ID, app.ID)
+		found, _ := testStores.Licenses.GetByTenantAndApp(ctx, tenant.ID, app.ID)
 		if found != nil {
 			t.Fatal("expected nil after revoke")
 		}
 	})
 }
 
-func TestUserApplications(t *testing.T) {
+func TestGrants(t *testing.T) {
 	ctx := context.Background()
 	t.Cleanup(func() { cleanAll(t) })
 
@@ -382,7 +383,7 @@ func TestUserApplications(t *testing.T) {
 	testStores.Memberships.Create(ctx, user.ID, tenant.ID, models.UserRoleViewer)
 
 	t.Run("GrantAndList", func(t *testing.T) {
-		ua, err := testStores.UserApplications.Grant(ctx, user.ID, tenant.ID, app.ID, []string{"viewer"}, []string{"read"})
+		ua, err := testStores.Grants.Grant(ctx, user.ID, tenant.ID, app.ID, []string{"viewer"}, []string{"read"})
 		if err != nil {
 			t.Fatalf("Grant: %v", err)
 		}
@@ -390,7 +391,7 @@ func TestUserApplications(t *testing.T) {
 			t.Fatalf("expected app ID %s, got %s", app.ID, ua.ApplicationID)
 		}
 
-		list, err := testStores.UserApplications.ListByUser(ctx, user.ID, tenant.ID)
+		list, err := testStores.Grants.ListByUser(ctx, user.ID, tenant.ID)
 		if err != nil {
 			t.Fatalf("ListByUser: %v", err)
 		}
@@ -400,22 +401,194 @@ func TestUserApplications(t *testing.T) {
 	})
 
 	t.Run("GetByUserAndApp", func(t *testing.T) {
-		found, err := testStores.UserApplications.GetByUserAndApp(ctx, user.ID, tenant.ID, app.ID)
+		found, err := testStores.Grants.GetByUserAndApp(ctx, user.ID, tenant.ID, app.ID)
 		if err != nil {
 			t.Fatalf("GetByUserAndApp: %v", err)
 		}
 		if found == nil {
-			t.Fatal("expected to find user application")
+			t.Fatal("expected to find grant")
 		}
 	})
 
 	t.Run("Revoke", func(t *testing.T) {
-		if err := testStores.UserApplications.Revoke(ctx, user.ID, tenant.ID, app.ID); err != nil {
+		if err := testStores.Grants.Revoke(ctx, user.ID, tenant.ID, app.ID); err != nil {
 			t.Fatalf("Revoke: %v", err)
 		}
-		found, _ := testStores.UserApplications.GetByUserAndApp(ctx, user.ID, tenant.ID, app.ID)
+		found, _ := testStores.Grants.GetByUserAndApp(ctx, user.ID, tenant.ID, app.ID)
 		if found != nil {
 			t.Fatal("expected nil after revoke")
 		}
 	})
+}
+
+func TestConfig(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("SeededApertureSchema", func(t *testing.T) {
+		got, err := testStores.Config.GetByKey(ctx, "aperture_schema")
+		if err != nil {
+			t.Fatalf("GetByKey: %v", err)
+		}
+		if got == nil {
+			t.Fatal("expected seeded aperture_schema row, got nil")
+		}
+		if !strings.Contains(got.Value, "metrics:") {
+			t.Fatalf("expected aperture schema yaml, got %q", got.Value)
+		}
+	})
+
+	t.Run("GetMissingReturnsNil", func(t *testing.T) {
+		got, err := testStores.Config.GetByKey(ctx, "does_not_exist")
+		if err != nil {
+			t.Fatalf("GetByKey: %v", err)
+		}
+		if got != nil {
+			t.Fatalf("expected nil for missing key, got %+v", got)
+		}
+	})
+
+	t.Run("UpsertInsertThenUpdate", func(t *testing.T) {
+		if _, err := testStores.Config.Upsert(ctx, "test_key", "v1"); err != nil {
+			t.Fatalf("Upsert insert: %v", err)
+		}
+		got, err := testStores.Config.GetByKey(ctx, "test_key")
+		if err != nil {
+			t.Fatalf("GetByKey: %v", err)
+		}
+		if got == nil || got.Value != "v1" {
+			t.Fatalf("expected v1, got %+v", got)
+		}
+
+		if _, err := testStores.Config.Upsert(ctx, "test_key", "v2"); err != nil {
+			t.Fatalf("Upsert update: %v", err)
+		}
+		got, err = testStores.Config.GetByKey(ctx, "test_key")
+		if err != nil {
+			t.Fatalf("GetByKey: %v", err)
+		}
+		if got == nil || got.Value != "v2" {
+			t.Fatalf("expected v2 after update, got %+v", got)
+		}
+	})
+}
+
+func TestTiersScopesFeatures(t *testing.T) {
+	ctx := context.Background()
+	t.Cleanup(func() { cleanAll(t) })
+
+	app, _ := testStores.Applications.CreateApplication(ctx, "Forge", "forge")
+
+	read, err := testStores.Scopes.Define(ctx, app.ID, "projects:read", "Read projects")
+	if err != nil {
+		t.Fatalf("Define read scope: %v", err)
+	}
+	write, err := testStores.Scopes.Define(ctx, app.ID, "builds:write", "Write builds")
+	if err != nil {
+		t.Fatalf("Define write scope: %v", err)
+	}
+	free, _ := testStores.Tiers.Define(ctx, app.ID, "free", "Free", 0)
+	pro, _ := testStores.Tiers.Define(ctx, app.ID, "pro", "Pro", 1)
+
+	t.Run("ScopeCatalog", func(t *testing.T) {
+		got, err := testStores.Scopes.GetByName(ctx, app.ID, "projects:read")
+		if err != nil {
+			t.Fatalf("GetByName: %v", err)
+		}
+		if got == nil || got.ID != read.ID {
+			t.Fatalf("expected read scope, got %+v", got)
+		}
+		list, err := testStores.Scopes.ListByApplication(ctx, app.ID)
+		if err != nil {
+			t.Fatalf("ListByApplication: %v", err)
+		}
+		if len(list) != 2 {
+			t.Fatalf("expected 2 scopes, got %d", len(list))
+		}
+	})
+
+	t.Run("TierCatalog", func(t *testing.T) {
+		bySlug, err := testStores.Tiers.GetBySlug(ctx, app.ID, "pro")
+		if err != nil {
+			t.Fatalf("GetBySlug: %v", err)
+		}
+		if bySlug == nil || bySlug.ID != pro.ID {
+			t.Fatalf("expected pro tier, got %+v", bySlug)
+		}
+		list, err := testStores.Tiers.ListByApplication(ctx, app.ID)
+		if err != nil {
+			t.Fatalf("ListByApplication: %v", err)
+		}
+		if len(list) != 2 || list[0].Slug != "free" || list[1].Slug != "pro" {
+			t.Fatalf("expected [free, pro] by rank, got %+v", list)
+		}
+	})
+
+	t.Run("BundleScopesIntoTier", func(t *testing.T) {
+		if _, err := testStores.Features.Add(ctx, pro.ID, read.ID); err != nil {
+			t.Fatalf("Add read: %v", err)
+		}
+		if _, err := testStores.Features.Add(ctx, pro.ID, write.ID); err != nil {
+			t.Fatalf("Add write: %v", err)
+		}
+		// Adding a scope already in the tier is idempotent.
+		if _, err := testStores.Features.Add(ctx, pro.ID, read.ID); err != nil {
+			t.Fatalf("Add read (dup): %v", err)
+		}
+		feats, err := testStores.Features.ListByTier(ctx, pro.ID)
+		if err != nil {
+			t.Fatalf("ListByTier: %v", err)
+		}
+		if len(feats) != 2 {
+			t.Fatalf("expected 2 features, got %d", len(feats))
+		}
+
+		if err := testStores.Features.Remove(ctx, pro.ID, write.ID); err != nil {
+			t.Fatalf("Remove write: %v", err)
+		}
+		feats, _ = testStores.Features.ListByTier(ctx, pro.ID)
+		if len(feats) != 1 || feats[0].ScopeID != read.ID {
+			t.Fatalf("expected only read feature left, got %+v", feats)
+		}
+	})
+
+	t.Run("GrantOnTier", func(t *testing.T) {
+		user, _ := testStores.Users.CreateUser(ctx, "tieruser@example.com", "Tier User")
+		tenant, _ := testStores.Tenants.CreateTenant(ctx, "TierCorp", "tiercorp")
+		testStores.Memberships.Create(ctx, user.ID, tenant.ID, models.UserRoleViewer)
+		if _, err := testStores.Grants.Grant(ctx, user.ID, tenant.ID, app.ID, []string{"viewer"}, []string{"projects:read"}); err != nil {
+			t.Fatalf("Grant: %v", err)
+		}
+
+		g, err := testStores.Grants.SetTier(ctx, user.ID, tenant.ID, app.ID, pro.ID)
+		if err != nil {
+			t.Fatalf("SetTier: %v", err)
+		}
+		if g.TierID == nil || *g.TierID != pro.ID {
+			t.Fatalf("expected grant on pro tier, got %+v", g.TierID)
+		}
+
+		g, err = testStores.Grants.SetTier(ctx, user.ID, tenant.ID, app.ID, "")
+		if err != nil {
+			t.Fatalf("SetTier clear: %v", err)
+		}
+		if g.TierID != nil {
+			t.Fatalf("expected tier cleared, got %v", *g.TierID)
+		}
+	})
+
+	t.Run("CascadeOnScopeDelete", func(t *testing.T) {
+		// pro currently bundles read. Deleting the scope should cascade its feature.
+		if err := testStores.Scopes.Delete(ctx, read.ID); err != nil {
+			t.Fatalf("Delete scope: %v", err)
+		}
+		feats, err := testStores.Features.ListByTier(ctx, pro.ID)
+		if err != nil {
+			t.Fatalf("ListByTier: %v", err)
+		}
+		if len(feats) != 0 {
+			t.Fatalf("expected features cascaded on scope delete, got %d", len(feats))
+		}
+	})
+
+	_ = free
 }

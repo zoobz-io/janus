@@ -3,21 +3,25 @@ package mesh
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/zoobz-io/aegis"
 	commonpb "github.com/zoobz-io/aegis/proto/common/v1"
 
+	"github.com/zoobz-io/janus/models"
 	"github.com/zoobz-io/janus/stores"
 )
 
 // entitlementChecker resolves the calling application from the security context
-// and verifies user entitlements (TenantApplication + UserApplication).
+// and verifies user entitlements (License + Grant).
 type entitlementChecker struct {
-	applications       *stores.Applications
-	tenantApplications *stores.TenantApplications
-	userApplications   *stores.UserApplications
-	memberships        *stores.Memberships
-	tenants            *stores.Tenants
+	applications *stores.Applications
+	licenses     *stores.Licenses
+	grants       *stores.Grants
+	memberships  *stores.Memberships
+	tenants      *stores.Tenants
+	features     *stores.Features
+	scopes       *stores.Scopes
 }
 
 // callerAppSlug extracts the calling application's slug from the security context.
@@ -49,17 +53,17 @@ func (e *entitlementChecker) authorizedTenants(ctx context.Context, userID, appS
 
 	result := make([]*commonpb.AuthorizedTenant, 0, len(mems))
 	for _, mem := range mems {
-		ta, err := e.tenantApplications.GetByTenantAndApp(ctx, mem.TenantID, app.ID)
+		ta, err := e.licenses.GetByTenantAndApp(ctx, mem.TenantID, app.ID)
 		if err != nil {
-			return nil, fmt.Errorf("checking tenant application: %w", err)
+			return nil, fmt.Errorf("checking license: %w", err)
 		}
 		if ta == nil {
 			continue
 		}
 
-		ua, err := e.userApplications.GetByUserAndApp(ctx, userID, mem.TenantID, app.ID)
+		ua, err := e.grants.GetByUserAndApp(ctx, userID, mem.TenantID, app.ID)
 		if err != nil {
-			return nil, fmt.Errorf("checking user application: %w", err)
+			return nil, fmt.Errorf("checking grant: %w", err)
 		}
 		if ua == nil {
 			continue
@@ -70,14 +74,53 @@ func (e *entitlementChecker) authorizedTenants(ctx context.Context, userID, appS
 			return nil, fmt.Errorf("looking up tenant: %w", err)
 		}
 
+		scopes, err := e.effectiveScopes(ctx, ua)
+		if err != nil {
+			return nil, err
+		}
+
 		result = append(result, &commonpb.AuthorizedTenant{
 			TenantId:   tenant.ID,
 			TenantName: tenant.Name,
 			Role:       mem.Role,
 			AppRoles:   ua.Roles,
-			AppScopes:  ua.Scopes,
+			AppScopes:  scopes,
 		})
 	}
 
 	return result, nil
+}
+
+// effectiveScopes composes the scopes granted to a user for an application:
+// the explicit scopes assigned directly on the grant (admin-assigned) unioned
+// with the scopes inherited from the grant's tier (its bundled features).
+// Resolved dynamically so tier edits take effect immediately.
+func (e *entitlementChecker) effectiveScopes(ctx context.Context, g *models.Grant) ([]string, error) {
+	set := make(map[string]struct{}, len(g.Scopes))
+	for _, s := range g.Scopes {
+		set[s] = struct{}{}
+	}
+
+	if g.TierID != nil {
+		feats, err := e.features.ListByTier(ctx, *g.TierID)
+		if err != nil {
+			return nil, fmt.Errorf("listing tier features: %w", err)
+		}
+		for _, f := range feats {
+			sc, err := e.scopes.GetByID(ctx, f.ScopeID)
+			if err != nil {
+				return nil, fmt.Errorf("looking up scope %q: %w", f.ScopeID, err)
+			}
+			if sc != nil {
+				set[sc.Name] = struct{}{}
+			}
+		}
+	}
+
+	out := make([]string, 0, len(set))
+	for s := range set {
+		out = append(out, s)
+	}
+	sort.Strings(out)
+	return out, nil
 }

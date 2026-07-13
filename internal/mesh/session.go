@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/zoobz-io/aegis"
-	"github.com/zoobz-io/capitan"
 	sessionpb "github.com/zoobz-io/aegis/proto/session/v1"
+	"github.com/zoobz-io/capitan"
 	"google.golang.org/grpc"
 
 	"github.com/zoobz-io/janus/events"
@@ -27,19 +27,23 @@ func NewSessionServer(
 	users *stores.Users,
 	tenants *stores.Tenants,
 	applications *stores.Applications,
-	tenantApplications *stores.TenantApplications,
-	userApplications *stores.UserApplications,
+	licenses *stores.Licenses,
+	grants *stores.Grants,
 	memberships *stores.Memberships,
+	features *stores.Features,
+	scopes *stores.Scopes,
 ) *SessionServer {
 	return &SessionServer{
 		sessions: sessions,
 		users:    users,
 		entitlement: &entitlementChecker{
-			applications:       applications,
-			tenantApplications: tenantApplications,
-			userApplications:   userApplications,
-			memberships:        memberships,
-			tenants:            tenants,
+			applications: applications,
+			licenses:     licenses,
+			grants:       grants,
+			memberships:  memberships,
+			tenants:      tenants,
+			features:     features,
+			scopes:       scopes,
 		},
 	}
 }
@@ -86,7 +90,7 @@ func (s *SessionServer) ValidateSession(ctx context.Context, req *sessionpb.Vali
 		capitan.Warn(ctx, events.EntitlementCheckSkipped, events.OpErrorKey.Field(err))
 		return &sessionpb.ValidateSessionResponse{
 			Valid:     true,
-			UserId:   sess.UserID,
+			UserId:    sess.UserID,
 			ExpiresAt: sess.ExpiresAt.Unix(),
 		}, nil
 	}
@@ -101,9 +105,9 @@ func (s *SessionServer) ValidateSession(ctx context.Context, req *sessionpb.Vali
 
 	return &sessionpb.ValidateSessionResponse{
 		Valid:     true,
-		UserId:   sess.UserID,
+		UserId:    sess.UserID,
 		ExpiresAt: sess.ExpiresAt.Unix(),
-		Tenants:  tenants,
+		Tenants:   tenants,
 	}, nil
 }
 

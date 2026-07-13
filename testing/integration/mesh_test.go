@@ -4,11 +4,12 @@ package integration
 
 import (
 	"context"
+	"strings"
 	"testing"
 
+	directorypb "github.com/zoobz-io/aegis/proto/directory/v1"
 	identitypb "github.com/zoobz-io/aegis/proto/identity/v1"
 	sessionpb "github.com/zoobz-io/aegis/proto/session/v1"
-	directorypb "github.com/zoobz-io/aegis/proto/directory/v1"
 
 	"github.com/zoobz-io/janus/internal/mesh"
 )
@@ -18,8 +19,9 @@ func TestIdentityServer(t *testing.T) {
 	t.Cleanup(func() { cleanAll(t) })
 
 	srv := mesh.NewIdentityServer(
-		testStores.Users, testStores.LinkedIdentities, testStores.Tenants, testStores.Memberships,
-		testStores.Applications, testStores.TenantApplications, testStores.UserApplications,
+		testStores.Users, testStores.Accounts, testStores.Tenants, testStores.Memberships,
+		testStores.Applications, testStores.Licenses, testStores.Grants,
+		testStores.Features, testStores.Scopes,
 	)
 
 	var registeredUserID string
@@ -115,7 +117,8 @@ func TestSessionServer(t *testing.T) {
 	user, _ := testStores.Users.CreateUser(ctx, "sess-mesh@example.com", "Sess Mesh")
 	srv := mesh.NewSessionServer(
 		testStores.Sessions, testStores.Users, testStores.Tenants,
-		testStores.Applications, testStores.TenantApplications, testStores.UserApplications, testStores.Memberships,
+		testStores.Applications, testStores.Licenses, testStores.Grants, testStores.Memberships,
+		testStores.Features, testStores.Scopes,
 	)
 
 	var validToken string
@@ -295,4 +298,56 @@ func TestDirectoryServer(t *testing.T) {
 			t.Fatalf("expected NewName, got %s", got.Name)
 		}
 	})
+}
+
+func TestSessionScopeComposition(t *testing.T) {
+	ctx := context.Background()
+	t.Cleanup(func() { cleanAll(t) })
+
+	app, _ := testStores.Applications.CreateApplication(ctx, "Composer", "composer")
+	tenant, _ := testStores.Tenants.CreateTenant(ctx, "ComposeCorp", "composecorp")
+	user, _ := testStores.Users.CreateUser(ctx, "compose@example.com", "Composer User")
+	testStores.Memberships.Create(ctx, user.ID, tenant.ID, "viewer")
+	testStores.Licenses.Authorize(ctx, tenant.ID, app.ID)
+
+	// Scope catalog.
+	readScope, _ := testStores.Scopes.Define(ctx, app.ID, "projects:read", "")
+	writeScope, _ := testStores.Scopes.Define(ctx, app.ID, "builds:write", "")
+	testStores.Scopes.Define(ctx, app.ID, "deploys:run", "")
+
+	// The pro tier bundles read + write — these are inherited.
+	tier, _ := testStores.Tiers.Define(ctx, app.ID, "pro", "Pro", 1)
+	testStores.Features.Add(ctx, tier.ID, readScope.ID)
+	testStores.Features.Add(ctx, tier.ID, writeScope.ID)
+
+	// Grant: explicit deploys:run (admin-assigned) + placed on the pro tier.
+	testStores.Grants.Grant(ctx, user.ID, tenant.ID, app.ID, []string{"member"}, []string{"deploys:run"})
+	testStores.Grants.SetTier(ctx, user.ID, tenant.ID, app.ID, tier.ID)
+
+	srv := mesh.NewSessionServer(
+		testStores.Sessions, testStores.Users, testStores.Tenants,
+		testStores.Applications, testStores.Licenses, testStores.Grants, testStores.Memberships,
+		testStores.Features, testStores.Scopes,
+	)
+
+	created, err := srv.CreateSession(ctx, &sessionpb.CreateSessionRequest{UserId: user.ID})
+	if err != nil {
+		t.Fatalf("CreateSession: %v", err)
+	}
+
+	appCtx := testCtxWithApp(ctx, "composer")
+	resp, err := srv.ValidateSession(appCtx, &sessionpb.ValidateSessionRequest{Token: created.Token})
+	if err != nil {
+		t.Fatalf("ValidateSession: %v", err)
+	}
+	if !resp.Valid || len(resp.Tenants) != 1 {
+		t.Fatalf("expected valid session with 1 tenant, got valid=%v tenants=%d", resp.Valid, len(resp.Tenants))
+	}
+
+	// Effective scopes = explicit (deploys:run) UNION tier-inherited (read, write), sorted.
+	got := strings.Join(resp.Tenants[0].AppScopes, ",")
+	want := "builds:write,deploys:run,projects:read"
+	if got != want {
+		t.Fatalf("effective scopes = %q, want %q", got, want)
+	}
 }

@@ -48,31 +48,31 @@ func (r ApplicationListResponse) Clone() ApplicationListResponse {
 	return c
 }
 
-// TenantApplicationResponse is the public API response for a tenant-application authorization.
-type TenantApplicationResponse struct {
+// LicenseResponse is the public API response for a license authorization.
+type LicenseResponse struct {
 	ID            string `json:"id" description:"Authorization ID" example:"880e8400-e29b-41d4-a716-446655440000"`
 	TenantID      string `json:"tenant_id" description:"Tenant ID" example:"660e8400-e29b-41d4-a716-446655440000"`
 	ApplicationID string `json:"application_id" description:"Application ID" example:"770e8400-e29b-41d4-a716-446655440000"`
 	CreatedAt     string `json:"created_at" description:"When the authorization was granted" example:"2026-05-01T12:00:00Z"`
 }
 
-// TenantApplicationListResponse is the public API response for a list of tenant-application authorizations.
-type TenantApplicationListResponse struct {
-	Authorizations []TenantApplicationResponse `json:"authorizations" description:"Tenant application authorizations"`
+// LicenseListResponse is the public API response for a list of license authorizations.
+type LicenseListResponse struct {
+	Authorizations []LicenseResponse `json:"authorizations" description:"Tenant application authorizations"`
 }
 
 // Clone returns a deep copy of the response.
-func (r TenantApplicationListResponse) Clone() TenantApplicationListResponse {
+func (r LicenseListResponse) Clone() LicenseListResponse {
 	c := r
 	if r.Authorizations != nil {
-		c.Authorizations = make([]TenantApplicationResponse, len(r.Authorizations))
+		c.Authorizations = make([]LicenseResponse, len(r.Authorizations))
 		copy(c.Authorizations, r.Authorizations)
 	}
 	return c
 }
 
-// UserApplicationResponse is the public API response for a user-application grant.
-type UserApplicationResponse struct {
+// GrantResponse is the public API response for a grant.
+type GrantResponse struct {
 	ID            string `json:"id" description:"Grant ID" example:"990e8400-e29b-41d4-a716-446655440000"`
 	UserID        string `json:"user_id" description:"User ID" example:"550e8400-e29b-41d4-a716-446655440000"`
 	TenantID      string `json:"tenant_id" description:"Tenant ID" example:"660e8400-e29b-41d4-a716-446655440000"`
@@ -80,16 +80,16 @@ type UserApplicationResponse struct {
 	CreatedAt     string `json:"created_at" description:"When access was granted" example:"2026-05-01T12:00:00Z"`
 }
 
-// UserApplicationListResponse is the public API response for a list of user-application grants.
-type UserApplicationListResponse struct {
-	Grants []UserApplicationResponse `json:"grants" description:"User application grants"`
+// GrantListResponse is the public API response for a list of grants.
+type GrantListResponse struct {
+	Grants []GrantResponse `json:"grants" description:"User application grants"`
 }
 
 // Clone returns a deep copy of the response.
-func (r UserApplicationListResponse) Clone() UserApplicationListResponse {
+func (r GrantListResponse) Clone() GrantListResponse {
 	c := r
 	if r.Grants != nil {
-		c.Grants = make([]UserApplicationResponse, len(r.Grants))
+		c.Grants = make([]GrantResponse, len(r.Grants))
 		copy(c.Grants, r.Grants)
 	}
 	return c

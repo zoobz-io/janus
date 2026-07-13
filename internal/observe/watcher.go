@@ -6,21 +6,22 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/zoobz-io/sum"
+
+	"github.com/zoobz-io/janus/api/contracts"
 )
 
 // PollInterval is how often the watcher checks for schema changes.
 const PollInterval = 30 * time.Second
 
-// ConfigWatcher implements flux.Watcher by polling a postgres config table.
+// ConfigWatcher implements flux.Watcher by polling the config service for a key.
 type ConfigWatcher struct {
-	db  *sqlx.DB
 	key string
 }
 
-// NewConfigWatcher creates a watcher that polls the config table for the given key.
-func NewConfigWatcher(db *sqlx.DB, key string) *ConfigWatcher {
-	return &ConfigWatcher{db: db, key: key}
+// NewConfigWatcher creates a watcher that polls the config service for the given key.
+func NewConfigWatcher(key string) *ConfigWatcher {
+	return &ConfigWatcher{key: key}
 }
 
 // Watch returns a channel that emits the current config value immediately,
@@ -66,9 +67,12 @@ func (w *ConfigWatcher) Watch(ctx context.Context) (<-chan []byte, error) {
 }
 
 func (w *ConfigWatcher) read(ctx context.Context) ([]byte, error) {
-	var value string
-	if err := w.db.GetContext(ctx, &value, "SELECT value FROM config WHERE key = $1", w.key); err != nil {
+	cfg, err := sum.MustUse[contracts.Config](ctx).GetByKey(ctx, w.key)
+	if err != nil {
 		return nil, err
 	}
-	return []byte(value), nil
+	if cfg == nil {
+		return nil, fmt.Errorf("config key %q not found", w.key)
+	}
+	return []byte(cfg.Value), nil
 }

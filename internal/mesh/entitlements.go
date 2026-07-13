@@ -15,24 +15,24 @@ import (
 // EntitlementServer implements entitlementpb.EntitlementServiceServer.
 type EntitlementServer struct {
 	entitlementpb.UnimplementedEntitlementServiceServer
-	applications       *stores.Applications
-	tenantApplications *stores.TenantApplications
-	userApplications   *stores.UserApplications
-	memberships        *stores.Memberships
+	applications *stores.Applications
+	licenses     *stores.Licenses
+	grants       *stores.Grants
+	memberships  *stores.Memberships
 }
 
 // NewEntitlementServer creates a new EntitlementServer.
 func NewEntitlementServer(
 	applications *stores.Applications,
-	tenantApplications *stores.TenantApplications,
-	userApplications *stores.UserApplications,
+	licenses *stores.Licenses,
+	grants *stores.Grants,
 	memberships *stores.Memberships,
 ) *EntitlementServer {
 	return &EntitlementServer{
-		applications:       applications,
-		tenantApplications: tenantApplications,
-		userApplications:   userApplications,
-		memberships:        memberships,
+		applications: applications,
+		licenses:     licenses,
+		grants:       grants,
+		memberships:  memberships,
 	}
 }
 
@@ -66,7 +66,7 @@ func (s *EntitlementServer) AuthorizeApplication(ctx context.Context, req *entit
 		return nil, err
 	}
 
-	if _, err := s.tenantApplications.Authorize(ctx, req.TenantId, app.ID); err != nil {
+	if _, err := s.licenses.Authorize(ctx, req.TenantId, app.ID); err != nil {
 		return nil, fmt.Errorf("authorizing application: %w", err)
 	}
 
@@ -85,7 +85,7 @@ func (s *EntitlementServer) RevokeApplication(ctx context.Context, req *entitlem
 		return nil, err
 	}
 
-	if err := s.tenantApplications.Revoke(ctx, req.TenantId, app.ID); err != nil {
+	if err := s.licenses.Revoke(ctx, req.TenantId, app.ID); err != nil {
 		return nil, fmt.Errorf("revoking application: %w", err)
 	}
 
@@ -95,7 +95,7 @@ func (s *EntitlementServer) RevokeApplication(ctx context.Context, req *entitlem
 
 // ListTenantApplications lists applications authorized for a tenant.
 func (s *EntitlementServer) ListTenantApplications(ctx context.Context, req *entitlementpb.ListTenantApplicationsRequest) (*entitlementpb.ListTenantApplicationsResponse, error) {
-	tas, err := s.tenantApplications.ListByTenant(ctx, req.TenantId)
+	tas, err := s.licenses.ListByTenant(ctx, req.TenantId)
 	if err != nil {
 		return nil, fmt.Errorf("listing tenant applications: %w", err)
 	}
@@ -122,7 +122,7 @@ func (s *EntitlementServer) GrantUserAccess(ctx context.Context, req *entitlemen
 		return nil, err
 	}
 
-	ua, err := s.userApplications.Grant(ctx, req.UserId, req.TenantId, app.ID, req.Roles, req.Scopes)
+	ua, err := s.grants.Grant(ctx, req.UserId, req.TenantId, app.ID, req.Roles, req.Scopes)
 	if err != nil {
 		return nil, fmt.Errorf("granting access: %w", err)
 	}
@@ -143,7 +143,7 @@ func (s *EntitlementServer) RevokeUserAccess(ctx context.Context, req *entitleme
 		return nil, err
 	}
 
-	if err := s.userApplications.Revoke(ctx, req.UserId, req.TenantId, app.ID); err != nil {
+	if err := s.grants.Revoke(ctx, req.UserId, req.TenantId, app.ID); err != nil {
 		return nil, fmt.Errorf("revoking access: %w", err)
 	}
 
@@ -162,7 +162,7 @@ func (s *EntitlementServer) UpdateUserAccess(ctx context.Context, req *entitleme
 		return nil, err
 	}
 
-	if _, err := s.userApplications.UpdateAccess(ctx, req.UserId, req.TenantId, app.ID, req.Roles, req.Scopes); err != nil {
+	if _, err := s.grants.UpdateAccess(ctx, req.UserId, req.TenantId, app.ID, req.Roles, req.Scopes); err != nil {
 		return nil, fmt.Errorf("updating access: %w", err)
 	}
 
@@ -176,7 +176,7 @@ func (s *EntitlementServer) ListUserAccess(ctx context.Context, req *entitlement
 		return nil, err
 	}
 
-	uas, err := s.userApplications.ListByTenantAndApp(ctx, req.TenantId, app.ID)
+	uas, err := s.grants.ListByTenantAndApp(ctx, req.TenantId, app.ID)
 	if err != nil {
 		return nil, fmt.Errorf("listing user access: %w", err)
 	}

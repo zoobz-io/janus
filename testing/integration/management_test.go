@@ -77,7 +77,7 @@ func TestEntitlementFlow(t *testing.T) {
 
 	t.Run("NoEntitlementByDefault", func(t *testing.T) {
 		// User has no app grants yet.
-		uas, err := testStores.UserApplications.ListByUser(ctx, user.ID, tenant.ID)
+		uas, err := testStores.Grants.ListByUser(ctx, user.ID, tenant.ID)
 		if err != nil {
 			t.Fatalf("ListByUser: %v", err)
 		}
@@ -87,7 +87,7 @@ func TestEntitlementFlow(t *testing.T) {
 	})
 
 	t.Run("AuthorizeTenantForApp", func(t *testing.T) {
-		ta, err := testStores.TenantApplications.Authorize(ctx, tenant.ID, app.ID)
+		ta, err := testStores.Licenses.Authorize(ctx, tenant.ID, app.ID)
 		if err != nil {
 			t.Fatalf("Authorize: %v", err)
 		}
@@ -97,7 +97,7 @@ func TestEntitlementFlow(t *testing.T) {
 	})
 
 	t.Run("GrantUserAppAccess", func(t *testing.T) {
-		ua, err := testStores.UserApplications.Grant(ctx, user.ID, tenant.ID, app.ID, []string{"editor"}, []string{"projects:write"})
+		ua, err := testStores.Grants.Grant(ctx, user.ID, tenant.ID, app.ID, []string{"editor"}, []string{"projects:write"})
 		if err != nil {
 			t.Fatalf("Grant: %v", err)
 		}
@@ -107,7 +107,7 @@ func TestEntitlementFlow(t *testing.T) {
 	})
 
 	t.Run("UserIsEntitled", func(t *testing.T) {
-		uas, err := testStores.UserApplications.ListByUser(ctx, user.ID, tenant.ID)
+		uas, err := testStores.Grants.ListByUser(ctx, user.ID, tenant.ID)
 		if err != nil {
 			t.Fatalf("ListByUser: %v", err)
 		}
@@ -120,20 +120,20 @@ func TestEntitlementFlow(t *testing.T) {
 	})
 
 	t.Run("RevokeUserAppAccess", func(t *testing.T) {
-		if err := testStores.UserApplications.Revoke(ctx, user.ID, tenant.ID, app.ID); err != nil {
+		if err := testStores.Grants.Revoke(ctx, user.ID, tenant.ID, app.ID); err != nil {
 			t.Fatalf("Revoke: %v", err)
 		}
-		found, _ := testStores.UserApplications.GetByUserAndApp(ctx, user.ID, tenant.ID, app.ID)
+		found, _ := testStores.Grants.GetByUserAndApp(ctx, user.ID, tenant.ID, app.ID)
 		if found != nil {
 			t.Fatal("expected nil after revoke")
 		}
 	})
 
 	t.Run("RevokeTenantAppAccess", func(t *testing.T) {
-		if err := testStores.TenantApplications.Revoke(ctx, tenant.ID, app.ID); err != nil {
+		if err := testStores.Licenses.Revoke(ctx, tenant.ID, app.ID); err != nil {
 			t.Fatalf("Revoke: %v", err)
 		}
-		found, _ := testStores.TenantApplications.GetByTenantAndApp(ctx, tenant.ID, app.ID)
+		found, _ := testStores.Licenses.GetByTenantAndApp(ctx, tenant.ID, app.ID)
 		if found != nil {
 			t.Fatal("expected nil after revoke")
 		}

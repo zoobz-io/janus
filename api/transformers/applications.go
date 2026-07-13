@@ -23,9 +23,9 @@ func ApplicationsToResponse(apps []*models.Application) []wire.ApplicationRespon
 	return result
 }
 
-// TenantApplicationToResponse transforms a TenantApplication model to an API response.
-func TenantApplicationToResponse(ta *models.TenantApplication) wire.TenantApplicationResponse {
-	return wire.TenantApplicationResponse{
+// LicenseToResponse transforms a License model to an API response.
+func LicenseToResponse(ta *models.License) wire.LicenseResponse {
+	return wire.LicenseResponse{
 		ID:            ta.ID,
 		TenantID:      ta.TenantID,
 		ApplicationID: ta.ApplicationID,
@@ -33,18 +33,18 @@ func TenantApplicationToResponse(ta *models.TenantApplication) wire.TenantApplic
 	}
 }
 
-// TenantApplicationsToResponse transforms a slice of TenantApplication models to responses.
-func TenantApplicationsToResponse(tas []*models.TenantApplication) []wire.TenantApplicationResponse {
-	result := make([]wire.TenantApplicationResponse, len(tas))
+// LicensesToResponse transforms a slice of License models to responses.
+func LicensesToResponse(tas []*models.License) []wire.LicenseResponse {
+	result := make([]wire.LicenseResponse, len(tas))
 	for i, ta := range tas {
-		result[i] = TenantApplicationToResponse(ta)
+		result[i] = LicenseToResponse(ta)
 	}
 	return result
 }
 
-// UserApplicationToResponse transforms a UserApplication model to an API response.
-func UserApplicationToResponse(ua *models.UserApplication) wire.UserApplicationResponse {
-	return wire.UserApplicationResponse{
+// GrantToResponse transforms a Grant model to an API response.
+func GrantToResponse(ua *models.Grant) wire.GrantResponse {
+	return wire.GrantResponse{
 		ID:            ua.ID,
 		UserID:        ua.UserID,
 		TenantID:      ua.TenantID,
@@ -53,11 +53,11 @@ func UserApplicationToResponse(ua *models.UserApplication) wire.UserApplicationR
 	}
 }
 
-// UserApplicationsToResponse transforms a slice of UserApplication models to responses.
-func UserApplicationsToResponse(uas []*models.UserApplication) []wire.UserApplicationResponse {
-	result := make([]wire.UserApplicationResponse, len(uas))
+// GrantsToResponse transforms a slice of Grant models to responses.
+func GrantsToResponse(uas []*models.Grant) []wire.GrantResponse {
+	result := make([]wire.GrantResponse, len(uas))
 	for i, ua := range uas {
-		result[i] = UserApplicationToResponse(ua)
+		result[i] = GrantToResponse(ua)
 	}
 	return result
 }
