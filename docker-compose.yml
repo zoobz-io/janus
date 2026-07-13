@@ -1,9 +1,37 @@
+# Shared application environment. Infra wiring lives here; per-service overrides
+# (ports) are set on each service. Secrets/auth can be supplied via a local .env.
+x-app-env: &app-env
+  APP_DB_HOST: postgres
+  APP_DB_PORT: "5432"
+  APP_DB_NAME: janus
+  APP_DB_USER: janus
+  APP_DB_PASSWORD: janus
+  APP_DB_SSLMODE: disable
+  APP_REDIS_ADDR: redis:6379
+  APP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+
+# Shared build for the hot-reload app containers.
+x-app-build: &app-build
+  context: .
+  dockerfile: tools/dev/Dockerfile.dev
+
+# Shared dependency set for the app containers.
+x-app-deps: &app-deps
+  postgres:
+    condition: service_healthy
+  migrate:
+    condition: service_completed_successfully
+  redis:
+    condition: service_healthy
+
 services:
   # =============================================================================
-  # Core Infrastructure
+  # Core Infrastructure (started by any app profile, not by observability alone)
   # =============================================================================
 
   postgres:
+    profiles: ["api", "admin"]
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: janus
@@ -20,6 +48,7 @@ services:
       retries: 5
 
   migrate:
+    profiles: ["api", "admin"]
     image: ghcr.io/kukymbr/goose-docker:latest
     depends_on:
       postgres:
@@ -32,6 +61,7 @@ services:
       GOOSE_MIGRATION_DIR: /migrations
 
   redis:
+    profiles: ["api", "admin"]
     image: redis:7-alpine
     ports:
       - "6379:6379"
@@ -44,19 +74,57 @@ services:
       retries: 5
 
   # =============================================================================
-  # Observability Stack
+  # Applications (one profile each — start only what you need)
   # =============================================================================
 
-  # Traces - Jaeger
+  api:
+    profiles: ["api"]
+    build: *app-build
+    command: ["air", "-c", "tools/dev/air.api.toml"]
+    depends_on: *app-deps
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      <<: *app-env
+      APP_PORT: "8080"
+      OTEL_SERVICE_NAME: janus-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+
+  admin:
+    profiles: ["admin"]
+    build: *app-build
+    command: ["air", "-c", "tools/dev/air.admin.toml"]
+    depends_on: *app-deps
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      <<: *app-env
+      APP_ADMIN_PORT: "8081"
+      OTEL_SERVICE_NAME: janus-admin
+    ports:
+      - "8081:8081"
+    volumes:
+      - .:/app
+
+  # =============================================================================
+  # Observability Stack (optional — `--profile observability`)
+  # =============================================================================
+
   jaeger:
+    profiles: ["observability"]
     image: jaegertracing/all-in-one:latest
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     ports:
-      - "16686:16686"  # UI
+      - "16686:16686"
 
-  # Logs - Loki
   loki:
+    profiles: ["observability"]
     image: grafana/loki:latest
     command: -config.file=/etc/loki/local-config.yaml
     ports:
@@ -64,8 +132,8 @@ services:
     volumes:
       - lokidata:/loki
 
-  # Metrics - Prometheus
   prometheus:
+    profiles: ["observability"]
     image: prom/prometheus:latest
     volumes:
       - ./tools/dev/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
@@ -73,20 +141,20 @@ services:
     ports:
       - "9091:9090"
 
-  # OTEL Collector - Central hub
   otel-collector:
+    profiles: ["observability"]
     image: otel/opentelemetry-collector-contrib:latest
     volumes:
       - ./tools/dev/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
     ports:
-      - "4318:4318"    # OTLP HTTP
+      - "4318:4318"
     depends_on:
       - jaeger
       - loki
       - prometheus
 
-  # Grafana - Unified dashboard (optional but useful)
   grafana:
+    profiles: ["observability"]
     image: grafana/grafana:latest
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
@@ -101,44 +169,6 @@ services:
       - prometheus
       - loki
       - jaeger
-
-  # =============================================================================
-  # Application
-  # =============================================================================
-
-  app:
-    build:
-      context: .
-      dockerfile: tools/dev/Dockerfile.dev
-    depends_on:
-      postgres:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-    environment:
-      APP_PORT: "8080"
-      APP_DB_HOST: postgres
-      APP_DB_PORT: "5432"
-      APP_DB_NAME: janus
-      APP_DB_USER: janus
-      APP_DB_PASSWORD: janus
-      APP_DB_SSLMODE: disable
-      APP_REDIS_ADDR: redis:6379
-      APP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-      APP_MESH_ID: janus
-      APP_MESH_NAME: janus
-      APP_MESH_HOST: "0.0.0.0"
-      APP_MESH_PORT: "9090"
-      APP_MESH_CERT_DIR: ./certs
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
-      OTEL_SERVICE_NAME: janus
-    ports:
-      - "8080:8080"
-      - "9090:9090"
-    volumes:
-      - .:/app
 
 volumes:
   pgdata:

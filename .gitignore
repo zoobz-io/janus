@@ -37,3 +37,9 @@ dist/
 
 # Binaries
 app
+
+# Air hot-reload artifacts
+tmp/
+tmp-api/
+tmp-admin/
+build-errors*.log

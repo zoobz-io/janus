@@ -1,4 +1,4 @@
-.PHONY: build run test test-unit test-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev dev-down dev-logs dev-reset
+.PHONY: build run run-admin run-mesh test test-unit test-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset
 
 .DEFAULT_GOAL := help
 
@@ -33,27 +33,30 @@ run-mesh: ## Run the mesh gRPC node locally
 # Docker Development Environment
 # =============================================================================
 
-dev: ## Start development environment (docker compose)
-	@docker compose up -d
+dev-api: ## Start the public API + its dependencies (postgres, redis, migrate)
+	@docker compose --profile api up -d
+	@echo "API: http://localhost:8080  (make dev-logs to tail)"
+
+dev-admin: ## Start the admin API + its dependencies (postgres, redis, migrate)
+	@docker compose --profile admin up -d
+	@echo "Admin: http://localhost:8081  (make dev-logs to tail)"
+
+dev-observability: ## Start the optional telemetry stack (grafana, jaeger, prometheus, loki, otel-collector)
+	@docker compose --profile observability up -d
 	@echo ""
-	@echo "Services started:"
-	@echo "  App:        http://localhost:8080"
 	@echo "  Grafana:    http://localhost:3000"
 	@echo "  Jaeger:     http://localhost:16686"
-	@echo "  Prometheus: http://localhost:9090"
-	@echo "  MinIO:      http://localhost:9001"
-	@echo ""
-	@echo "Run 'make dev-logs' to tail application logs"
+	@echo "  Prometheus: http://localhost:9091"
 
-dev-down: ## Stop development environment
+dev-down: ## Stop the development environment (all profiles)
 	@docker compose down
 
-dev-logs: ## Tail application logs
-	@docker compose logs -f app
+dev-logs: ## Tail running container logs
+	@docker compose logs -f
 
 dev-reset: ## Reset development environment (removes volumes)
 	@docker compose down -v
-	@echo "All volumes removed. Run 'make dev' to start fresh."
+	@echo "All volumes removed."
 
 # =============================================================================
 # Testing

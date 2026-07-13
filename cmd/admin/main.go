@@ -7,7 +7,6 @@ import (
 	"log"
 
 	"github.com/zoobz-io/capitan"
-	"github.com/zoobz-io/rocco/session"
 	"github.com/zoobz-io/sum"
 
 	admincontracts "github.com/zoobz-io/janus/admin/contracts"
@@ -37,9 +36,6 @@ func run() error {
 
 	if err := sum.Config[config.Admin](ctx, rt.K, nil); err != nil {
 		return fmt.Errorf("failed to load admin config: %w", err)
-	}
-	if err := sum.Config[config.Auth](ctx, rt.K, nil); err != nil {
-		return fmt.Errorf("failed to load auth config: %w", err)
 	}
 
 	// Admin API contracts — the same shared stores, narrowed to the admin
@@ -72,16 +68,12 @@ func run() error {
 	}
 	defer ap.Close()
 
-	// Authentication is identical to the public API (cookie + bearer session).
-	// Operators obtain a session via the public login flow and present it here.
-	authCfg := sum.MustUse[config.Auth](ctx)
-	sessionStore := auth.NewSessionStore(rt.Stores.Sessions, rt.Stores.Users, rt.Redis)
-	cookieKey, err := authCfg.CookieKey()
-	if err != nil {
-		return fmt.Errorf("failed to decode cookie sign key: %w", err)
-	}
-	cookieExtractor := auth.CookieExtractor(sessionStore, session.CookieConfig{SignKey: cookieKey})
-	authenticator := auth.NewAuthenticator(rt.Stores.Sessions, rt.Stores.Users, cookieExtractor)
+	// Authentication: bearer session tokens, validated against the same shared
+	// session store as the public API. Admin does not initiate OIDC login — an
+	// operator obtains a session via the public login flow and presents its token
+	// here as `Authorization: Bearer <token>`. (No OIDC config needed, and a
+	// session cookie wouldn't cross to a separate admin domain anyway.)
+	authenticator := auth.NewAuthenticator(rt.Stores.Sessions, rt.Stores.Users, nil)
 	rt.Svc.Engine().WithAuthenticator(authenticator)
 
 	rt.Svc.Handle(adminhandlers.All()...)
