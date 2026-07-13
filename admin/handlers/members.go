@@ -20,6 +20,7 @@ var listMembers = rocco.GET[rocco.NoBody, wire.MemberListResponse]("/tenants/{te
 	return wire.MemberListResponse{Members: transformers.MembersToResponse(result.Items), Total: result.Total}, nil
 }).
 	WithSummary("List tenant members").
+	WithDescription("Returns the members of a tenant with their roles, paginated.").
 	WithTags("Tenants").
 	WithPathParams("tenant_id").
 	WithQueryParams("limit", "offset").
@@ -34,6 +35,7 @@ var addMember = rocco.POST[wire.AddMemberRequest, wire.MemberResponse]("/tenants
 	return transformers.MemberToResponse(mem), nil
 }).
 	WithSummary("Add a tenant member").
+	WithDescription("Adds a user to a tenant with a role (viewer, editor, admin, or owner).").
 	WithTags("Tenants").
 	WithPathParams("tenant_id").
 	WithSuccessStatus(201).
@@ -66,6 +68,7 @@ var updateMemberRole = rocco.PATCH[wire.UpdateMemberRoleRequest, wire.MemberResp
 	return transformers.MemberToResponse(mem), nil
 }).
 	WithSummary("Update a member's role").
+	WithDescription("Changes a member's role within a tenant. Demoting the last owner is rejected.").
 	WithTags("Tenants").
 	WithPathParams("tenant_id", "user_id").
 	WithAuthentication().
@@ -96,6 +99,7 @@ var removeMember = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/tenants/{tenant_id
 	return rocco.NoBody{}, nil
 }).
 	WithSummary("Remove a tenant member").
+	WithDescription("Removes a user from a tenant. Removing the last owner is rejected.").
 	WithTags("Tenants").
 	WithPathParams("tenant_id", "user_id").
 	WithSuccessStatus(204).

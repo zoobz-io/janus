@@ -18,6 +18,7 @@ var listFeatures = rocco.GET[rocco.NoBody, wire.FeatureListResponse]("/applicati
 	return wire.FeatureListResponse{Features: transformers.FeaturesToResponse(list)}, nil
 }).
 	WithSummary("List scopes bundled into a tier").
+	WithDescription("Returns the scopes bundled into a tier — the features every subscriber on this tier inherits.").
 	WithTags("Tiers").
 	WithPathParams("app_id", "tier_id").
 	WithAuthentication()
@@ -31,6 +32,7 @@ var addFeature = rocco.POST[wire.AddFeatureRequest, wire.FeatureResponse]("/appl
 	return transformers.FeatureToResponse(f), nil
 }).
 	WithSummary("Bundle a scope into a tier").
+	WithDescription("Adds a scope to a tier's bundle. Users on the tier inherit it immediately — scope composition is dynamic.").
 	WithTags("Tiers").
 	WithPathParams("app_id", "tier_id").
 	WithSuccessStatus(201).
@@ -45,6 +47,7 @@ var removeFeature = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/applications/{app
 	return rocco.NoBody{}, nil
 }).
 	WithSummary("Unbundle a scope from a tier").
+	WithDescription("Removes a scope from a tier's bundle.").
 	WithTags("Tiers").
 	WithPathParams("app_id", "tier_id", "scope_id").
 	WithSuccessStatus(204).

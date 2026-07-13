@@ -76,6 +76,7 @@ func run() error {
 	authenticator := auth.NewAuthenticator(rt.Stores.Sessions, rt.Stores.Users, nil)
 	rt.Svc.Engine().WithAuthenticator(authenticator)
 
+	adminhandlers.ConfigureOpenAPI(rt.Svc.Engine())
 	rt.Svc.Handle(adminhandlers.All()...)
 
 	adminCfg := sum.MustUse[config.Admin](ctx)

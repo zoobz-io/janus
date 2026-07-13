@@ -17,6 +17,7 @@ require (
 	github.com/zoobz-io/check v0.0.5
 	github.com/zoobz-io/flux v1.0.2
 	github.com/zoobz-io/grub v1.0.18
+	github.com/zoobz-io/openapi v1.0.2
 	github.com/zoobz-io/rocco v0.1.19
 	github.com/zoobz-io/sctx v1.0.3
 	github.com/zoobz-io/sum v0.0.12
@@ -46,7 +47,6 @@ require (
 	github.com/zoobz-io/edamame v1.0.2 // indirect
 	github.com/zoobz-io/fig v0.0.3 // indirect
 	github.com/zoobz-io/lucene v0.0.4 // indirect
-	github.com/zoobz-io/openapi v1.0.2 // indirect
 	github.com/zoobz-io/pipz v1.0.5 // indirect
 	github.com/zoobz-io/scio v0.0.5 // indirect
 	github.com/zoobz-io/sentinel v1.0.4 // indirect

@@ -18,6 +18,7 @@ var listApplications = rocco.GET[rocco.NoBody, wire.ApplicationListResponse]("/a
 	return wire.ApplicationListResponse{Applications: transformers.ApplicationsToResponse(list)}, nil
 }).
 	WithSummary("List all applications").
+	WithDescription("Returns every application on the mesh, including inactive ones. The public catalog only exposes active applications.").
 	WithTags("Applications").
 	WithAuthentication()
 
@@ -30,6 +31,7 @@ var getApplication = rocco.GET[rocco.NoBody, wire.ApplicationResponse]("/applica
 	return transformers.ApplicationToResponse(app), nil
 }).
 	WithSummary("Get an application").
+	WithDescription("Fetches a single application by ID, including its current status.").
 	WithTags("Applications").
 	WithPathParams("app_id").
 	WithAuthentication().
@@ -44,6 +46,7 @@ var createApplication = rocco.POST[wire.CreateApplicationRequest, wire.Applicati
 	return transformers.ApplicationToResponse(app), nil
 }).
 	WithSummary("Register an application").
+	WithDescription("Registers a new application. The slug must match the certificate CN of the service's mesh nodes.").
 	WithTags("Applications").
 	WithSuccessStatus(201).
 	WithAuthentication().
@@ -58,6 +61,7 @@ var updateApplication = rocco.PATCH[wire.UpdateApplicationRequest, wire.Applicat
 	return transformers.ApplicationToResponse(app), nil
 }).
 	WithSummary("Update an application").
+	WithDescription("Updates an application's name and status. Set status to 'inactive' to soft-disable it — there is no hard delete.").
 	WithTags("Applications").
 	WithPathParams("app_id").
 	WithAuthentication().

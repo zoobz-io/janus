@@ -18,6 +18,7 @@ var listUserAccounts = rocco.GET[rocco.NoBody, wire.AccountListResponse]("/users
 	return wire.AccountListResponse{Accounts: transformers.AccountsToResponse(list)}, nil
 }).
 	WithSummary("List a user's linked accounts").
+	WithDescription("Returns the external identity-provider accounts linked to a user.").
 	WithTags("Users").
 	WithPathParams("user_id").
 	WithAuthentication()
@@ -30,6 +31,7 @@ var unlinkUserAccount = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/users/{user_i
 	return rocco.NoBody{}, nil
 }).
 	WithSummary("Unlink a user's account").
+	WithDescription("Removes a linked external account from a user.").
 	WithTags("Users").
 	WithPathParams("user_id", "account_id").
 	WithSuccessStatus(204).
