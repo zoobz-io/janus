@@ -29,8 +29,8 @@ run-admin: ## Run the admin API locally
 run-mesh: ## Run the mesh gRPC node locally
 	@go run ./cmd/mesh
 
-seed: ## Seed the dev database with fake data (wipes domain tables first)
-	@go run ./cmd/seed
+seed: ## Seed the dev database with fake data in the compose network (wipes domain tables first)
+	@docker compose --profile seed run --rm --build seed
 
 # =============================================================================
 # Docker Development Environment

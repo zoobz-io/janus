@@ -6,11 +6,14 @@
 // applications with scopes/tiers/features, tenants and members, users with
 // linked accounts and sessions, licenses, and per-user grants.
 //
-// The seeder TRUNCATEs the domain tables first so it is safe to re-run. It
-// connects to whatever APP_DB_* points at, so it is intended for local dev only
-// (defaults target the docker-compose Postgres: localhost:5432/janus).
+// The seeder TRUNCATEs the domain tables first so it is safe to re-run. It is
+// intended for local dev only and runs in the compose network alongside the
+// other services, reading the same APP_* environment as the app containers.
 //
-//	make seed        # or: go run ./cmd/seed
+//	make seed        # docker compose --profile seed run --rm --build seed
+//
+// It can also be run from the host against the published dev ports, given the
+// dev environment (e.g. via the local .env: APP_DB_HOST=localhost etc.).
 package main
 
 import (

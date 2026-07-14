@@ -31,7 +31,7 @@ services:
   # =============================================================================
 
   postgres:
-    profiles: ["api", "admin"]
+    profiles: ["api", "admin", "seed"]
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: janus
@@ -48,7 +48,7 @@ services:
       retries: 5
 
   migrate:
-    profiles: ["api", "admin"]
+    profiles: ["api", "admin", "seed"]
     image: ghcr.io/kukymbr/goose-docker:latest
     depends_on:
       postgres:
@@ -60,8 +60,24 @@ services:
       GOOSE_DBSTRING: "host=postgres port=5432 user=janus password=janus dbname=janus sslmode=disable"
       GOOSE_MIGRATION_DIR: /migrations
 
+  # Seeds representative dev data after migrations, in-network like `migrate`.
+  # Opt-in via its own profile because it TRUNCATEs the domain tables first —
+  # run it deliberately with `make seed`, not on every `up`.
+  seed:
+    profiles: ["seed"]
+    build: *app-build
+    command: ["go", "run", "./cmd/seed"]
+    depends_on: *app-deps
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      <<: *app-env
+    volumes:
+      - .:/app
+
   redis:
-    profiles: ["api", "admin"]
+    profiles: ["api", "admin", "seed"]
     image: redis:7-alpine
     ports:
       - "6379:6379"
