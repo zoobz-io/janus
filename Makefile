@@ -1,4 +1,4 @@
-.PHONY: build run run-admin run-mesh test test-unit test-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset
+.PHONY: build run run-admin run-mesh test test-unit test-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-admin
 
 .DEFAULT_GOAL := help
 
@@ -60,6 +60,13 @@ dev-logs: ## Tail running container logs
 dev-reset: ## Reset development environment (removes volumes)
 	@docker compose down -v
 	@echo "All volumes removed."
+
+# =============================================================================
+# Web / SDK
+# =============================================================================
+
+openapi-admin: ## Dump the admin API OpenAPI spec into the admin SDK package
+	@go run ./cmd/adminspec web/packages/admin-sdk/openapi.json
 
 # =============================================================================
 # Testing

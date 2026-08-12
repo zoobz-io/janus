@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+.turbo/
+.nuxt/
+.output/
+.data/
+*.tsbuildinfo
+
+# Generated openapi-typescript client schemas (regenerated on build from the
+# committed openapi.json).
+*.gen.ts
+.env
+.env.*
+!.env.example
+.DS_Store

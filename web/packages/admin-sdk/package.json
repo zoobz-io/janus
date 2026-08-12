@@ -1,0 +1,33 @@
+{
+  "name": "@janus/admin-sdk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "generate": "openapi-typescript ./openapi.json -o ./src/schema.gen.ts",
+    "prebuild": "pnpm run generate",
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "pnpm run generate && tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist src/schema.gen.ts"
+  },
+  "dependencies": {
+    "openapi-press": "0.1.1"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.9.1",
+    "typescript": "5.9.3"
+  }
+}
