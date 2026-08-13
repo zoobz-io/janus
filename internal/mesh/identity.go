@@ -39,15 +39,9 @@ func NewIdentityServer(
 		accounts:    accounts,
 		tenants:     tenants,
 		memberships: memberships,
-		entitlement: &entitlementChecker{
-			applications: applications,
-			licenses:     licenses,
-			grants:       grants,
-			memberships:  memberships,
-			tenants:      tenants,
-			features:     features,
-			scopes:       scopes,
-		},
+		entitlement: newEntitlementChecker(
+			applications, licenses, grants, memberships, tenants, features, scopes,
+		),
 	}
 }
 

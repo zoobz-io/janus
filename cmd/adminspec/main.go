@@ -51,10 +51,10 @@ func run() error {
 	}
 	data = append(data, '\n')
 
-	if err := os.MkdirAll(filepath.Dir(out), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(out), 0o750); err != nil {
 		return fmt.Errorf("create output dir: %w", err)
 	}
-	if err := os.WriteFile(out, data, 0o644); err != nil {
+	if err := os.WriteFile(out, data, 0o600); err != nil {
 		return fmt.Errorf("write %s: %w", out, err)
 	}
 

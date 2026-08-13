@@ -10,12 +10,21 @@ importers:
 
   apps/admin:
     dependencies:
+      '@crestable/nuxt':
+        specifier: 0.0.0
+        version: 0.0.0(magic-string@0.30.21)(magicast@0.5.4)(oxc-parser@0.133.0)(unplugin@3.3.0(esbuild@0.28.1)(rollup@4.62.4)(vite@7.3.6(jiti@2.7.0)(terser@5.49.1)(yaml@2.9.0)))
       '@janus/admin-sdk':
         specifier: workspace:*
         version: link:../../packages/admin-sdk
+      '@janus/crest':
+        specifier: workspace:*
+        version: link:../../packages/crest
       '@openapi-press/nuxt':
         specifier: 0.1.1
         version: 0.1.1(magic-string@0.30.21)(magicast@0.5.4)(oxc-parser@0.133.0)(unplugin@3.3.0(esbuild@0.28.1)(rollup@4.62.4)(vite@7.3.6(jiti@2.7.0)(terser@5.49.1)(yaml@2.9.0)))
+      crestable:
+        specifier: 0.0.0
+        version: 0.0.0
       nuxt:
         specifier: 4.4.8
         version: 4.4.8(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@oxc-project/types@0.133.0)(@vue/compiler-sfc@3.5.40)(cac@6.7.14)(db0@0.3.4)(esbuild@0.28.1)(ioredis@5.11.1)(magicast@0.5.4)(rollup-plugin-visualizer@7.0.1(rollup@4.62.4))(rollup@4.62.4)(srvx@0.11.22)(terser@5.49.1)(typescript@5.9.3)(vite@7.3.6(jiti@2.7.0)(terser@5.49.1)(yaml@2.9.0))(vue-tsc@3.3.9(typescript@5.9.3))(yaml@2.9.0)
@@ -39,6 +48,22 @@ importers:
       openapi-typescript:
         specifier: 7.9.1
         version: 7.9.1(typescript@5.9.3)
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/crest:
+    dependencies:
+      '@crestable/kit':
+        specifier: 0.0.0
+        version: 0.0.0
+      '@crestable/schema':
+        specifier: 0.0.0
+        version: 0.0.0
+      crestable:
+        specifier: 0.0.0
+        version: 0.0.0
+    devDependencies:
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -212,6 +237,18 @@ packages:
 
   '@colordx/core@5.5.0':
     resolution: {integrity: sha512-3PxTH8itZzltK0U9jTwVVnjLXvnDYuq3m+QXsHkENxWiPRh4WaoLcs1SQjqgZ55kS+QyirpH5BVwzP2gMVG6EQ==}
+
+  '@crestable/core@0.0.0':
+    resolution: {integrity: sha512-UY0EPvnS4oKW1xHVdPqL6HLz4JGqBQXWoGTZ1CRiZb/xN0C86U83w1hWFlHKVvTv/sMlUhEJoSMskhqH5dSEJg==}
+
+  '@crestable/kit@0.0.0':
+    resolution: {integrity: sha512-3VWXu3Qrb5WPWuIczGcVlfLwQrqt26RgMGLydPLiChA3qnnTsgnhm1/Yp1dUzpGqzCXcPS2lrFg2fGHy9FXk6g==}
+
+  '@crestable/nuxt@0.0.0':
+    resolution: {integrity: sha512-5c+IjNPBnG/egfnL+1oiY0hf0eFqGRj60PsbjdEV0nxO/Y3tNxT6wxVVPNAtmV0h68qEFnrGO92Ie5TZTFQQVg==}
+
+  '@crestable/schema@0.0.0':
+    resolution: {integrity: sha512-bkM6lYcr+8cFHJvblX3PjVppanA+7opCAW6xpRIcPJgjX6LZAOMKtHHQ3OmH7N9PODQ4tvqiD7IyMq5SUeTVMA==}
 
   '@dxup/nuxt@0.4.1':
     resolution: {integrity: sha512-gtYffW6OfWNvoLW+XD3Mx/K8uUq08PMGLYJoDxc92EzZAWqR0FhcR5iaLm5r/OxyGTKz+P5f5Y7Aoir9+SjYaw==}
@@ -1604,6 +1641,9 @@ packages:
     resolution: {integrity: sha512-piICUB6ei4IlTv1+653yq5+KoqfBYmj9bw6LqXoOneTMDXk5nM1qt12mFW1caG3LlJXEKW1Bp0WggEmIfQB34g==}
     engines: {node: '>= 14'}
 
+  crestable@0.0.0:
+    resolution: {integrity: sha512-/Zp90qBEoXT/Tj8W1N3ChGHSBkNpWieC8A7H+HXZ7YSLYYU4aoIc8io26Qcadb6mk58EfU8log/+AcWnqbTWSQ==}
+
   croner@10.0.1:
     resolution: {integrity: sha512-ixNtAJndqh173VQ4KodSdJEI6nuioBWI0V1ITNKhZZsO0pEMoDxz539T4FTTbSZ/xIOSuDnzxLVRqBVSvPNE2g==}
     engines: {node: '>=18.0'}
@@ -2357,6 +2397,9 @@ packages:
     resolution: {integrity: sha512-zxlE2yvSWZWmHcNdT3+5zV2lrCogeE9YOklHrR3dFjqutq5wO7GFDYLFDRXLsYnJzwvy/im9fYoxePvS0VTW0w==}
     engines: {node: '>=18'}
     hasBin: true
+
+  objectively@0.1.1:
+    resolution: {integrity: sha512-Nhj9qY2BXXpLUWLtLNXTkqf0ZlSxPzVsKiQ5r5fT2NoYqaz3DKvQoBskyWQyvpW1dMAXpWlYmevEXeFRNSSPLg==}
 
   obug@2.1.4:
     resolution: {integrity: sha512-4a+OsYv9UktOJKE+l1A4OufDgdRF9PifWj+tJnHURo/P+WOxpG4GzUFL9qCalmWauao6ogiG+QvnCovwPoyAWA==}
@@ -3651,6 +3694,32 @@ snapshots:
   '@cloudflare/kv-asset-handler@0.4.2': {}
 
   '@colordx/core@5.5.0': {}
+
+  '@crestable/core@0.0.0':
+    dependencies:
+      '@crestable/kit': 0.0.0
+      '@crestable/schema': 0.0.0
+
+  '@crestable/kit@0.0.0':
+    dependencies:
+      '@crestable/schema': 0.0.0
+      objectively: 0.1.1
+
+  '@crestable/nuxt@0.0.0(magic-string@0.30.21)(magicast@0.5.4)(oxc-parser@0.133.0)(unplugin@3.3.0(esbuild@0.28.1)(rollup@4.62.4)(vite@7.3.6(jiti@2.7.0)(terser@5.49.1)(yaml@2.9.0)))':
+    dependencies:
+      '@nuxt/kit': 4.5.1(magic-string@0.30.21)(magicast@0.5.4)(oxc-parser@0.133.0)(unplugin@3.3.0(esbuild@0.28.1)(rollup@4.62.4)(vite@7.3.6(jiti@2.7.0)(terser@5.49.1)(yaml@2.9.0)))
+      crestable: 0.0.0
+      h3: 1.15.11
+    transitivePeerDependencies:
+      - magic-string
+      - magicast
+      - oxc-parser
+      - rolldown
+      - unplugin
+
+  '@crestable/schema@0.0.0':
+    dependencies:
+      objectively: 0.1.1
 
   '@dxup/nuxt@0.4.1(magic-string@0.30.21)(magicast@0.5.4)(oxc-parser@0.133.0)(typescript@5.9.3)(unplugin@3.3.0(esbuild@0.28.1)(rollup@4.62.4)(vite@7.3.6(jiti@2.7.0)(terser@5.49.1)(yaml@2.9.0)))':
     dependencies:
@@ -5111,6 +5180,12 @@ snapshots:
       crc-32: 1.2.2
       readable-stream: 4.7.0
 
+  crestable@0.0.0:
+    dependencies:
+      '@crestable/core': 0.0.0
+      '@crestable/kit': 0.0.0
+      '@crestable/schema': 0.0.0
+
   croner@10.0.1: {}
 
   cross-spawn@7.0.6:
@@ -6035,6 +6110,8 @@ snapshots:
       citty: 0.2.2
       pathe: 2.0.3
       tinyexec: 1.3.0
+
+  objectively@0.1.1: {}
 
   obug@2.1.4: {}
 

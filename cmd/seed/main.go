@@ -87,8 +87,8 @@ type scopeDef struct {
 type tierDef struct {
 	slug   string
 	name   string
+	scopes []string
 	rank   int
-	scopes []string // scope names bundled into this tier (features)
 }
 
 type appDef struct {
@@ -107,10 +107,10 @@ type userDef struct {
 }
 
 type grantDef struct {
-	app    string // application slug
+	app    string
+	tier   string
 	roles  []string
 	scopes []string
-	tier   string // tier slug, or "" for none
 }
 
 type memberDef struct {
@@ -129,8 +129,20 @@ type orgDef struct {
 
 // Products on the mesh. Each declares its own scope catalog and tiers; tiers
 // bundle a subset of scopes as features. Vault is intentionally inactive and
-// unused to exercise that state.
+// unused to exercise that state. Janus Admin is janus's own admin portal,
+// registered as a first-class application so it authenticates through janus
+// like every other product (no tiers — an internal tool's grants carry
+// explicit scopes).
 var apps = []appDef{
+	{
+		name: "Janus Admin", slug: "janus-admin", status: models.ApplicationStatusActive,
+		scopes: []scopeDef{
+			{"directory:read", "Browse users, tenants, applications, and providers"},
+			{"users:manage", "Create and update users, revoke sessions, unlink accounts"},
+			{"tenants:manage", "Create and update tenants and their memberships"},
+			{"applications:manage", "Manage applications, scopes, tiers, grants, and licenses"},
+		},
+	},
 	{
 		name: "Nexus", slug: "nexus", status: models.ApplicationStatusActive,
 		scopes: []scopeDef{
@@ -141,9 +153,9 @@ var apps = []appDef{
 			{"billing:read", "View billing"},
 		},
 		tiers: []tierDef{
-			{"free", "Free", 0, []string{"projects:read"}},
-			{"pro", "Pro", 1, []string{"projects:read", "projects:write", "members:manage"}},
-			{"enterprise", "Enterprise", 2, []string{"projects:read", "projects:write", "projects:delete", "members:manage", "billing:read"}},
+			{"free", "Free", []string{"projects:read"}, 0},
+			{"pro", "Pro", []string{"projects:read", "projects:write", "members:manage"}, 1},
+			{"enterprise", "Enterprise", []string{"projects:read", "projects:write", "projects:delete", "members:manage", "billing:read"}, 2},
 		},
 	},
 	{
@@ -155,9 +167,9 @@ var apps = []appDef{
 			{"secrets:read", "Read CI secrets"},
 		},
 		tiers: []tierDef{
-			{"starter", "Starter", 0, []string{"pipelines:read"}},
-			{"team", "Team", 1, []string{"pipelines:read", "pipelines:run"}},
-			{"scale", "Scale", 2, []string{"pipelines:read", "pipelines:run", "runners:manage", "secrets:read"}},
+			{"starter", "Starter", []string{"pipelines:read"}, 0},
+			{"team", "Team", []string{"pipelines:read", "pipelines:run"}, 1},
+			{"scale", "Scale", []string{"pipelines:read", "pipelines:run", "runners:manage", "secrets:read"}, 2},
 		},
 	},
 	{
@@ -168,8 +180,8 @@ var apps = []appDef{
 			{"data:export", "Export raw data"},
 		},
 		tiers: []tierDef{
-			{"free", "Free", 0, []string{"dashboards:read"}},
-			{"pro", "Pro", 1, []string{"dashboards:read", "dashboards:write", "data:export"}},
+			{"free", "Free", []string{"dashboards:read"}, 0},
+			{"pro", "Pro", []string{"dashboards:read", "dashboards:write", "data:export"}, 1},
 		},
 	},
 	{
@@ -180,9 +192,9 @@ var apps = []appDef{
 			{"webhooks:manage", "Manage webhooks"},
 		},
 		tiers: []tierDef{
-			{"free", "Free", 0, []string{"messages:send"}},
-			{"growth", "Growth", 1, []string{"messages:send", "templates:manage"}},
-			{"enterprise", "Enterprise", 2, []string{"messages:send", "templates:manage", "webhooks:manage"}},
+			{"free", "Free", []string{"messages:send"}, 0},
+			{"growth", "Growth", []string{"messages:send", "templates:manage"}, 1},
+			{"enterprise", "Enterprise", []string{"messages:send", "templates:manage", "webhooks:manage"}, 2},
 		},
 	},
 	{
@@ -192,12 +204,17 @@ var apps = []appDef{
 			{"secrets:write", "Write secrets"},
 		},
 		tiers: []tierDef{
-			{"standard", "Standard", 0, []string{"secrets:read", "secrets:write"}},
+			{"standard", "Standard", []string{"secrets:read", "secrets:write"}, 0},
 		},
 	},
 }
 
 var users = []userDef{
+	// The real operator. No pre-linked account — the first Google login
+	// attaches the IdP identity via verified-email linking (resolveOAuth).
+	{"alex@zoobz.io", "Alexander Thorwaldson", models.UserStatusActive, nil},
+	{"root@janus.example", "Rosa Ortiz", models.UserStatusActive, []models.ProviderType{models.ProviderZitadel}},
+	{"audit@janus.example", "Avery Chen", models.UserStatusActive, []models.ProviderType{models.ProviderZitadel}},
 	{"alice@acme.example", "Alice Nguyen", models.UserStatusActive, []models.ProviderType{models.ProviderGitHub, models.ProviderGoogle}},
 	{"bob@acme.example", "Bob Martinez", models.UserStatusActive, []models.ProviderType{models.ProviderGitHub}},
 	{"carol@acme.example", "Carol Danvers", models.UserStatusActive, nil},
@@ -214,6 +231,7 @@ var users = []userDef{
 
 // Sessions to create: user email -> the services (issued_by) that minted them.
 var sessions = map[string][]string{
+	"root@janus.example":    {"janus-admin"},
 	"alice@acme.example":    {"nexus", "forge"},
 	"bob@acme.example":      {"nexus"},
 	"dave@globex.example":   {"relay"},
@@ -224,20 +242,35 @@ var sessions = map[string][]string{
 
 var orgs = []orgDef{
 	{
+		name: "Janus Operations", slug: "janus-ops", status: models.TenantStatusActive,
+		licenses: []string{"janus-admin"},
+		members: []memberDef{
+			{"alex@zoobz.io", models.UserRoleOwner, []grantDef{
+				{"janus-admin", "", []string{"operator"}, []string{"directory:read", "users:manage", "tenants:manage", "applications:manage"}},
+			}},
+			{"root@janus.example", models.UserRoleOwner, []grantDef{
+				{"janus-admin", "", []string{"operator"}, []string{"directory:read", "users:manage", "tenants:manage", "applications:manage"}},
+			}},
+			{"audit@janus.example", models.UserRoleViewer, []grantDef{
+				{"janus-admin", "", []string{"auditor"}, []string{"directory:read"}},
+			}},
+		},
+	},
+	{
 		name: "Acme Corp", slug: "acme-corp", status: models.TenantStatusActive,
 		licenses: []string{"nexus", "forge", "atlas"},
 		members: []memberDef{
 			{"alice@acme.example", models.UserRoleOwner, []grantDef{
-				{"nexus", []string{"admin"}, []string{"projects:read", "projects:write", "members:manage"}, "enterprise"},
-				{"forge", []string{"maintainer"}, []string{"pipelines:read", "pipelines:run", "runners:manage"}, "scale"},
-				{"atlas", []string{"admin"}, []string{"dashboards:read", "dashboards:write", "data:export"}, "pro"},
+				{"nexus", "enterprise", []string{"admin"}, []string{"projects:read", "projects:write", "members:manage"}},
+				{"forge", "scale", []string{"maintainer"}, []string{"pipelines:read", "pipelines:run", "runners:manage"}},
+				{"atlas", "pro", []string{"admin"}, []string{"dashboards:read", "dashboards:write", "data:export"}},
 			}},
 			{"bob@acme.example", models.UserRoleAdmin, []grantDef{
-				{"nexus", []string{"editor"}, []string{"projects:read", "projects:write"}, "pro"},
-				{"forge", []string{"developer"}, []string{"pipelines:read", "pipelines:run"}, "team"},
+				{"nexus", "pro", []string{"editor"}, []string{"projects:read", "projects:write"}},
+				{"forge", "team", []string{"developer"}, []string{"pipelines:read", "pipelines:run"}},
 			}},
 			{"carol@acme.example", models.UserRoleEditor, []grantDef{
-				{"nexus", []string{"viewer"}, []string{"projects:read"}, "free"},
+				{"nexus", "free", []string{"viewer"}, []string{"projects:read"}},
 			}},
 		},
 	},
@@ -246,11 +279,11 @@ var orgs = []orgDef{
 		licenses: []string{"nexus", "relay"},
 		members: []memberDef{
 			{"dave@globex.example", models.UserRoleOwner, []grantDef{
-				{"nexus", []string{"admin"}, []string{"projects:read", "projects:write"}, "pro"},
-				{"relay", []string{"admin"}, []string{"messages:send", "templates:manage", "webhooks:manage"}, "growth"},
+				{"nexus", "pro", []string{"admin"}, []string{"projects:read", "projects:write"}},
+				{"relay", "growth", []string{"admin"}, []string{"messages:send", "templates:manage", "webhooks:manage"}},
 			}},
 			{"erin@globex.example", models.UserRoleEditor, []grantDef{
-				{"relay", []string{"editor"}, []string{"messages:send"}, "free"},
+				{"relay", "free", []string{"editor"}, []string{"messages:send"}},
 			}},
 		},
 	},
@@ -259,17 +292,17 @@ var orgs = []orgDef{
 		licenses: []string{"nexus", "forge", "atlas", "relay"},
 		members: []memberDef{
 			{"grace@initech.example", models.UserRoleOwner, []grantDef{
-				{"nexus", []string{"admin"}, []string{"projects:read", "projects:write", "members:manage"}, "enterprise"},
-				{"forge", []string{"maintainer"}, []string{"pipelines:read", "pipelines:run", "runners:manage"}, "scale"},
-				{"atlas", []string{"admin"}, []string{"dashboards:read", "dashboards:write", "data:export"}, "pro"},
-				{"relay", []string{"admin"}, []string{"messages:send", "templates:manage", "webhooks:manage"}, "enterprise"},
+				{"nexus", "enterprise", []string{"admin"}, []string{"projects:read", "projects:write", "members:manage"}},
+				{"forge", "scale", []string{"maintainer"}, []string{"pipelines:read", "pipelines:run", "runners:manage"}},
+				{"atlas", "pro", []string{"admin"}, []string{"dashboards:read", "dashboards:write", "data:export"}},
+				{"relay", "enterprise", []string{"admin"}, []string{"messages:send", "templates:manage", "webhooks:manage"}},
 			}},
 			{"frank@initech.example", models.UserRoleAdmin, []grantDef{
-				{"forge", []string{"developer"}, []string{"pipelines:read", "pipelines:run"}, "team"},
-				{"atlas", []string{"viewer"}, []string{"dashboards:read"}, "free"},
+				{"forge", "team", []string{"developer"}, []string{"pipelines:read", "pipelines:run"}},
+				{"atlas", "free", []string{"viewer"}, []string{"dashboards:read"}},
 			}},
 			{"heidi@initech.example", models.UserRoleViewer, []grantDef{
-				{"nexus", []string{"viewer"}, []string{"projects:read"}, "free"},
+				{"nexus", "free", []string{"viewer"}, []string{"projects:read"}},
 			}},
 		},
 	},
@@ -278,10 +311,10 @@ var orgs = []orgDef{
 		licenses: []string{"nexus"},
 		members: []memberDef{
 			{"ivan@umbrella.example", models.UserRoleOwner, []grantDef{
-				{"nexus", []string{"admin"}, []string{"projects:read", "projects:write"}, "pro"},
+				{"nexus", "pro", []string{"admin"}, []string{"projects:read", "projects:write"}},
 			}},
 			{"judy@umbrella.example", models.UserRoleViewer, []grantDef{
-				{"nexus", []string{"viewer"}, []string{"projects:read"}, "free"},
+				{"nexus", "free", []string{"viewer"}, []string{"projects:read"}},
 			}},
 		},
 	},
@@ -290,10 +323,10 @@ var orgs = []orgDef{
 		licenses: []string{"atlas"},
 		members: []memberDef{
 			{"mallory@hooli.example", models.UserRoleOwner, []grantDef{
-				{"atlas", []string{"admin"}, []string{"dashboards:read", "dashboards:write", "data:export"}, "pro"},
+				{"atlas", "pro", []string{"admin"}, []string{"dashboards:read", "dashboards:write", "data:export"}},
 			}},
 			{"oscar@hooli.example", models.UserRoleViewer, []grantDef{
-				{"atlas", []string{"viewer"}, []string{"dashboards:read"}, "free"},
+				{"atlas", "free", []string{"viewer"}, []string{"dashboards:read"}},
 			}},
 		},
 	},

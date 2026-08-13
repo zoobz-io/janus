@@ -7,7 +7,10 @@ import (
 
 // Auth holds OAuth and session cookie configuration.
 type Auth struct {
-	Issuer            string `env:"APP_AUTH_ISSUER" default:"http://localhost:8085"`
+	Issuer string `env:"APP_AUTH_ISSUER" default:"https://accounts.google.com"`
+	// Provider is the name linked accounts are recorded under
+	// (models.ProviderType) — which IdP the configured issuer is.
+	Provider          string `env:"APP_AUTH_PROVIDER" default:"oidc"`
 	ClientID          string `env:"APP_AUTH_CLIENT_ID"`
 	ClientSecret      string `env:"APP_AUTH_CLIENT_SECRET" secret:"app/auth-client-secret"`
 	RedirectURI       string `env:"APP_AUTH_REDIRECT_URI" default:"http://localhost:8080/auth/callback"`

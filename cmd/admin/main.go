@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/zoobz-io/capitan"
+	"github.com/zoobz-io/rocco/session"
 	"github.com/zoobz-io/sum"
 
 	admincontracts "github.com/zoobz-io/janus/admin/contracts"
@@ -34,8 +35,11 @@ func run() error {
 	defer func() { _ = rt.DB.Close() }()
 	defer func() { _ = rt.Redis.Close() }()
 
-	if err := sum.Config[config.Admin](ctx, rt.K, nil); err != nil {
-		return fmt.Errorf("failed to load admin config: %w", err)
+	if cfgErr := sum.Config[config.Admin](ctx, rt.K, nil); cfgErr != nil {
+		return fmt.Errorf("failed to load admin config: %w", cfgErr)
+	}
+	if cfgErr := sum.Config[config.Cookie](ctx, rt.K, nil); cfgErr != nil {
+		return fmt.Errorf("failed to load cookie config: %w", cfgErr)
 	}
 
 	// Admin API contracts — the same shared stores, narrowed to the admin
@@ -68,12 +72,20 @@ func run() error {
 	}
 	defer ap.Close()
 
-	// Authentication: bearer session tokens, validated against the same shared
-	// session store as the public API. Admin does not initiate OIDC login — an
-	// operator obtains a session via the public login flow and presents its token
-	// here as `Authorization: Bearer <token>`. (No OIDC config needed, and a
-	// session cookie wouldn't cross to a separate admin domain anyway.)
-	authenticator := auth.NewAuthenticator(rt.Stores.Sessions, rt.Stores.Users, nil)
+	// Authentication: session cookies and bearer session tokens, both validated
+	// against the same shared session store as the public API. Admin does not
+	// initiate OIDC login — a browser session is established by the public login
+	// flow, and its cookie authenticates here because the two APIs share the
+	// session store and cookie signing key (a same-origin proxy in front of the
+	// admin UI forwards it). Service callers present `Authorization: Bearer <token>`.
+	cookieCfg := sum.MustUse[config.Cookie](ctx)
+	cookieKey, err := cookieCfg.Key()
+	if err != nil {
+		return fmt.Errorf("failed to decode cookie sign key: %w", err)
+	}
+	sessionStore := auth.NewSessionStore(rt.Stores.Sessions, rt.Stores.Users, rt.Redis)
+	cookieExtractor := auth.CookieExtractor(sessionStore, session.CookieConfig{SignKey: cookieKey})
+	authenticator := auth.NewAuthenticator(rt.Stores.Sessions, rt.Stores.Users, cookieExtractor)
 	rt.Svc.Engine().WithAuthenticator(authenticator)
 
 	adminhandlers.ConfigureOpenAPI(rt.Svc.Engine())

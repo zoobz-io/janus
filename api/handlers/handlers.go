@@ -22,6 +22,7 @@ func All() []rocco.Endpoint {
 		// Applications (read-only)
 		listApplications,
 		listMyApplications,
+		getMyAuthorization,
 	}
 }
 

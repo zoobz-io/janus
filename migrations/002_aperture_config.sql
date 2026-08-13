@@ -1,6 +1,8 @@
 -- +goose Up
 -- Runtime config table polled by internal/observe. The aperture_schema row
--- drives the capitan -> OTEL bridge (metrics, log whitelist, trace context).
+-- drives the capitan -> OTEL bridge (metrics, log whitelist). Context
+-- extraction (user_id/tenant_id on logs/traces) is deliberately absent until
+-- the binaries register those context keys and populate them per request.
 
 CREATE TABLE config (
     key TEXT PRIMARY KEY,
@@ -40,10 +42,6 @@ metrics:
 
 logs:
   whitelist: []
-
-context:
-  logs: ["user_id", "tenant_id"]
-  traces: ["user_id", "tenant_id"]
 ');
 
 -- +goose Down

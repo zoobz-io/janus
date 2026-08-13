@@ -23,8 +23,8 @@ type TierResponse struct {
 	ApplicationID string `json:"application_id" description:"Owning application ID" example:"770e8400-e29b-41d4-a716-446655440000"`
 	Slug          string `json:"slug" description:"Tier slug" example:"pro"`
 	Name          string `json:"name" description:"Tier display name" example:"Pro"`
-	Rank          int    `json:"rank" description:"Ordering rank" example:"1"`
 	CreatedAt     string `json:"created_at" description:"When the tier was defined" example:"2026-07-12T12:00:00Z"`
+	Rank          int    `json:"rank" description:"Ordering rank" example:"1"`
 }
 
 // TierListResponse is the admin API response for a list of tiers.

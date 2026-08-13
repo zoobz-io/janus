@@ -9,12 +9,14 @@
     "generate": "nuxi generate",
     "preview": "nuxi preview",
     "postinstall": "nuxi prepare",
-    "typecheck": "nuxi typecheck",
-    "lint": "eslint ."
+    "typecheck": "nuxi typecheck"
   },
   "dependencies": {
+    "@crestable/nuxt": "0.0.0",
     "@janus/admin-sdk": "workspace:*",
+    "@janus/crest": "workspace:*",
     "@openapi-press/nuxt": "0.1.1",
+    "crestable": "0.0.0",
     "nuxt": "4.4.8",
     "vue": "3.5.24"
   },

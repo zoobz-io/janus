@@ -1,4 +1,4 @@
-.PHONY: build run run-admin run-mesh test test-unit test-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-admin
+.PHONY: build run run-admin run-mesh test test-unit test-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-admin web-install web-check web-build
 
 .DEFAULT_GOAL := help
 
@@ -68,6 +68,15 @@ dev-reset: ## Reset development environment (removes volumes)
 openapi-admin: ## Dump the admin API OpenAPI spec into the admin SDK package
 	@go run ./cmd/adminspec web/packages/admin-sdk/openapi.json
 
+web-install: ## Install web workspace dependencies
+	@cd web && pnpm install
+
+web-check: ## Typecheck the web workspace
+	@cd web && pnpm run typecheck
+
+web-build: ## Build the web workspace (SDK packages + admin app)
+	@cd web && pnpm run build
+
 # =============================================================================
 # Testing
 # =============================================================================
@@ -130,8 +139,8 @@ install-hooks: ## Install git pre-commit hook
 # CI
 # =============================================================================
 
-check: test lint ## Run tests and lint (quick validation)
+check: test lint web-check ## Run tests, lint, and web typecheck (quick validation)
 	@echo "All checks passed!"
 
-ci: clean lint test coverage test-bench ## Full CI simulation
+ci: clean lint test coverage test-bench web-check web-build ## Full CI simulation
 	@echo "CI simulation complete!"

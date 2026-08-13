@@ -11,4 +11,6 @@ var (
 	ErrInsufficientRole = errors.New("insufficient role")
 	// ErrLastOwner indicates the operation would remove the last owner.
 	ErrLastOwner = errors.New("cannot remove or demote the last owner")
+	// ErrApplicationNotFound indicates no application exists for the slug.
+	ErrApplicationNotFound = errors.New("application not found")
 )

@@ -42,7 +42,7 @@ func run() error {
 	defer func() { _ = rt.DB.Close() }()
 	defer func() { _ = rt.Redis.Close() }()
 
-	if err := sum.Config[config.Mesh](ctx, rt.K, nil); err != nil {
+	if cfgErr := sum.Config[config.Mesh](ctx, rt.K, nil); cfgErr != nil {
 		return fmt.Errorf("failed to load mesh config: %w", err)
 	}
 

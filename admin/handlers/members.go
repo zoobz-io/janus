@@ -56,7 +56,7 @@ var updateMemberRole = rocco.PATCH[wire.UpdateMemberRoleRequest, wire.MemberResp
 	}
 	// Demoting the last owner is not allowed.
 	if current.Role == models.UserRoleOwner && r.Body.Role != models.UserRoleOwner {
-		if err := authz.RequireOwnerExists(r, members, tenantID, userID); err != nil {
+		if ownerErr := authz.RequireOwnerExists(r, members, tenantID, userID); ownerErr != nil {
 			return wire.MemberResponse{}, ErrLastOwner
 		}
 	}

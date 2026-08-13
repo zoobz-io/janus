@@ -6,9 +6,9 @@ import "github.com/zoobz-io/check"
 type CreateGrantRequest struct {
 	UserID   string   `json:"user_id" description:"User ID to grant access to" example:"550e8400-e29b-41d4-a716-446655440000"`
 	TenantID string   `json:"tenant_id" description:"Tenant the access is scoped to" example:"660e8400-e29b-41d4-a716-446655440000"`
+	TierID   string   `json:"tier_id,omitempty" description:"Optional tier to place the grant on"`
 	Roles    []string `json:"roles" description:"Application-defined roles"`
 	Scopes   []string `json:"scopes" description:"Application-defined scopes"`
-	TierID   string   `json:"tier_id,omitempty" description:"Optional tier to place the grant on"`
 }
 
 // Validate checks the request body.
@@ -21,9 +21,9 @@ func (r CreateGrantRequest) Validate() error {
 
 // UpdateGrantRequest is the request body for updating a grant's roles, scopes and tier.
 type UpdateGrantRequest struct {
+	TierID string   `json:"tier_id,omitempty" description:"Tier to place the grant on (empty clears it)"`
 	Roles  []string `json:"roles" description:"Application-defined roles"`
 	Scopes []string `json:"scopes" description:"Application-defined scopes"`
-	TierID string   `json:"tier_id,omitempty" description:"Tier to place the grant on (empty clears it)"`
 }
 
 // Validate checks the request body.
@@ -38,9 +38,9 @@ type GrantResponse struct {
 	TenantID      string   `json:"tenant_id" description:"Tenant ID" example:"660e8400-e29b-41d4-a716-446655440000"`
 	ApplicationID string   `json:"application_id" description:"Application ID" example:"770e8400-e29b-41d4-a716-446655440000"`
 	TierID        string   `json:"tier_id,omitempty" description:"Tier the grant is on, if any"`
+	CreatedAt     string   `json:"created_at" description:"When access was granted" example:"2026-05-01T12:00:00Z"`
 	Roles         []string `json:"roles" description:"Application-defined roles"`
 	Scopes        []string `json:"scopes" description:"Application-defined scopes"`
-	CreatedAt     string   `json:"created_at" description:"When access was granted" example:"2026-05-01T12:00:00Z"`
 }
 
 // GrantListResponse is the admin API response for a list of grants.
