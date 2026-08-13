@@ -3,7 +3,7 @@ package contracts
 import (
 	"context"
 
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // Authorizations defines the contract for resolving a user's authorization

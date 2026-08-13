@@ -4,7 +4,7 @@ package contracts
 import (
 	"context"
 
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // Users defines the contract for user operations on the public API surface.

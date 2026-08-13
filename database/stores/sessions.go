@@ -13,7 +13,7 @@ import (
 	"github.com/zoobz-io/astql"
 	"github.com/zoobz-io/sum"
 
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // DefaultSessionDuration is the default session lifetime.

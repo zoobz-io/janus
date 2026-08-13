@@ -25,8 +25,8 @@ import (
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/janus/internal/boot"
-	"github.com/zoobz-io/janus/models"
-	"github.com/zoobz-io/janus/stores"
+	"github.com/zoobz-io/janus/database/models"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 func main() {

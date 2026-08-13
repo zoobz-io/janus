@@ -11,7 +11,7 @@ import (
 
 	"github.com/zoobz-io/janus/internal/authz"
 	"github.com/zoobz-io/janus/internal/mesh"
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // testCtxWithApp returns a context with a security context that identifies

@@ -12,8 +12,8 @@ import (
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/janus/config"
-	"github.com/zoobz-io/janus/models"
-	"github.com/zoobz-io/janus/stores"
+	"github.com/zoobz-io/janus/database/models"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 // Runtime holds the pieces built by Init and shared by every janus binary.

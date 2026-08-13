@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/zoobz-io/janus/events"
-	"github.com/zoobz-io/janus/stores"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 // SessionServer implements sessionpb.SessionServiceServer.

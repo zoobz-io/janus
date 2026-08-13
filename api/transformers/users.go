@@ -3,7 +3,7 @@ package transformers
 
 import (
 	"github.com/zoobz-io/janus/api/wire"
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // UserToResponse transforms a User model and its memberships to an API response.

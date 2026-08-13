@@ -3,7 +3,7 @@ package contracts
 import (
 	"context"
 
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // Sessions defines the contract for session operations on the public API surface.

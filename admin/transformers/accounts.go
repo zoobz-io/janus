@@ -2,7 +2,7 @@ package transformers
 
 import (
 	"github.com/zoobz-io/janus/admin/wire"
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // AccountToResponse transforms an Account model to an admin API response.

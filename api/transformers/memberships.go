@@ -2,7 +2,7 @@ package transformers
 
 import (
 	"github.com/zoobz-io/janus/api/wire"
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // MemberToResponse transforms a Membership model to an API response.

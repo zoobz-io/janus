@@ -23,8 +23,8 @@ import (
 	"github.com/zoobz-io/sentinel"
 	"github.com/zoobz-io/sum"
 
-	"github.com/zoobz-io/janus/models"
-	"github.com/zoobz-io/janus/stores"
+	"github.com/zoobz-io/janus/database/models"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 var (
@@ -129,8 +129,8 @@ func TestMain(m *testing.M) {
 
 func runMigrations(db *sqlx.DB) error {
 	files := []string{
-		"../../migrations/001_initial_schema.sql",
-		"../../migrations/002_aperture_config.sql",
+		"../../database/migrations/001_initial_schema.sql",
+		"../../database/migrations/002_aperture_config.sql",
 	}
 	for _, f := range files {
 		migration, err := os.ReadFile(f)

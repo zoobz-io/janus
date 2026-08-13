@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // The store access entitlement resolution needs, as small structural

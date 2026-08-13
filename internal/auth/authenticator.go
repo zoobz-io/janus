@@ -9,7 +9,7 @@ import (
 	"github.com/zoobz-io/rocco"
 	"github.com/zoobz-io/rocco/session"
 
-	"github.com/zoobz-io/janus/stores"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 // NewAuthenticator creates a rocco-compatible authenticator that supports

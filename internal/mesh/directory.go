@@ -9,8 +9,8 @@ import (
 	directorypb "github.com/zoobz-io/aegis/proto/directory/v1"
 
 	"github.com/zoobz-io/janus/events"
-	"github.com/zoobz-io/janus/models"
-	"github.com/zoobz-io/janus/stores"
+	"github.com/zoobz-io/janus/database/models"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 // DirectoryServer implements directorypb.DirectoryServiceServer.

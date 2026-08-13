@@ -2,7 +2,7 @@ package transformers
 
 import (
 	"github.com/zoobz-io/janus/api/wire"
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // AuthorizationToResponse transforms a resolved application authorization to

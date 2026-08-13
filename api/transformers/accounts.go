@@ -2,7 +2,7 @@ package transformers
 
 import (
 	"github.com/zoobz-io/janus/api/wire"
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // AccountToResponse transforms a Account model to an API response.

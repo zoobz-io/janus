@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/zoobz-io/janus/internal/authz"
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 func TestMembershipManagement(t *testing.T) {

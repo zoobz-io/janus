@@ -8,7 +8,7 @@ import (
 	commonpb "github.com/zoobz-io/aegis/proto/common/v1"
 
 	"github.com/zoobz-io/janus/internal/authz"
-	"github.com/zoobz-io/janus/stores"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 // entitlementChecker adapts the shared authz entitlement resolver to the

@@ -73,8 +73,10 @@ janus/
 │   ├── handlers/     # HTTP handlers (user-facing)
 │   ├── wire/         # Request/response DTOs
 │   └── transformers/ # Model ↔ wire mapping
-├── models/           # Domain models
-├── stores/           # Postgres data access
+├── database/
+│   ├── models/       # Domain models
+│   ├── stores/       # Postgres data access
+│   └── migrations/   # SQL migrations
 ├── internal/
 │   ├── auth/         # Cookie + bearer authenticators
 │   ├── authz/        # Portable authorization helpers
@@ -83,7 +85,6 @@ janus/
 │   ├── observe/      # Aperture schema sync
 │   └── otel/         # OpenTelemetry setup
 ├── events/           # Typed capitan events
-├── migrations/       # SQL migrations
 ├── testing/          # Integration tests and infra
 └── .github/workflows # CI
 ```

@@ -8,7 +8,7 @@ import (
 	"github.com/zoobz-io/janus/admin/transformers"
 	"github.com/zoobz-io/janus/admin/wire"
 	"github.com/zoobz-io/janus/internal/authz"
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 var listMembers = rocco.GET[rocco.NoBody, wire.MemberListResponse]("/tenants/{tenant_id}/members", func(r *rocco.Request[rocco.NoBody]) (wire.MemberListResponse, error) {

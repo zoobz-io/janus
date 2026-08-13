@@ -5,7 +5,7 @@ import (
 
 	"github.com/zoobz-io/rocco"
 
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // pathID extracts a string path parameter.

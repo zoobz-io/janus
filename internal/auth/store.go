@@ -9,7 +9,7 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/zoobz-io/rocco/session"
 
-	"github.com/zoobz-io/janus/stores"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 // Compile-time assertion.

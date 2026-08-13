@@ -4,7 +4,7 @@ import (
 	"github.com/zoobz-io/rocco"
 
 	"github.com/zoobz-io/janus/admin/wire"
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 var listProviders = rocco.GET[rocco.NoBody, wire.ProviderListResponse]("/providers", func(_ *rocco.Request[rocco.NoBody]) (wire.ProviderListResponse, error) {

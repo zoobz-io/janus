@@ -4,7 +4,7 @@ import (
 	"github.com/zoobz-io/janus/api/contracts"
 	"github.com/zoobz-io/janus/api/transformers"
 	"github.com/zoobz-io/janus/api/wire"
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 	"github.com/zoobz-io/rocco"
 	"github.com/zoobz-io/sum"
 )

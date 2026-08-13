@@ -23,7 +23,7 @@ import (
 	"github.com/zoobz-io/janus/internal/authz"
 	"github.com/zoobz-io/janus/internal/boot"
 	"github.com/zoobz-io/janus/internal/observe"
-	"github.com/zoobz-io/janus/stores"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 func main() {

@@ -10,7 +10,7 @@ import (
 	"github.com/zoobz-io/astql"
 	"github.com/zoobz-io/sum"
 
-	"github.com/zoobz-io/janus/models"
+	"github.com/zoobz-io/janus/database/models"
 )
 
 // Users provides database access for users.

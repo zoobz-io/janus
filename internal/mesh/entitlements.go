@@ -8,8 +8,8 @@ import (
 
 	"github.com/zoobz-io/janus/events"
 	"github.com/zoobz-io/janus/internal/authz"
-	"github.com/zoobz-io/janus/models"
-	"github.com/zoobz-io/janus/stores"
+	"github.com/zoobz-io/janus/database/models"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 // EntitlementServer implements entitlementpb.EntitlementServiceServer.
