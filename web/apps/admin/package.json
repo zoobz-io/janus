@@ -16,6 +16,7 @@
     "@janus/admin-sdk": "workspace:*",
     "@janus/crest": "workspace:*",
     "@openapi-press/nuxt": "0.1.1",
+    "@zoobzio/foundation": "0.0.7",
     "crestable": "0.0.0",
     "nuxt": "4.4.8",
     "vue": "3.5.24"
