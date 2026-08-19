@@ -43,7 +43,7 @@ func run() error {
 	defer func() { _ = rt.Redis.Close() }()
 
 	if cfgErr := sum.Config[config.Mesh](ctx, rt.K, nil); cfgErr != nil {
-		return fmt.Errorf("failed to load mesh config: %w", err)
+		return fmt.Errorf("failed to load mesh config: %w", cfgErr)
 	}
 
 	// The mesh servers hold concrete stores directly, so no contract
