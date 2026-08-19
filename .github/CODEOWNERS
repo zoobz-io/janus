@@ -1,0 +1,10 @@
+# Code owners for janus.
+#
+# GitHub automatically requests a review from the owners listed here whenever a
+# pull request touches matching paths. The catch-all below makes @zoobzio a
+# required reviewer on every PR.
+#
+# Combined with branch protection that requires code-owner review, this makes
+# @zoobzio's approval a merge gate.
+
+* @zoobzio
