@@ -1,4 +1,4 @@
-.PHONY: build run run-admin run-mesh test test-unit test-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-admin web-install web-check web-build
+.PHONY: setup build run run-admin run-mesh test test-unit test-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-admin web-install web-check web-build
 
 .DEFAULT_GOAL := help
 
@@ -9,6 +9,13 @@ help: ## Display available commands
 	@echo "$(APP_NAME) Development Commands"
 	@echo "================================"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
+
+# =============================================================================
+# Environment
+# =============================================================================
+
+setup: ## Bootstrap the dev environment (Go toolchain, lint/security tools, pnpm)
+	@bash tools/setup.sh
 
 # =============================================================================
 # Build & Run

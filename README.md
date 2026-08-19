@@ -118,6 +118,22 @@ make check
 
 ### Install Tools
 
+On a fresh machine, bootstrap the whole toolchain in one idempotent step. This
+installs the pinned Go toolchain, `golangci-lint`, `gosec`, `air`, and `pnpm`:
+
+```bash
+bash tools/setup.sh   # run directly the first time — a fresh box has no make
+make setup            # equivalent, once make is installed
+```
+
+Then open a new shell (or source `/etc/profile.d/janus-dev.sh`) so `go` and the
+Go-installed tools are on your `PATH`.
+
+Docker is not installed by the script — it's only needed for the compose-based
+dev database and integration tests. Install it separately if you need that stack.
+
+If you already have the Go toolchain and only want the lint/hook helpers:
+
 ```bash
 make install-tools
 make install-hooks
