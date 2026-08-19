@@ -1,0 +1,190 @@
+/* Basic admin chrome — neutral, typographic, no theme system yet. */
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 0.9375rem;
+  color: #1c2433;
+  background: #ffffff;
+}
+
+/* Icons — sized to type until the theme system lands. */
+
+.f-icon {
+  width: 1.125em;
+  height: 1.125em;
+  flex-shrink: 0;
+}
+
+/* Sidebar */
+
+.dashboard-sidebar {
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+}
+
+.dashboard-sidebar .f-system-panel-header {
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dashboard-sidebar .brand {
+  font-weight: 700;
+  font-size: 1.0625rem;
+}
+
+.dashboard-sidebar .f-system-panel-content {
+  padding: 1rem 0.625rem;
+}
+
+.dashboard-sidebar .f-nav .f-group + .f-group {
+  margin-top: 1.25rem;
+}
+
+.dashboard-sidebar .f-caption {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  padding: 0 0.5rem 0.375rem;
+}
+
+.dashboard-sidebar .f-nav .f-anchor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  color: #334155;
+}
+
+.dashboard-sidebar .f-nav .f-icon {
+  color: #64748b;
+}
+
+.dashboard-sidebar .f-nav .f-anchor:hover {
+  background: #eef2f7;
+}
+
+.dashboard-sidebar .f-nav .router-link-active {
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.dashboard-sidebar .f-system-panel-footer {
+  padding: 0.75rem 0.625rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dashboard-sidebar .user-menu-trigger {
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  text-align: left;
+  font-weight: 500;
+}
+
+.dashboard-sidebar .user-menu-trigger:hover {
+  background: #eef2f7;
+}
+
+/* Content area */
+
+.dashboard-content {
+  padding: 1.5rem 2rem;
+}
+
+/* Workspace */
+
+.f-system-workspace-header:empty,
+.f-system-workspace-footer:empty {
+  display: none;
+}
+
+.f-system-workspace-slot {
+  min-width: 0;
+}
+
+/* Data table */
+
+.f-data-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.f-data-table .f-table {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.f-data-table .f-th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.f-data-table-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.f-data-table-header-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.f-data-table .f-td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.f-data-table .f-tbody .f-tr:hover {
+  background: #f8fafc;
+}
+
+.f-data-table-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Pagination and toolbar controls render through generic parts. */
+
+.f-data-table .f-button {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  background: #ffffff;
+}
+
+.f-data-table .f-button:hover {
+  background: #f1f5f9;
+}
+
+.f-data-table .f-button[disabled] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.f-data-table .f-data-table-header-btn {
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.f-data-table .f-select-trigger {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  background: #ffffff;
+}

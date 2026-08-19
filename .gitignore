@@ -36,7 +36,7 @@ Thumbs.db
 dist/
 
 # Binaries
-app
+/app
 
 # Air hot-reload artifacts
 tmp/

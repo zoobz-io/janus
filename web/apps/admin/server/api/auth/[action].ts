@@ -1,14 +1,14 @@
 /**
- * The crest endpoints the browser transport dials (/api/_crestable/*). Each
+ * The auth endpoints the browser transport dials (/api/auth/*). Each
  * request constructs a @janus/crest provider around the h3 event: the
  * caller's cookie is forwarded to the janus public API, and the bridge maps
  * janus's session payload into the admin contract — first entitled tenant
  * wins (operators act through one tenant; janus-ops in practice).
  */
 
-import { defineCrestHandlers } from "@crestable/nuxt/server";
+import { defineAuthHandlers } from "@letters-patent/nuxt/server";
 import { createProvider } from "@janus/crest";
-import { defineSchema } from "crestable";
+import { defineSchema } from "letters-patent";
 import { getHeader } from "h3";
 
 import { useRuntimeConfig } from "#imports";
@@ -17,7 +17,7 @@ import { contract } from "../../../shared/contract";
 
 const schema = defineSchema(contract);
 
-export default defineCrestHandlers(schema, (event) => {
+export default defineAuthHandlers(schema, (event) => {
   const cookie = getHeader(event, "cookie");
   return createProvider(
     schema,

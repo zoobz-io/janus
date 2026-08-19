@@ -1,5 +1,5 @@
 /**
- * The janus provider: crestable callbacks over the janus public API.
+ * The janus provider: letters-patent callbacks over the janus public API.
  *
  * Janus login is redirect-based — `login` sends the browser to the hosted
  * flow and the session lands in a cookie on return, so `resolve` is where
@@ -9,7 +9,7 @@
  * carry the incoming request's cookie.
  */
 
-import { defineProvider } from "crestable/kit";
+import { defineProvider } from "letters-patent/kit";
 
 import type { Authorization, Identity, Options, Session } from "./types";
 

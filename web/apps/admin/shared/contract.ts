@@ -1,11 +1,11 @@
 /**
- * The admin portal's crestable contract — its authorization vocabulary,
+ * The admin portal's letters-patent contract — its authorization vocabulary,
  * mirroring the janus-admin application's seeded scope catalog and grant
  * roles. Both sides of the wire (the browser transport and the server crest
  * handlers) derive their schema from this one declaration.
  */
 
-import type { Contract } from "crestable";
+import type { Contract } from "letters-patent";
 
 export const contract = {
   scopes: [

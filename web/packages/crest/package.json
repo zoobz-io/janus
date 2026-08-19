@@ -22,9 +22,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@crestable/kit": "0.0.0",
-    "@crestable/schema": "0.0.0",
-    "crestable": "0.0.0"
+    "@letters-patent/kit": "0.0.1",
+    "@letters-patent/schema": "0.0.1",
+    "letters-patent": "0.0.1"
   },
   "devDependencies": {
     "typescript": "5.9.3"
