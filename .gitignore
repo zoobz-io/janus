@@ -37,6 +37,7 @@ dist/
 
 # Binaries
 /app
+/adminspec
 
 # Air hot-reload artifacts
 tmp/
