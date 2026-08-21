@@ -1,23 +1,12 @@
 package handlers
 
 import (
-	"strings"
-
 	"github.com/zoobz-io/rocco"
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/janus/admin/contracts"
 	"github.com/zoobz-io/janus/admin/transformers"
 	"github.com/zoobz-io/janus/admin/wire"
-	"github.com/zoobz-io/janus/database/models"
-)
-
-// Search contract defaults, applied when the request omits the field.
-const (
-	defaultSearchPageNumber = 1
-	defaultSearchPageSize   = 25
-	defaultSearchSortField  = "updated_at"
-	defaultSearchSortOrder  = models.SortDesc
 )
 
 var listApplications = rocco.GET[rocco.NoBody, wire.ApplicationListResponse]("/applications", func(r *rocco.Request[rocco.NoBody]) (wire.ApplicationListResponse, error) {
@@ -66,7 +55,7 @@ var createApplication = rocco.POST[wire.CreateApplicationRequest, wire.Applicati
 var searchApplications = rocco.POST[wire.SearchApplicationsRequest, wire.ApplicationSearchResponse]("/applications/search", func(r *rocco.Request[wire.SearchApplicationsRequest]) (wire.ApplicationSearchResponse, error) {
 	apps := sum.MustUse[contracts.Applications](r)
 
-	params, number, size := resolveApplicationSearch(r.Body)
+	params, number, size := transformers.ResolveApplicationSearch(r.Body)
 	result, err := apps.Search(r, params)
 	if err != nil {
 		return wire.ApplicationSearchResponse{}, err
@@ -78,60 +67,6 @@ var searchApplications = rocco.POST[wire.SearchApplicationsRequest, wire.Applica
 	WithTags("Applications").
 	WithAuthentication().
 	WithErrors(rocco.ErrValidationFailed)
-
-// resolveApplicationSearch turns a validated search request into store params,
-// applying every contract default in one place: page 1, size 25, sort
-// updated_at desc. It returns the params plus the resolved page number and size
-// so the transformer can build the page metadata. The request is assumed valid
-// (rocco ran Validate first), so number >= 1 and size in [1,100].
-func resolveApplicationSearch(body wire.SearchApplicationsRequest) (models.ApplicationSearchParams, int, int) {
-	number, size := defaultSearchPageNumber, defaultSearchPageSize
-	if p := body.Page; p != nil {
-		if p.Number != nil {
-			number = *p.Number
-		}
-		if p.Size != nil {
-			size = *p.Size
-		}
-	}
-
-	sortField, sortOrder := defaultSearchSortField, defaultSearchSortOrder
-	if s := body.Sort; s != nil {
-		sortField = s.Field
-		sortOrder = sortOrderToSQL(s.Order)
-	}
-
-	params := models.ApplicationSearchParams{
-		Query:    body.Query,
-		Statuses: body.Facets["status"],
-		Dates:    searchDateBounds(body.Dates),
-		Sort:     models.SearchSort{Field: sortField, Order: sortOrder},
-		Page:     models.SearchPage{Offset: (number - 1) * size, Limit: size},
-	}
-	return params, number, size
-}
-
-// sortOrderToSQL maps a request sort order ("asc"/"desc", case-insensitive) to
-// the SQL direction. Unrecognized values never reach here — Validate rejects
-// them — so anything non-asc defaults to descending.
-func sortOrderToSQL(order string) models.SortOrder {
-	if strings.EqualFold(order, "asc") {
-		return models.SortAsc
-	}
-	return models.SortDesc
-}
-
-// searchDateBounds converts wire date ranges into store date bounds.
-func searchDateBounds(in map[string]wire.DateRange) map[string]models.DateBound {
-	if len(in) == 0 {
-		return nil
-	}
-	out := make(map[string]models.DateBound, len(in))
-	for field, dr := range in {
-		out[field] = models.DateBound{From: dr.From, To: dr.To}
-	}
-	return out
-}
 
 var updateApplication = rocco.PATCH[wire.UpdateApplicationRequest, wire.ApplicationResponse]("/applications/{app_id}", func(r *rocco.Request[wire.UpdateApplicationRequest]) (wire.ApplicationResponse, error) {
 	apps := sum.MustUse[contracts.Applications](r)

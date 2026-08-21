@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"github.com/zoobz-io/janus/database/models"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 // searchParams returns a params value with the contract defaults applied, so
 // each test only sets the fields it exercises.
-func searchParams() models.ApplicationSearchParams {
-	return models.ApplicationSearchParams{
-		Sort: models.SearchSort{Field: "updated_at", Order: models.SortDesc},
-		Page: models.SearchPage{Offset: 0, Limit: 25},
+func searchParams() stores.ApplicationSearchParams {
+	return stores.ApplicationSearchParams{
+		Sort: stores.SearchSort{Field: "updated_at", Order: stores.SortDesc},
+		Page: stores.SearchPage{Offset: 0, Limit: 25},
 	}
 }
 
@@ -218,7 +219,7 @@ func TestApplicationSearchDateBounds(t *testing.T) {
 
 	t.Run("FromAndTo", func(t *testing.T) {
 		p := searchParams()
-		p.Dates = map[string]models.DateBound{"created_at": {From: &from, To: &to}}
+		p.Dates = map[string]stores.DateBound{"created_at": {From: &from, To: &to}}
 		res, err := apps.Search(ctx, p)
 		if err != nil {
 			t.Fatalf("Search: %v", err)
@@ -230,7 +231,7 @@ func TestApplicationSearchDateBounds(t *testing.T) {
 
 	t.Run("FromOnly", func(t *testing.T) {
 		p := searchParams()
-		p.Dates = map[string]models.DateBound{"created_at": {From: &from}}
+		p.Dates = map[string]stores.DateBound{"created_at": {From: &from}}
 		res, err := apps.Search(ctx, p)
 		if err != nil {
 			t.Fatalf("Search: %v", err)
@@ -242,7 +243,7 @@ func TestApplicationSearchDateBounds(t *testing.T) {
 
 	t.Run("ToOnly", func(t *testing.T) {
 		p := searchParams()
-		p.Dates = map[string]models.DateBound{"created_at": {To: &to}}
+		p.Dates = map[string]stores.DateBound{"created_at": {To: &to}}
 		res, err := apps.Search(ctx, p)
 		if err != nil {
 			t.Fatalf("Search: %v", err)
@@ -272,8 +273,8 @@ func TestApplicationSearchPaging(t *testing.T) {
 
 	t.Run("SecondPage", func(t *testing.T) {
 		p := searchParams()
-		p.Sort = models.SearchSort{Field: "created_at", Order: models.SortAsc}
-		p.Page = models.SearchPage{Offset: 2, Limit: 2}
+		p.Sort = stores.SearchSort{Field: "created_at", Order: stores.SortAsc}
+		p.Page = stores.SearchPage{Offset: 2, Limit: 2}
 		res, err := apps.Search(ctx, p)
 		if err != nil {
 			t.Fatalf("Search: %v", err)
@@ -292,7 +293,7 @@ func TestApplicationSearchPaging(t *testing.T) {
 
 	t.Run("OutOfRangePageIsEmptyButCounted", func(t *testing.T) {
 		p := searchParams()
-		p.Page = models.SearchPage{Offset: 100, Limit: 25}
+		p.Page = stores.SearchPage{Offset: 100, Limit: 25}
 		res, err := apps.Search(ctx, p)
 		if err != nil {
 			t.Fatalf("Search: %v", err)

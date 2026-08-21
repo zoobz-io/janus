@@ -96,7 +96,7 @@ func escapeLike(s string) string {
 // aggregate builder and records the bound parameters in params. Text search ORs
 // an escaped infix ILIKE across name/slug; the status facet is an OR-set via
 // IN (rendered as = ANY); date bounds are inclusive GE/LE, each optional.
-func applyApplicationSearch[B searchFilterable[B]](b B, p models.ApplicationSearchParams, params map[string]any) B {
+func applyApplicationSearch[B searchFilterable[B]](b B, p ApplicationSearchParams, params map[string]any) B {
 	if p.Query != "" {
 		params["query"] = "%" + escapeLike(p.Query) + "%"
 		b = b.WhereOr(
@@ -130,13 +130,13 @@ func applyApplicationSearch[B searchFilterable[B]](b B, p models.ApplicationSear
 // Search runs the admin search contract over applications: one filtered page,
 // the total count across the full filtered set, and the distinct status values
 // present in that set. All three share the same WHERE assembly.
-func (s *Applications) Search(ctx context.Context, p models.ApplicationSearchParams) (*models.ApplicationSearchResult, error) {
+func (s *Applications) Search(ctx context.Context, p ApplicationSearchParams) (*ApplicationSearchResult, error) {
 	params := map[string]any{}
 
 	// Page: filtered, sorted with an id tiebreak for stable paging, windowed.
 	items, err := applyApplicationSearch(s.Query(), p, params).
 		OrderBy(p.Sort.Field, p.Sort.Order).
-		OrderBy("id", models.SortAsc).
+		OrderBy("id", SortAsc).
 		Limit(p.Page.Limit).
 		Offset(p.Page.Offset).
 		Exec(ctx, params)
@@ -161,7 +161,7 @@ func (s *Applications) Search(ctx context.Context, p models.ApplicationSearchPar
 	}
 	sort.Strings(statuses)
 
-	return &models.ApplicationSearchResult{
+	return &ApplicationSearchResult{
 		Items:      items,
 		TotalItems: int64(total),
 		Statuses:   statuses,

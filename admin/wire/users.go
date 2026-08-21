@@ -13,7 +13,7 @@ func (r CreateUserRequest) Validate() error {
 	return check.All(
 		check.Str(r.Email, "email").Required().MaxLen(255).V(),
 		check.Str(r.DisplayName, "display_name").Required().MaxLen(255).V(),
-	)
+	).Err()
 }
 
 // UpdateUserRequest is the request body for updating a user.
@@ -27,7 +27,7 @@ func (r UpdateUserRequest) Validate() error {
 	return check.All(
 		check.Str(r.DisplayName, "display_name").Required().MaxLen(255).V(),
 		check.Str(r.Status, "status").Required().OneOf([]string{"active", "inactive"}).V(),
-	)
+	).Err()
 }
 
 // UserResponse is the admin API response for a user.

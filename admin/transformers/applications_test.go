@@ -1,18 +1,17 @@
-package handlers
+package transformers
 
 import (
 	"testing"
 	"time"
 
-	"github.com/zoobz-io/janus/admin/transformers"
 	"github.com/zoobz-io/janus/admin/wire"
-	"github.com/zoobz-io/janus/database/models"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 func intPtr(v int) *int { return &v }
 
 func TestResolveApplicationSearchDefaults(t *testing.T) {
-	params, number, size := resolveApplicationSearch(wire.SearchApplicationsRequest{})
+	params, number, size := ResolveApplicationSearch(wire.SearchApplicationsRequest{})
 
 	if number != 1 {
 		t.Errorf("default number = %d, want 1", number)
@@ -20,7 +19,7 @@ func TestResolveApplicationSearchDefaults(t *testing.T) {
 	if size != 25 {
 		t.Errorf("default size = %d, want 25", size)
 	}
-	if params.Sort.Field != "updated_at" || params.Sort.Order != models.SortDesc {
+	if params.Sort.Field != "updated_at" || params.Sort.Order != stores.SortDesc {
 		t.Errorf("default sort = %+v, want {updated_at DESC}", params.Sort)
 	}
 	if params.Page.Offset != 0 || params.Page.Limit != 25 {
@@ -41,7 +40,7 @@ func TestResolveApplicationSearchMapping(t *testing.T) {
 		Page:   &wire.PageRequest{Number: intPtr(3), Size: intPtr(10)},
 	}
 
-	params, number, size := resolveApplicationSearch(body)
+	params, number, size := ResolveApplicationSearch(body)
 
 	if number != 3 || size != 10 {
 		t.Errorf("number/size = %d/%d, want 3/10", number, size)
@@ -56,7 +55,7 @@ func TestResolveApplicationSearchMapping(t *testing.T) {
 	if len(params.Statuses) != 1 || params.Statuses[0] != "active" {
 		t.Errorf("statuses = %v, want [active]", params.Statuses)
 	}
-	if params.Sort.Field != "created_at" || params.Sort.Order != models.SortAsc {
+	if params.Sort.Field != "created_at" || params.Sort.Order != stores.SortAsc {
 		t.Errorf("sort = %+v, want {created_at ASC}", params.Sort)
 	}
 	bound, ok := params.Dates["created_at"]
@@ -66,12 +65,12 @@ func TestResolveApplicationSearchMapping(t *testing.T) {
 }
 
 func TestSortOrderToSQL(t *testing.T) {
-	cases := map[string]models.SortOrder{
-		"asc":  models.SortAsc,
-		"ASC":  models.SortAsc,
-		"desc": models.SortDesc,
-		"DESC": models.SortDesc,
-		"":     models.SortDesc, // anything non-asc defaults to descending
+	cases := map[string]stores.SortOrder{
+		"asc":  stores.SortAsc,
+		"ASC":  stores.SortAsc,
+		"desc": stores.SortDesc,
+		"DESC": stores.SortDesc,
+		"":     stores.SortDesc, // anything non-asc defaults to descending
 	}
 	for in, want := range cases {
 		if got := sortOrderToSQL(in); got != want {
@@ -95,8 +94,8 @@ func TestApplicationSearchToResponsePageMath(t *testing.T) {
 		{total: 101, size: 10, wantPage: 11},
 	}
 	for _, tt := range tests {
-		result := &models.ApplicationSearchResult{TotalItems: tt.total, Statuses: []string{}}
-		resp := transformers.ApplicationSearchToResponse(result, 1, tt.size)
+		result := &stores.ApplicationSearchResult{TotalItems: tt.total, Statuses: []string{}}
+		resp := ApplicationSearchToResponse(result, 1, tt.size)
 		if resp.Page.TotalPages != tt.wantPage {
 			t.Errorf("total=%d size=%d: total_pages=%d, want %d", tt.total, tt.size, resp.Page.TotalPages, tt.wantPage)
 		}

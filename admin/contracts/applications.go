@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/zoobz-io/janus/database/models"
+	"github.com/zoobz-io/janus/database/stores"
 )
 
 // Applications defines the admin API's capability boundary over the applications store.
@@ -22,5 +23,5 @@ type Applications interface {
 	// Update updates an application's name and status.
 	Update(ctx context.Context, id, name string, status models.ApplicationStatus) (*models.Application, error)
 	// Search runs the admin search contract over applications.
-	Search(ctx context.Context, params models.ApplicationSearchParams) (*models.ApplicationSearchResult, error)
+	Search(ctx context.Context, params stores.ApplicationSearchParams) (*stores.ApplicationSearchResult, error)
 }

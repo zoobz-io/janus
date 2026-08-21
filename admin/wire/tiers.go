@@ -14,7 +14,7 @@ func (r CreateTierRequest) Validate() error {
 	return check.All(
 		check.Str(r.Slug, "slug").Required().MaxLen(100).V(),
 		check.Str(r.Name, "name").Required().MaxLen(255).V(),
-	)
+	).Err()
 }
 
 // TierResponse is the admin API response for a subscription tier.

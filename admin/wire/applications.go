@@ -14,7 +14,7 @@ func (r CreateApplicationRequest) Validate() error {
 	return check.All(
 		check.Str(r.Name, "name").Required().MaxLen(255).V(),
 		check.Str(r.Slug, "slug").Required().MaxLen(100).V(),
-	)
+	).Err()
 }
 
 // UpdateApplicationRequest is the request body for updating an application.
@@ -28,7 +28,7 @@ func (r UpdateApplicationRequest) Validate() error {
 	return check.All(
 		check.Str(r.Name, "name").Required().MaxLen(255).V(),
 		check.Str(r.Status, "status").Required().OneOf([]string{"active", "inactive"}).V(),
-	)
+	).Err()
 }
 
 // ApplicationResponse is the admin API response for an application.
