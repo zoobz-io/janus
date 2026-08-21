@@ -1,0 +1,52 @@
+# Ticket taxonomy — labels as code.
+#
+# This file is the source of truth for the repository's issue labels. It is
+# applied by .github/workflows/labels.yml on push to main. Edit here; do not
+# create or edit labels by hand in the GitHub UI.
+#
+# Three dimensions tell you a ticket's stage and whose turn it is:
+#   Status — the pipeline (one active at a time; also names the operator up)
+#   Type   — category, for filtering
+#   Owner  — the current operator (redundant with Status, explicit for assignment)
+
+# --- Status: the pipeline (one active at a time) ---
+- name: "needs:technical"
+  color: FBCA04
+  description: "Requirements set; Dixie's turn to add the technical breakdown as a comment"
+- name: "needs:research"
+  color: D4C5F9
+  description: "Molly's turn; recon required before the ticket can proceed"
+- name: "ready"
+  color: 0E8A16
+  description: "Technical detail landed; Case can implement"
+- name: "in-progress"
+  color: 1D76DB
+  description: "Case is implementing"
+- name: "blocked"
+  color: B60205
+  description: "Waiting on a dependency"
+
+# --- Type: category ---
+- name: "type:feature"
+  color: C5DEF5
+  description: "New capability"
+- name: "type:bug"
+  color: D73A4A
+  description: "Something is broken"
+- name: "type:docs"
+  color: 0075CA
+  description: "Documentation"
+- name: "type:chore"
+  color: CFD3D7
+  description: "Maintenance / tooling / process"
+
+# --- Owner: the current operator ---
+- name: "owner:dixie"
+  color: 6E5494
+  description: "Current operator: technical breakdown"
+- name: "owner:case"
+  color: 6E5494
+  description: "Current operator: implementation"
+- name: "owner:molly"
+  color: 6E5494
+  description: "Current operator: research / recon"
