@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -131,12 +133,18 @@ func TestMain(m *testing.M) {
 }
 
 func runMigrations(db *sqlx.DB) error {
-	files := []string{
-		"../../database/migrations/001_initial_schema.sql",
-		"../../database/migrations/002_aperture_config.sql",
-		"../../database/migrations/003_search_indexes.sql",
-		"../../database/migrations/004_applications_name_unique.sql",
+	// Glob the migrations directory so new migrations are picked up
+	// automatically — a hardcoded list silently runs tests against a stale
+	// schema when someone forgets to extend it. Lexicographic order matches
+	// goose's numeric-prefix ordering.
+	files, err := filepath.Glob("../../database/migrations/*.sql")
+	if err != nil {
+		return fmt.Errorf("globbing migrations: %w", err)
 	}
+	if len(files) == 0 {
+		return fmt.Errorf("no migration files found — wrong working directory?")
+	}
+	sort.Strings(files)
 	for _, f := range files {
 		migration, err := os.ReadFile(f)
 		if err != nil {
