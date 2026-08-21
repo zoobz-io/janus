@@ -203,3 +203,37 @@ func TestSearchTenantsRequestValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestTenantSearchResponseClone(t *testing.T) {
+	orig := TenantSearchResponse{
+		Tenants: []TenantResponse{{ID: "t1", Name: "Acme"}},
+		Page:    PageResponse{Number: 1, Size: 25, TotalItems: 1, TotalPages: 1},
+		Facets:  map[string][]string{"status": {"active"}},
+	}
+	clone := orig.Clone()
+
+	// Equal by value.
+	if len(clone.Tenants) != 1 || clone.Tenants[0].Name != "Acme" || clone.Facets["status"][0] != "active" {
+		t.Fatalf("clone lost data: %+v", clone)
+	}
+
+	// Deep: mutating the clone's slice/map must not touch the original.
+	clone.Tenants[0].Name = "Changed"
+	clone.Facets["status"][0] = "suspended"
+	clone.Facets["new"] = []string{"x"}
+	if orig.Tenants[0].Name != "Acme" {
+		t.Fatal("Tenants slice was shared, not deep-copied")
+	}
+	if orig.Facets["status"][0] != "active" {
+		t.Fatal("Facets values slice was shared, not deep-copied")
+	}
+	if _, present := orig.Facets["new"]; present {
+		t.Fatal("Facets map was shared, not deep-copied")
+	}
+
+	// Nil slice/map clone cleanly.
+	empty := TenantSearchResponse{}.Clone()
+	if empty.Tenants != nil || empty.Facets != nil {
+		t.Fatalf("empty clone should keep nils: %+v", empty)
+	}
+}
