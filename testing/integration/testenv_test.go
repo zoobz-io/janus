@@ -136,6 +136,7 @@ func runMigrations(db *sqlx.DB) error {
 		"../../database/migrations/002_aperture_config.sql",
 		"../../database/migrations/003_search_indexes.sql",
 		"../../database/migrations/004_applications_name_unique.sql",
+		"../../database/migrations/005_scopes_search.sql",
 	}
 	for _, f := range files {
 		migration, err := os.ReadFile(f)

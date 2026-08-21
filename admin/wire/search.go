@@ -52,6 +52,78 @@ var (
 	searchSortOrders        = []string{"asc", "desc"}
 )
 
+// Scope search field configuration. Unlike applications' status facet, the
+// application facet's values are dynamic labels — they cannot be allowlisted, so
+// only the facet field name is validated here; values are resolved (and silently
+// dropped if unknown) in the transformer.
+var (
+	scopeFacetFields = []string{"application"}
+	scopeDateFields  = []string{"created_at", "updated_at"}
+	scopeSortFields  = []string{"created_at", "updated_at"}
+)
+
+// SearchScopesRequest is the request body for POST /scopes/search. Every key is
+// optional: an empty body returns page 1, size 25, sorted updated_at desc,
+// unfiltered, across all applications.
+type SearchScopesRequest struct {
+	Facets map[string][]string  `json:"facets,omitempty" description:"Field-scoped filters: OR within a field, AND across fields. application values are application names (labels)."`
+	Dates  map[string]DateRange `json:"dates,omitempty" description:"Inclusive date-range filters keyed by field"`
+	Sort   *SortSpec            `json:"sort,omitempty" description:"Sort specification (default updated_at desc)"`
+	Page   *PageRequest         `json:"page,omitempty" description:"Pagination window (default page 1, size 25)"`
+	Query  string               `json:"query,omitempty" description:"Case-insensitive infix match over name and description" example:"read"`
+}
+
+// Validate enforces the malformed-request rules: unknown facet/date/sort fields,
+// invalid sort order, size out of [1,100], page number below 1. The application
+// facet's values are NOT validated (dynamic labels) — an unknown application name
+// simply matches nothing, it is not a 400.
+func (r SearchScopesRequest) Validate() error {
+	validations := []*check.Validation{
+		check.OnlyKeys(r.Facets, scopeFacetFields, "facets"),
+		check.OnlyKeys(r.Dates, scopeDateFields, "dates"),
+	}
+	if r.Sort != nil {
+		validations = append(validations,
+			check.OneOf(r.Sort.Field, scopeSortFields, "sort.field"),
+			check.OneOf(strings.ToLower(r.Sort.Order), searchSortOrders, "sort.order"),
+		)
+	}
+	if r.Page != nil {
+		if r.Page.Number != nil {
+			validations = append(validations, check.Min(*r.Page.Number, 1, "page.number"))
+		}
+		if r.Page.Size != nil {
+			validations = append(validations, check.Between(*r.Page.Size, 1, 100, "page.size"))
+		}
+	}
+	return check.All(validations...).Err()
+}
+
+// ScopeSearchResponse is the response body for POST /scopes/search.
+type ScopeSearchResponse struct {
+	Facets map[string][]string `json:"facets" description:"Distinct facet values present in the filtered set (application shown by name)"`
+	Scopes []ScopeResponse     `json:"scopes" description:"Matching scopes for this page"`
+	Page   PageResponse        `json:"page" description:"Pagination metadata"`
+}
+
+// Clone returns a deep copy of the response.
+func (r ScopeSearchResponse) Clone() ScopeSearchResponse {
+	c := r
+	if r.Scopes != nil {
+		c.Scopes = make([]ScopeResponse, len(r.Scopes))
+		copy(c.Scopes, r.Scopes)
+	}
+	if r.Facets != nil {
+		c.Facets = make(map[string][]string, len(r.Facets))
+		for k, v := range r.Facets {
+			vv := make([]string, len(v))
+			copy(vv, v)
+			c.Facets[k] = vv
+		}
+	}
+	return c
+}
+
 // SearchApplicationsRequest is the request body for POST /applications/search.
 // Every key is optional: an empty body returns page 1, size 25, sorted
 // updated_at desc, unfiltered.

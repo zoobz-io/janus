@@ -28,6 +28,44 @@ var listScopes = rocco.GET[rocco.NoBody, wire.ScopeListResponse]("/applications/
 	WithPathParams("app_id").
 	WithAuthentication()
 
+var listAllScopes = rocco.GET[rocco.NoBody, wire.ScopeListResponse]("/scopes", func(r *rocco.Request[rocco.NoBody]) (wire.ScopeListResponse, error) {
+	scopes := sum.MustUse[contracts.Scopes](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
+	list, err := scopes.ListAll(r)
+	if err != nil {
+		return wire.ScopeListResponse{}, err
+	}
+	responses, err := transformers.ScopesToResponse(r, list, labels)
+	if err != nil {
+		return wire.ScopeListResponse{}, err
+	}
+	return wire.ScopeListResponse{Scopes: responses}, nil
+}).
+	WithSummary("List all scopes").
+	WithDescription("Returns every scope across all applications, each showing its owning application by name.").
+	WithTags("Scopes").
+	WithAuthentication()
+
+var searchScopes = rocco.POST[wire.SearchScopesRequest, wire.ScopeSearchResponse]("/scopes/search", func(r *rocco.Request[wire.SearchScopesRequest]) (wire.ScopeSearchResponse, error) {
+	scopes := sum.MustUse[contracts.Scopes](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
+
+	params, number, size, err := transformers.ResolveScopeSearch(r, r.Body, labels)
+	if err != nil {
+		return wire.ScopeSearchResponse{}, err
+	}
+	result, err := scopes.Search(r, params)
+	if err != nil {
+		return wire.ScopeSearchResponse{}, err
+	}
+	return transformers.ScopeSearchToResponse(r, result, number, size, labels)
+}).
+	WithSummary("Search scopes across applications").
+	WithDescription("Query scopes across every application: text search over name and description, filter by application (by name), date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.").
+	WithTags("Scopes").
+	WithAuthentication().
+	WithErrors(rocco.ErrValidationFailed)
+
 var createScope = rocco.POST[wire.CreateScopeRequest, wire.ScopeResponse]("/applications/{app_id}/scopes", func(r *rocco.Request[wire.CreateScopeRequest]) (wire.ScopeResponse, error) {
 	scopes := sum.MustUse[contracts.Scopes](r)
 	labels := sum.MustUse[contracts.ApplicationLabels](r)

@@ -24,7 +24,7 @@ func All() []rocco.Endpoint {
 		// Grants
 		listGrants, createGrant, updateGrant, revokeGrant,
 		// Scopes
-		listScopes, createScope, deleteScope,
+		listScopes, listAllScopes, searchScopes, createScope, deleteScope,
 		// Tiers
 		listTiers, createTier, deleteTier,
 		// Features

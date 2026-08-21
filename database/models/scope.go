@@ -7,6 +7,7 @@ import "time"
 // Scopes are bundled into tiers via features, and granted to users on a Grant.
 type Scope struct {
 	CreatedAt     time.Time `json:"created_at" db:"created_at" default:"now()"`
+	UpdatedAt     time.Time `json:"updated_at" db:"updated_at" default:"now()"`
 	ID            string    `json:"id" db:"id" constraints:"primarykey"`
 	ApplicationID string    `json:"application_id" db:"application_id" constraints:"notnull"`
 	Name          string    `json:"name" db:"name" constraints:"notnull"`

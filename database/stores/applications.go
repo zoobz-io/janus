@@ -3,7 +3,6 @@ package stores
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/google/uuid"
@@ -132,40 +131,15 @@ func applyApplicationSearch[B searchFilterable[B]](b B, p ApplicationSearchParam
 // present in that set. All three share the same WHERE assembly.
 func (s *Applications) Search(ctx context.Context, p ApplicationSearchParams) (*ApplicationSearchResult, error) {
 	params := map[string]any{}
-
-	// Page: filtered, sorted with an id tiebreak for stable paging, windowed.
-	items, err := applyApplicationSearch(s.Query(), p, params).
-		OrderBy(p.Sort.Field, p.Sort.Order).
-		OrderBy("id", SortAsc).
-		Limit(p.Page.Limit).
-		Offset(p.Page.Offset).
-		Exec(ctx, params)
+	items, total, statuses, err := runSearch(ctx, params,
+		func() *soy.Query[models.Application] { return applyApplicationSearch(s.Query(), p, params) },
+		applyApplicationSearch(s.Count(), p, params),
+		p.Sort, p.Page.Offset, p.Page.Limit,
+		"status", func(a *models.Application) string { return a.Status })
 	if err != nil {
 		return nil, err
 	}
-
-	// Total across the full filtered set (same WHERE, no window).
-	total, err := applyApplicationSearch(s.Count(), p, params).Exec(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-
-	// Facet values: distinct status present in the full filtered set.
-	statusRows, err := applyApplicationSearch(s.Query().Fields("status").Distinct(), p, params).Exec(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	statuses := make([]string, 0, len(statusRows))
-	for _, row := range statusRows {
-		statuses = append(statuses, row.Status)
-	}
-	sort.Strings(statuses)
-
-	return &ApplicationSearchResult{
-		Items:      items,
-		TotalItems: int64(total),
-		Statuses:   statuses,
-	}, nil
+	return &ApplicationSearchResult{Items: items, TotalItems: total, Statuses: statuses}, nil
 }
 
 // CreateApplication creates a new application.
