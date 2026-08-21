@@ -9,7 +9,7 @@ type AuthorizeApplicationRequest struct {
 
 // Validate checks the request body.
 func (r AuthorizeApplicationRequest) Validate() error {
-	return check.Str(r.ApplicationID, "application_id").Required().V()
+	return check.Str(r.ApplicationID, "application_id").Required().V().Err()
 }
 
 // GrantApplicationRequest is the request body for granting a user access to an application.
@@ -23,7 +23,7 @@ func (r GrantApplicationRequest) Validate() error {
 	return check.All(
 		check.Str(r.ApplicationID, "application_id").Required().V(),
 		check.Str(r.UserID, "user_id").Required().V(),
-	)
+	).Err()
 }
 
 // ApplicationResponse is the public API response for an application.

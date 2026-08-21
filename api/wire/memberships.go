@@ -13,7 +13,7 @@ func (r AddMemberRequest) Validate() error {
 	return check.All(
 		check.Str(r.UserID, "user_id").Required().V(),
 		check.Str(r.Role, "role").Required().OneOf([]string{"viewer", "editor", "admin", "owner"}).V(),
-	)
+	).Err()
 }
 
 // UpdateMemberRoleRequest is the request body for updating a member's role.
@@ -23,7 +23,7 @@ type UpdateMemberRoleRequest struct {
 
 // Validate checks the request body.
 func (r UpdateMemberRoleRequest) Validate() error {
-	return check.Str(r.Role, "role").Required().OneOf([]string{"viewer", "editor", "admin", "owner"}).V()
+	return check.Str(r.Role, "role").Required().OneOf([]string{"viewer", "editor", "admin", "owner"}).V().Err()
 }
 
 // MemberResponse is the public API response for a tenant member.
