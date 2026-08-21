@@ -16,7 +16,7 @@
         },
         "summary": "List all applications",
         "description": "Returns every application on the mesh, including inactive ones. The public catalog only exposes active applications.",
-        "operationId": "get-applications-8862627d",
+        "operationId": "get-applications-47416115",
         "tags": [
           "Applications"
         ],
@@ -61,7 +61,54 @@
         },
         "summary": "Register an application",
         "description": "Registers a new application. The slug must match the certificate CN of the service's mesh nodes.",
-        "operationId": "post-applications-0e6cd798",
+        "operationId": "post-applications-88a4fb6e",
+        "tags": [
+          "Applications"
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/search": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchApplicationsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationSearchResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Search applications",
+        "description": "Query applications with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.",
+        "operationId": "post-applications-search-e5436242",
         "tags": [
           "Applications"
         ],
@@ -98,7 +145,7 @@
         },
         "summary": "Get an application",
         "description": "Fetches a single application by ID, including its current status.",
-        "operationId": "get-applications-app_id-a423a236",
+        "operationId": "get-applications-app_id-40cf6a78",
         "tags": [
           "Applications"
         ],
@@ -163,7 +210,7 @@
         },
         "summary": "Update an application",
         "description": "Updates an application's name and status. Set status to 'inactive' to soft-disable it — there is no hard delete.",
-        "operationId": "patch-applications-app_id-3c4133cf",
+        "operationId": "patch-applications-app_id-fd6f5408",
         "tags": [
           "Applications"
         ],
@@ -200,7 +247,7 @@
         },
         "summary": "List user grants for an application in a tenant",
         "description": "Returns the per-user grants for an application within a tenant. Pass tenant_id as a query parameter.",
-        "operationId": "get-applications-app_id-grants-999c9772",
+        "operationId": "get-applications-app_id-grants-dd2877c0",
         "tags": [
           "Grants"
         ],
@@ -262,7 +309,7 @@
         },
         "summary": "Grant a user access to an application",
         "description": "Grants a user access to an application within a tenant, with explicit roles/scopes and an optional tier. Explicit scopes are admin-assigned; tier scopes are inherited.",
-        "operationId": "post-applications-app_id-grants-9174767f",
+        "operationId": "post-applications-app_id-grants-e5cfbc06",
         "tags": [
           "Grants"
         ],
@@ -309,7 +356,7 @@
         },
         "summary": "Revoke a user's grant",
         "description": "Removes a user's access to an application within a tenant.",
-        "operationId": "delete-applications-app_id-grants-tenant_id-user_id-ccf01811",
+        "operationId": "delete-applications-app_id-grants-tenant_id-user_id-d2eae6d3",
         "tags": [
           "Grants"
         ],
@@ -380,7 +427,7 @@
         },
         "summary": "Update a user's grant",
         "description": "Replaces a grant's roles and scopes and sets (or clears) its tier.",
-        "operationId": "patch-applications-app_id-grants-tenant_id-user_id-bdf72d10",
+        "operationId": "patch-applications-app_id-grants-tenant_id-user_id-9651f286",
         "tags": [
           "Grants"
         ],
@@ -433,7 +480,7 @@
         },
         "summary": "List tenants licensed for an application",
         "description": "Returns the tenants authorized to use an application.",
-        "operationId": "get-applications-app_id-licenses-167d1f02",
+        "operationId": "get-applications-app_id-licenses-c429f2fb",
         "tags": [
           "Licenses"
         ],
@@ -488,7 +535,7 @@
         },
         "summary": "Authorize a tenant for an application",
         "description": "Licenses a tenant to use the application. A user cannot be granted access in a tenant that is not licensed.",
-        "operationId": "post-applications-app_id-licenses-aba3f2a8",
+        "operationId": "post-applications-app_id-licenses-728d8058",
         "tags": [
           "Licenses"
         ],
@@ -535,7 +582,7 @@
         },
         "summary": "Revoke a tenant's license for an application",
         "description": "Removes a tenant's authorization to use the application.",
-        "operationId": "delete-applications-app_id-licenses-tenant_id-8811519e",
+        "operationId": "delete-applications-app_id-licenses-tenant_id-2cd05f9a",
         "tags": [
           "Licenses"
         ],
@@ -580,7 +627,7 @@
         },
         "summary": "List application scopes",
         "description": "Returns the scope catalog defined for an application.",
-        "operationId": "get-applications-app_id-scopes-b1c5f4fe",
+        "operationId": "get-applications-app_id-scopes-57a11227",
         "tags": [
           "Scopes"
         ],
@@ -635,7 +682,7 @@
         },
         "summary": "Define an application scope",
         "description": "Adds a scope to an application's catalog. Scopes are opaque permission strings the application interprets itself.",
-        "operationId": "post-applications-app_id-scopes-6d7c2d38",
+        "operationId": "post-applications-app_id-scopes-54e687de",
         "tags": [
           "Scopes"
         ],
@@ -682,7 +729,7 @@
         },
         "summary": "Delete an application scope",
         "description": "Removes a scope from the catalog. Any tier features referencing it are cascaded automatically.",
-        "operationId": "delete-applications-app_id-scopes-scope_id-c0273895",
+        "operationId": "delete-applications-app_id-scopes-scope_id-eabe13db",
         "tags": [
           "Scopes"
         ],
@@ -727,7 +774,7 @@
         },
         "summary": "List application tiers",
         "description": "Returns the subscription tiers defined for an application, ordered by rank.",
-        "operationId": "get-applications-app_id-tiers-172a9c89",
+        "operationId": "get-applications-app_id-tiers-db223ed1",
         "tags": [
           "Tiers"
         ],
@@ -782,7 +829,7 @@
         },
         "summary": "Define an application tier",
         "description": "Adds a subscription tier to an application. Bundle scopes into it via its features.",
-        "operationId": "post-applications-app_id-tiers-77836dbc",
+        "operationId": "post-applications-app_id-tiers-fb922304",
         "tags": [
           "Tiers"
         ],
@@ -829,7 +876,7 @@
         },
         "summary": "Delete an application tier",
         "description": "Removes a tier. Its feature bundles are cascaded; grants that referenced it keep their explicit scopes.",
-        "operationId": "delete-applications-app_id-tiers-tier_id-c760d9f8",
+        "operationId": "delete-applications-app_id-tiers-tier_id-e6df75b7",
         "tags": [
           "Tiers"
         ],
@@ -874,7 +921,7 @@
         },
         "summary": "List scopes bundled into a tier",
         "description": "Returns the scopes bundled into a tier — the features every subscriber on this tier inherits.",
-        "operationId": "get-applications-app_id-tiers-tier_id-features-a41e5961",
+        "operationId": "get-applications-app_id-tiers-tier_id-features-a8cd82d2",
         "tags": [
           "Tiers"
         ],
@@ -937,7 +984,7 @@
         },
         "summary": "Bundle a scope into a tier",
         "description": "Adds a scope to a tier's bundle. Users on the tier inherit it immediately — scope composition is dynamic.",
-        "operationId": "post-applications-app_id-tiers-tier_id-features-e8e5da2a",
+        "operationId": "post-applications-app_id-tiers-tier_id-features-09c5ee41",
         "tags": [
           "Tiers"
         ],
@@ -992,7 +1039,7 @@
         },
         "summary": "Unbundle a scope from a tier",
         "description": "Removes a scope from a tier's bundle.",
-        "operationId": "delete-applications-app_id-tiers-tier_id-features-scope_id-fd7ca12f",
+        "operationId": "delete-applications-app_id-tiers-tier_id-features-scope_id-eef16754",
         "tags": [
           "Tiers"
         ],
@@ -1045,7 +1092,7 @@
         },
         "summary": "List supported identity providers",
         "description": "Returns the external identity providers janus supports for account linking.",
-        "operationId": "get-providers-a7905895",
+        "operationId": "get-providers-6f267fda",
         "tags": [
           "Providers"
         ],
@@ -1072,7 +1119,7 @@
         },
         "summary": "List tenants",
         "description": "Returns a paginated list of all tenants. Use limit and offset to page.",
-        "operationId": "get-tenants-11d4d68e",
+        "operationId": "get-tenants-a2fbeff8",
         "tags": [
           "Tenants"
         ],
@@ -1133,7 +1180,7 @@
         },
         "summary": "Create a tenant",
         "description": "Creates a new customer organization.",
-        "operationId": "post-tenants-ae67d2c0",
+        "operationId": "post-tenants-2541bde7",
         "tags": [
           "Tenants"
         ],
@@ -1170,7 +1217,7 @@
         },
         "summary": "Get a tenant",
         "description": "Fetches a single tenant by ID.",
-        "operationId": "get-tenants-tenant_id-3d1e200e",
+        "operationId": "get-tenants-tenant_id-6cc3f98f",
         "tags": [
           "Tenants"
         ],
@@ -1235,7 +1282,7 @@
         },
         "summary": "Update a tenant",
         "description": "Updates a tenant's name and status. Set status to 'suspended' to disable it.",
-        "operationId": "patch-tenants-tenant_id-8396fba9",
+        "operationId": "patch-tenants-tenant_id-19a14bea",
         "tags": [
           "Tenants"
         ],
@@ -1272,7 +1319,7 @@
         },
         "summary": "List tenant members",
         "description": "Returns the members of a tenant with their roles, paginated.",
-        "operationId": "get-tenants-tenant_id-members-d2260177",
+        "operationId": "get-tenants-tenant_id-members-a1139b0a",
         "tags": [
           "Tenants"
         ],
@@ -1341,7 +1388,7 @@
         },
         "summary": "Add a tenant member",
         "description": "Adds a user to a tenant with a role (viewer, editor, admin, or owner).",
-        "operationId": "post-tenants-tenant_id-members-272ab3d5",
+        "operationId": "post-tenants-tenant_id-members-1cefc4d6",
         "tags": [
           "Tenants"
         ],
@@ -1398,7 +1445,7 @@
         },
         "summary": "Remove a tenant member",
         "description": "Removes a user from a tenant. Removing the last owner is rejected.",
-        "operationId": "delete-tenants-tenant_id-members-user_id-a4ddeafb",
+        "operationId": "delete-tenants-tenant_id-members-user_id-8e04da31",
         "tags": [
           "Tenants"
         ],
@@ -1481,7 +1528,7 @@
         },
         "summary": "Update a member's role",
         "description": "Changes a member's role within a tenant. Demoting the last owner is rejected.",
-        "operationId": "patch-tenants-tenant_id-members-user_id-cf3993e5",
+        "operationId": "patch-tenants-tenant_id-members-user_id-dd7420aa",
         "tags": [
           "Tenants"
         ],
@@ -1526,7 +1573,7 @@
         },
         "summary": "List users",
         "description": "Returns a paginated list of users. Pass email to look up a single user by address.",
-        "operationId": "get-users-7f1d3aa4",
+        "operationId": "get-users-6d7acef5",
         "tags": [
           "Users"
         ],
@@ -1594,7 +1641,7 @@
         },
         "summary": "Create a user",
         "description": "Creates a user directly. Normally users are provisioned automatically via the OIDC login flow.",
-        "operationId": "post-users-6195cf5b",
+        "operationId": "post-users-5d7cbeaa",
         "tags": [
           "Users"
         ],
@@ -1631,7 +1678,7 @@
         },
         "summary": "Get a user",
         "description": "Fetches a single user by ID.",
-        "operationId": "get-users-user_id-8db42111",
+        "operationId": "get-users-user_id-08e6814a",
         "tags": [
           "Users"
         ],
@@ -1696,7 +1743,7 @@
         },
         "summary": "Update a user",
         "description": "Updates a user's display name and status. Set status to 'inactive' to disable the account.",
-        "operationId": "patch-users-user_id-1398621b",
+        "operationId": "patch-users-user_id-b8ce33e5",
         "tags": [
           "Users"
         ],
@@ -1733,7 +1780,7 @@
         },
         "summary": "List a user's linked accounts",
         "description": "Returns the external identity-provider accounts linked to a user.",
-        "operationId": "get-users-user_id-accounts-e6217413",
+        "operationId": "get-users-user_id-accounts-d2770db6",
         "tags": [
           "Users"
         ],
@@ -1780,7 +1827,7 @@
         },
         "summary": "Unlink a user's account",
         "description": "Removes a linked external account from a user.",
-        "operationId": "delete-users-user_id-accounts-account_id-840e4e63",
+        "operationId": "delete-users-user_id-accounts-account_id-cfb445bd",
         "tags": [
           "Users"
         ],
@@ -1825,7 +1872,7 @@
         },
         "summary": "List a user's sessions",
         "description": "Returns the active sessions for a user.",
-        "operationId": "get-users-user_id-sessions-9155502e",
+        "operationId": "get-users-user_id-sessions-9b3ec6aa",
         "tags": [
           "Users"
         ],
@@ -1860,7 +1907,7 @@
         },
         "summary": "Revoke all of a user's sessions",
         "description": "Revokes every active session for a user and returns the count revoked.",
-        "operationId": "delete-users-user_id-sessions-0e436114",
+        "operationId": "delete-users-user_id-sessions-99aafbfc",
         "tags": [
           "Users"
         ],
@@ -1907,7 +1954,7 @@
         },
         "summary": "Revoke a user's session",
         "description": "Revokes a single session by ID.",
-        "operationId": "delete-users-user_id-sessions-session_id-94c803a1",
+        "operationId": "delete-users-user_id-sessions-session_id-748e6a0f",
         "tags": [
           "Users"
         ],
@@ -2034,6 +2081,11 @@
       },
       "ApplicationResponse": {
         "properties": {
+          "created_at": {
+            "example": "2026-01-01T00:00:00Z",
+            "type": "string",
+            "description": "Creation timestamp (RFC 3339)"
+          },
           "id": {
             "example": "770e8400-e29b-41d4-a716-446655440000",
             "type": "string",
@@ -2053,6 +2105,11 @@
             "example": "active",
             "type": "string",
             "description": "Application status"
+          },
+          "updated_at": {
+            "example": "2026-08-21T00:00:00Z",
+            "type": "string",
+            "description": "Last update timestamp (RFC 3339)"
           }
         },
         "type": "object",
@@ -2060,7 +2117,40 @@
           "id",
           "name",
           "slug",
-          "status"
+          "status",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "ApplicationSearchResponse": {
+        "properties": {
+          "applications": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationResponse"
+            },
+            "type": "array",
+            "description": "Matching applications for this page"
+          },
+          "facets": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "description": "Distinct facet values present in the filtered set"
+          },
+          "page": {
+            "description": "Pagination metadata",
+            "$ref": "#/components/schemas/PageResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "facets",
+          "applications",
+          "page"
         ]
       },
       "AuthorizeLicenseRequest": {
@@ -2215,6 +2305,23 @@
           "email",
           "display_name"
         ]
+      },
+      "DateRange": {
+        "properties": {
+          "from": {
+            "example": "2026-01-01T00:00:00Z",
+            "format": "date-time",
+            "type": "string",
+            "description": "Inclusive lower bound (RFC 3339)"
+          },
+          "to": {
+            "example": "2026-08-21T00:00:00Z",
+            "format": "date-time",
+            "type": "string",
+            "description": "Inclusive upper bound (RFC 3339)"
+          }
+        },
+        "type": "object"
       },
       "ErrForbidden": {
         "properties": {
@@ -2413,9 +2520,9 @@
           "user_id",
           "tenant_id",
           "application_id",
+          "created_at",
           "roles",
-          "scopes",
-          "created_at"
+          "scopes"
         ]
       },
       "LicenseListResponse": {
@@ -2525,6 +2632,52 @@
       "NoBody": {
         "type": "object"
       },
+      "PageRequest": {
+        "properties": {
+          "number": {
+            "example": 1,
+            "type": "integer",
+            "description": "1-based page number (default 1)"
+          },
+          "size": {
+            "example": 25,
+            "type": "integer",
+            "description": "Page size, 1-100 (default 25)"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponse": {
+        "properties": {
+          "number": {
+            "example": 1,
+            "type": "integer",
+            "description": "Current page number"
+          },
+          "size": {
+            "example": 25,
+            "type": "integer",
+            "description": "Page size"
+          },
+          "total_items": {
+            "example": 57,
+            "type": "integer",
+            "description": "Total items across all pages"
+          },
+          "total_pages": {
+            "example": 3,
+            "type": "integer",
+            "description": "Total number of pages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "size",
+          "total_items",
+          "total_pages"
+        ]
+      },
       "ProviderListResponse": {
         "properties": {
           "providers": {
@@ -2608,6 +2761,41 @@
           "created_at"
         ]
       },
+      "SearchApplicationsRequest": {
+        "properties": {
+          "dates": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DateRange"
+            },
+            "type": "object",
+            "description": "Inclusive date-range filters keyed by field"
+          },
+          "facets": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "description": "Field-scoped filters: OR within a field, AND across fields"
+          },
+          "page": {
+            "description": "Pagination window (default page 1, size 25)",
+            "$ref": "#/components/schemas/PageRequest"
+          },
+          "query": {
+            "example": "acme",
+            "type": "string",
+            "description": "Case-insensitive infix match over name and slug"
+          },
+          "sort": {
+            "description": "Sort specification (default updated_at desc)",
+            "$ref": "#/components/schemas/SortSpec"
+          }
+        },
+        "type": "object"
+      },
       "SessionListResponse": {
         "properties": {
           "sessions": {
@@ -2662,6 +2850,25 @@
           "issued_by",
           "created_at",
           "expires_at"
+        ]
+      },
+      "SortSpec": {
+        "properties": {
+          "field": {
+            "example": "created_at",
+            "type": "string",
+            "description": "Field to sort by"
+          },
+          "order": {
+            "example": "desc",
+            "type": "string",
+            "description": "Sort direction: asc or desc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "order"
         ]
       },
       "TenantListResponse": {
@@ -2770,8 +2977,8 @@
           "application_id",
           "slug",
           "name",
-          "rank",
-          "created_at"
+          "created_at",
+          "rank"
         ]
       },
       "UpdateApplicationRequest": {

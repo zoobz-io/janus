@@ -33,10 +33,12 @@ func (r UpdateApplicationRequest) Validate() error {
 
 // ApplicationResponse is the admin API response for an application.
 type ApplicationResponse struct {
-	ID     string `json:"id" description:"Application ID" example:"770e8400-e29b-41d4-a716-446655440000"`
-	Name   string `json:"name" description:"Application name" example:"Nexus"`
-	Slug   string `json:"slug" description:"Application slug" example:"nexus"`
-	Status string `json:"status" description:"Application status" example:"active"`
+	ID        string `json:"id" description:"Application ID" example:"770e8400-e29b-41d4-a716-446655440000"`
+	Name      string `json:"name" description:"Application name" example:"Nexus"`
+	Slug      string `json:"slug" description:"Application slug" example:"nexus"`
+	Status    string `json:"status" description:"Application status" example:"active"`
+	CreatedAt string `json:"created_at" description:"Creation timestamp (RFC 3339)" example:"2026-01-01T00:00:00Z"`
+	UpdatedAt string `json:"updated_at" description:"Last update timestamp (RFC 3339)" example:"2026-08-21T00:00:00Z"`
 }
 
 // Clone returns a copy of the response.

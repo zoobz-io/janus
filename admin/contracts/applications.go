@@ -21,4 +21,6 @@ type Applications interface {
 	CreateApplication(ctx context.Context, name, slug string) (*models.Application, error)
 	// Update updates an application's name and status.
 	Update(ctx context.Context, id, name string, status models.ApplicationStatus) (*models.Application, error)
+	// Search runs the admin search contract over applications.
+	Search(ctx context.Context, params models.ApplicationSearchParams) (*models.ApplicationSearchResult, error)
 }
