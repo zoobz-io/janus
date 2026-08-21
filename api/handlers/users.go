@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"errors"
+
 	"github.com/zoobz-io/janus/api/contracts"
 	"github.com/zoobz-io/janus/api/transformers"
 	"github.com/zoobz-io/janus/api/wire"
+	"github.com/zoobz-io/janus/database/stores"
 	"github.com/zoobz-io/rocco"
 	"github.com/zoobz-io/sum"
 )
@@ -13,9 +16,14 @@ var getMyProfile = rocco.GET[rocco.NoBody, wire.UserResponse]("/me", func(r *roc
 	memberships := sum.MustUse[contracts.Memberships](r)
 	tenants := sum.MustUse[contracts.Tenants](r)
 
+	// A store failure must surface as an internal error, not a 404 —
+	// masking outages as not-found misleads both clients and operators.
 	user, err := users.GetUser(r, r.Identity.ID())
-	if err != nil {
+	if errors.Is(err, stores.ErrNotFound) {
 		return wire.UserResponse{}, ErrUserNotFound
+	}
+	if err != nil {
+		return wire.UserResponse{}, err
 	}
 
 	mems, err := memberships.ListByUser(r, user.ID)
@@ -44,8 +52,11 @@ var updateMyProfile = rocco.PUT[wire.UpdateProfileRequest, wire.UserResponse]("/
 	tenants := sum.MustUse[contracts.Tenants](r)
 
 	user, err := users.UpdateDisplayName(r, r.Identity.ID(), r.Body.DisplayName)
-	if err != nil {
+	if errors.Is(err, stores.ErrNotFound) {
 		return wire.UserResponse{}, ErrUserNotFound
+	}
+	if err != nil {
+		return wire.UserResponse{}, err
 	}
 
 	mems, err := memberships.ListByUser(r, user.ID)

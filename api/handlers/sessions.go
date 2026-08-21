@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"errors"
+
 	"github.com/zoobz-io/janus/api/contracts"
 	"github.com/zoobz-io/janus/api/transformers"
 	"github.com/zoobz-io/janus/api/wire"
+	"github.com/zoobz-io/janus/database/stores"
 	"github.com/zoobz-io/rocco"
 	"github.com/zoobz-io/sum"
 )
@@ -26,7 +29,10 @@ var revokeMySession = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/me/sessions/{id
 	id := pathID(r.Params, "id")
 	store := sum.MustUse[contracts.Sessions](r)
 	if err := store.RevokeSession(r, id, r.Identity.ID()); err != nil {
-		return rocco.NoBody{}, ErrSessionNotFound
+		if errors.Is(err, stores.ErrNotFound) {
+			return rocco.NoBody{}, ErrSessionNotFound
+		}
+		return rocco.NoBody{}, err
 	}
 	return rocco.NoBody{}, nil
 }).
