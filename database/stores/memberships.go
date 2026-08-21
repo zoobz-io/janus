@@ -43,7 +43,28 @@ func (s *Memberships) ListByTenant(ctx context.Context, tenantID string, page mo
 	if err != nil {
 		return nil, err
 	}
-	return &models.OffsetResult[models.Membership]{Items: items, Offset: page.Offset}, nil
+	total, countErr := s.Count().
+		Where("tenant_id", "=", "tenant_id").
+		Exec(ctx, map[string]any{"tenant_id": tenantID})
+	if countErr != nil {
+		return nil, countErr
+	}
+	return &models.OffsetResult[models.Membership]{Items: items, Total: int64(total), Offset: page.Offset}, nil
+}
+
+// CountOtherOwners counts owners of the tenant other than excludeUserID.
+// Owner protection depends on this being a count over the whole table,
+// not a scan of one page.
+func (s *Memberships) CountOtherOwners(ctx context.Context, tenantID, excludeUserID string) (int64, error) {
+	count, err := s.Count().
+		Where("tenant_id", "=", "tenant_id").
+		Where("role", "=", "role").
+		Where("user_id", "!=", "user_id").
+		Exec(ctx, map[string]any{"tenant_id": tenantID, "role": models.UserRoleOwner, "user_id": excludeUserID})
+	if err != nil {
+		return 0, fmt.Errorf("counting tenant owners: %w", err)
+	}
+	return int64(count), nil
 }
 
 // GetByUserAndTenant retrieves a membership by user and tenant.
