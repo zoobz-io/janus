@@ -107,3 +107,56 @@ func TestSearchApplicationsRequestValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestSearchUsersRequestValidate(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     SearchUsersRequest
+		wantErr bool
+	}{
+		{name: "empty is valid", req: SearchUsersRequest{}},
+		{name: "known status facet", req: SearchUsersRequest{Facets: map[string][]string{"status": {"active", "inactive"}}}},
+		{
+			name:    "unknown status value",
+			req:     SearchUsersRequest{Facets: map[string][]string{"status": {"banned"}}},
+			wantErr: true,
+		},
+		{
+			name:    "unknown facet field",
+			req:     SearchUsersRequest{Facets: map[string][]string{"role": {"admin"}}},
+			wantErr: true,
+		},
+		{
+			name:    "unknown date field",
+			req:     SearchUsersRequest{Dates: map[string]DateRange{"last_seen_at": {}}},
+			wantErr: true,
+		},
+		{
+			name:    "invalid sort field",
+			req:     SearchUsersRequest{Sort: &SortSpec{Field: "email", Order: "asc"}},
+			wantErr: true,
+		},
+		{name: "valid sort", req: SearchUsersRequest{Sort: &SortSpec{Field: "created_at", Order: "ASC"}}},
+		{
+			name:    "size above max",
+			req:     SearchUsersRequest{Page: &PageRequest{Size: intPtr(101)}},
+			wantErr: true,
+		},
+		{
+			name:    "page number below one",
+			req:     SearchUsersRequest{Page: &PageRequest{Number: intPtr(0)}},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.req.Validate()
+			if tt.wantErr && err == nil {
+				t.Fatal("expected validation error, got nil")
+			}
+			if !tt.wantErr && err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+		})
+	}
+}

@@ -8,10 +8,40 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/zoobz-io/astql"
+	"github.com/zoobz-io/soy"
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/janus/database/models"
 )
+
+// userDateFields is the set of timestamp columns the user search contract
+// exposes for date filtering, in a fixed order for stable SQL generation.
+var userDateFields = []string{"created_at", "updated_at"}
+
+// applyUserSearch adds the shared user-search WHERE clause to a query or
+// aggregate builder (see searchFilterable). Text search ORs an escaped infix
+// ILIKE across email/display_name; the status facet is an OR-set via IN
+// (rendered as = ANY); date bounds are inclusive >=/<=, each optional.
+func applyUserSearch[B searchFilterable[B]](b B, p UserSearchParams, params map[string]any) B {
+	b = applyTextSearch(b, p.Query, params, "email", "display_name")
+	b = applyStatusFacet(b, p.Statuses, params)
+	return applyDateBounds(b, p.Dates, userDateFields, params)
+}
+
+// Search runs the admin search over users: one filtered page, the total count,
+// and the distinct status values present in that set. All three share one WHERE.
+func (s *Users) Search(ctx context.Context, p UserSearchParams) (*UserSearchResult, error) {
+	params := map[string]any{}
+	items, total, statuses, err := runSearch(ctx, params,
+		func() *soy.Query[models.User] { return applyUserSearch(s.Query(), p, params) },
+		applyUserSearch(s.Count(), p, params),
+		p.Sort, p.Page.Offset, p.Page.Limit,
+		"status", func(u *models.User) string { return u.Status })
+	if err != nil {
+		return nil, err
+	}
+	return &UserSearchResult{Items: items, TotalItems: total, Statuses: statuses}, nil
+}
 
 // Users provides database access for users.
 type Users struct {
