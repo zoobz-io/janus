@@ -110,12 +110,8 @@ lint: ## Run linters
 lint-fix: ## Run linters with auto-fix
 	@golangci-lint run --config=.golangci.yml --fix
 
-coverage: ## Generate coverage report (unit + integration)
-	@go test -tags testing -coverprofile=coverage-unit.out -covermode=atomic ./...
-	@go test -tags testing -coverprofile=coverage-integration.out -covermode=atomic ./testing/integration/... 2>/dev/null || true
-	@echo "mode: atomic" > coverage.out
-	@tail -n +2 coverage-unit.out >> coverage.out
-	@tail -n +2 coverage-integration.out >> coverage.out 2>/dev/null || true
+coverage: ## Generate unit test coverage report
+	@go test -tags testing -coverprofile=coverage.out -covermode=atomic ./...
 	@go tool cover -html=coverage.out -o coverage.html
 	@go tool cover -func=coverage.out | tail -1
 	@echo "Coverage report: coverage.html"
@@ -149,5 +145,5 @@ install-hooks: ## Install git pre-commit hook
 check: test lint web-check ## Run tests, lint, and web typecheck (quick validation)
 	@echo "All checks passed!"
 
-ci: clean lint test coverage test-bench web-check web-build ## Full CI simulation
+ci: clean lint test test-integration coverage web-check web-build ## Full CI simulation (integration needs Docker)
 	@echo "CI simulation complete!"
