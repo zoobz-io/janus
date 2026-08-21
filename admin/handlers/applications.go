@@ -7,6 +7,7 @@ import (
 	"github.com/zoobz-io/janus/admin/contracts"
 	"github.com/zoobz-io/janus/admin/transformers"
 	"github.com/zoobz-io/janus/admin/wire"
+	"github.com/zoobz-io/janus/events"
 )
 
 var listApplications = rocco.GET[rocco.NoBody, wire.ApplicationListResponse]("/applications", func(r *rocco.Request[rocco.NoBody]) (wire.ApplicationListResponse, error) {
@@ -43,6 +44,7 @@ var createApplication = rocco.POST[wire.CreateApplicationRequest, wire.Applicati
 	if err != nil {
 		return wire.ApplicationResponse{}, err
 	}
+	events.ApplicationCreated.Emit(r, events.ApplicationEvent{ApplicationID: app.ID, Name: app.Name})
 	return transformers.ApplicationToResponse(app), nil
 }).
 	WithSummary("Register an application").
@@ -74,6 +76,7 @@ var updateApplication = rocco.PATCH[wire.UpdateApplicationRequest, wire.Applicat
 	if err != nil {
 		return wire.ApplicationResponse{}, ErrApplicationNotFound
 	}
+	events.ApplicationUpdated.Emit(r, events.ApplicationEvent{ApplicationID: app.ID, Name: app.Name})
 	return transformers.ApplicationToResponse(app), nil
 }).
 	WithSummary("Update an application").

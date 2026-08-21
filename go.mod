@@ -5,6 +5,7 @@ go 1.25.0
 toolchain go1.25.3
 
 require (
+	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.12.3
@@ -20,6 +21,7 @@ require (
 	github.com/zoobz-io/openapi v1.0.2
 	github.com/zoobz-io/rocco v0.1.19
 	github.com/zoobz-io/sctx v1.0.3
+	github.com/zoobz-io/soy v1.0.6
 	github.com/zoobz-io/sum v0.0.12
 	go.opentelemetry.io/otel v1.43.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.14.0
@@ -41,6 +43,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
+	github.com/yuin/gopher-lua v1.1.1 // indirect
 	github.com/zoobz-io/atom v1.0.1 // indirect
 	github.com/zoobz-io/clockz v1.0.2 // indirect
 	github.com/zoobz-io/dbml v1.0.1 // indirect
@@ -51,7 +54,6 @@ require (
 	github.com/zoobz-io/scio v0.0.5 // indirect
 	github.com/zoobz-io/sentinel v1.0.4 // indirect
 	github.com/zoobz-io/slush v0.0.3 // indirect
-	github.com/zoobz-io/soy v1.0.6 // indirect
 	github.com/zoobz-io/vecna v0.0.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0 // indirect

@@ -16,6 +16,7 @@ import (
 	"github.com/zoobz-io/janus/events"
 	"github.com/zoobz-io/janus/internal/auth"
 	"github.com/zoobz-io/janus/internal/boot"
+	"github.com/zoobz-io/janus/internal/labels"
 )
 
 func main() {
@@ -42,8 +43,13 @@ func run() error {
 		return fmt.Errorf("failed to load cookie config: %w", cfgErr)
 	}
 
+	// Application label mapping: id<->name in shared Redis, resolved for outbound
+	// responses and kept current by domain events + boot reconciliation.
+	appLabels := labels.NewApplicationLabels(rt.Redis, rt.Stores.Applications)
+
 	// Admin API contracts — the same shared stores, narrowed to the admin
 	// capability boundary.
+	sum.Register[admincontracts.ApplicationLabels](rt.K, appLabels)
 	sum.Register[admincontracts.Applications](rt.K, rt.Stores.Applications)
 	sum.Register[admincontracts.Tenants](rt.K, rt.Stores.Tenants)
 	sum.Register[admincontracts.Memberships](rt.K, rt.Stores.Memberships)
@@ -58,6 +64,13 @@ func run() error {
 
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)
+
+	// Keep the application label cache current and reconciled with the table.
+	stopLabels, labelErr := appLabels.Start(ctx)
+	if labelErr != nil {
+		return labelErr
+	}
+	defer stopLabels()
 
 	// Observability.
 	otelProviders, err := boot.OTEL(ctx, "janus-admin")

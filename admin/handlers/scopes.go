@@ -11,11 +11,16 @@ import (
 
 var listScopes = rocco.GET[rocco.NoBody, wire.ScopeListResponse]("/applications/{app_id}/scopes", func(r *rocco.Request[rocco.NoBody]) (wire.ScopeListResponse, error) {
 	scopes := sum.MustUse[contracts.Scopes](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
 	list, err := scopes.ListByApplication(r, pathID(r.Params, "app_id"))
 	if err != nil {
 		return wire.ScopeListResponse{}, err
 	}
-	return wire.ScopeListResponse{Scopes: transformers.ScopesToResponse(list)}, nil
+	responses, err := transformers.ScopesToResponse(r, list, labels)
+	if err != nil {
+		return wire.ScopeListResponse{}, err
+	}
+	return wire.ScopeListResponse{Scopes: responses}, nil
 }).
 	WithSummary("List application scopes").
 	WithDescription("Returns the scope catalog defined for an application.").
@@ -25,11 +30,12 @@ var listScopes = rocco.GET[rocco.NoBody, wire.ScopeListResponse]("/applications/
 
 var createScope = rocco.POST[wire.CreateScopeRequest, wire.ScopeResponse]("/applications/{app_id}/scopes", func(r *rocco.Request[wire.CreateScopeRequest]) (wire.ScopeResponse, error) {
 	scopes := sum.MustUse[contracts.Scopes](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
 	sc, err := scopes.Define(r, pathID(r.Params, "app_id"), r.Body.Name, r.Body.Description)
 	if err != nil {
 		return wire.ScopeResponse{}, err
 	}
-	return transformers.ScopeToResponse(sc), nil
+	return transformers.ScopeToResponse(r, sc, labels)
 }).
 	WithSummary("Define an application scope").
 	WithDescription("Adds a scope to an application's catalog. Scopes are opaque permission strings the application interprets itself.").

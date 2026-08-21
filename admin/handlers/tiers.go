@@ -11,11 +11,16 @@ import (
 
 var listTiers = rocco.GET[rocco.NoBody, wire.TierListResponse]("/applications/{app_id}/tiers", func(r *rocco.Request[rocco.NoBody]) (wire.TierListResponse, error) {
 	tiers := sum.MustUse[contracts.Tiers](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
 	list, err := tiers.ListByApplication(r, pathID(r.Params, "app_id"))
 	if err != nil {
 		return wire.TierListResponse{}, err
 	}
-	return wire.TierListResponse{Tiers: transformers.TiersToResponse(list)}, nil
+	responses, err := transformers.TiersToResponse(r, list, labels)
+	if err != nil {
+		return wire.TierListResponse{}, err
+	}
+	return wire.TierListResponse{Tiers: responses}, nil
 }).
 	WithSummary("List application tiers").
 	WithDescription("Returns the subscription tiers defined for an application, ordered by rank.").
@@ -25,11 +30,12 @@ var listTiers = rocco.GET[rocco.NoBody, wire.TierListResponse]("/applications/{a
 
 var createTier = rocco.POST[wire.CreateTierRequest, wire.TierResponse]("/applications/{app_id}/tiers", func(r *rocco.Request[wire.CreateTierRequest]) (wire.TierResponse, error) {
 	tiers := sum.MustUse[contracts.Tiers](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
 	t, err := tiers.Define(r, pathID(r.Params, "app_id"), r.Body.Slug, r.Body.Name, r.Body.Rank)
 	if err != nil {
 		return wire.TierResponse{}, err
 	}
-	return transformers.TierToResponse(t), nil
+	return transformers.TierToResponse(r, t, labels)
 }).
 	WithSummary("Define an application tier").
 	WithDescription("Adds a subscription tier to an application. Bundle scopes into it via its features.").

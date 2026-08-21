@@ -19,12 +19,12 @@ func (r CreateTierRequest) Validate() error {
 
 // TierResponse is the admin API response for a subscription tier.
 type TierResponse struct {
-	ID            string `json:"id" description:"Tier ID" example:"bb0e8400-e29b-41d4-a716-446655440000"`
-	ApplicationID string `json:"application_id" description:"Owning application ID" example:"770e8400-e29b-41d4-a716-446655440000"`
-	Slug          string `json:"slug" description:"Tier slug" example:"pro"`
-	Name          string `json:"name" description:"Tier display name" example:"Pro"`
-	CreatedAt     string `json:"created_at" description:"When the tier was defined" example:"2026-07-12T12:00:00Z"`
-	Rank          int    `json:"rank" description:"Ordering rank" example:"1"`
+	ID          string `json:"id" description:"Tier ID" example:"bb0e8400-e29b-41d4-a716-446655440000"`
+	Application string `json:"application" description:"Owning application (label)" example:"nexus"`
+	Slug        string `json:"slug" description:"Tier slug" example:"pro"`
+	Name        string `json:"name" description:"Tier display name" example:"Pro"`
+	CreatedAt   string `json:"created_at" description:"When the tier was defined" example:"2026-07-12T12:00:00Z"`
+	Rank        int    `json:"rank" description:"Ordering rank" example:"1"`
 }
 
 // TierListResponse is the admin API response for a list of tiers.

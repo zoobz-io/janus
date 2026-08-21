@@ -25,7 +25,7 @@ type UpdateMemberRoleRequest struct {
 
 // Validate checks the request body.
 func (r UpdateMemberRoleRequest) Validate() error {
-	return check.Str(r.Role, "role").Required().OneOf(memberRoles).V()
+	return check.Str(r.Role, "role").Required().OneOf(memberRoles).V().Err()
 }
 
 // MemberResponse is the admin API response for a tenant member.

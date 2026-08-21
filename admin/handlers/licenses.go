@@ -11,11 +11,16 @@ import (
 
 var listLicenses = rocco.GET[rocco.NoBody, wire.LicenseListResponse]("/applications/{app_id}/licenses", func(r *rocco.Request[rocco.NoBody]) (wire.LicenseListResponse, error) {
 	licenses := sum.MustUse[contracts.Licenses](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
 	list, err := licenses.ListByApplication(r, pathID(r.Params, "app_id"))
 	if err != nil {
 		return wire.LicenseListResponse{}, err
 	}
-	return wire.LicenseListResponse{Licenses: transformers.LicensesToResponse(list)}, nil
+	responses, err := transformers.LicensesToResponse(r, list, labels)
+	if err != nil {
+		return wire.LicenseListResponse{}, err
+	}
+	return wire.LicenseListResponse{Licenses: responses}, nil
 }).
 	WithSummary("List tenants licensed for an application").
 	WithDescription("Returns the tenants authorized to use an application.").
@@ -25,11 +30,12 @@ var listLicenses = rocco.GET[rocco.NoBody, wire.LicenseListResponse]("/applicati
 
 var authorizeLicense = rocco.POST[wire.AuthorizeLicenseRequest, wire.LicenseResponse]("/applications/{app_id}/licenses", func(r *rocco.Request[wire.AuthorizeLicenseRequest]) (wire.LicenseResponse, error) {
 	licenses := sum.MustUse[contracts.Licenses](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
 	lic, err := licenses.Authorize(r, r.Body.TenantID, pathID(r.Params, "app_id"))
 	if err != nil {
 		return wire.LicenseResponse{}, err
 	}
-	return transformers.LicenseToResponse(lic), nil
+	return transformers.LicenseToResponse(r, lic, labels)
 }).
 	WithSummary("Authorize a tenant for an application").
 	WithDescription("Licenses a tenant to use the application. A user cannot be granted access in a tenant that is not licensed.").
