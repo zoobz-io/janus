@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"errors"
+
 	"github.com/zoobz-io/janus/api/contracts"
 	"github.com/zoobz-io/janus/api/transformers"
 	"github.com/zoobz-io/janus/api/wire"
+	"github.com/zoobz-io/janus/database/stores"
 	"github.com/zoobz-io/rocco"
 	"github.com/zoobz-io/sum"
 )
@@ -26,7 +29,10 @@ var unlinkMyAccount = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/me/accounts/{id
 	id := pathID(r.Params, "id")
 	store := sum.MustUse[contracts.Accounts](r)
 	if err := store.Unlink(r, id, r.Identity.ID()); err != nil {
-		return rocco.NoBody{}, ErrAccountNotFound
+		if errors.Is(err, stores.ErrNotFound) {
+			return rocco.NoBody{}, ErrAccountNotFound
+		}
+		return rocco.NoBody{}, err
 	}
 	return rocco.NoBody{}, nil
 }).
