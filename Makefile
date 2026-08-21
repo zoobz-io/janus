@@ -1,4 +1,4 @@
-.PHONY: setup build run run-admin run-mesh test test-unit test-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-admin web-install web-check web-build
+.PHONY: setup build run run-admin run-mesh test test-unit test-integration coverage-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-admin web-install web-check web-build
 
 .DEFAULT_GOAL := help
 
@@ -96,6 +96,11 @@ test-unit: ## Run unit tests only (short mode)
 
 test-integration: ## Run integration tests
 	@cd testing/integration && go test -v -race -tags testing ./...
+
+coverage-integration: ## Run integration tests with coverage of the root module (needs Docker)
+	@cd testing/integration && go test -v -race -tags testing -covermode=atomic \
+		-coverpkg=github.com/zoobz-io/janus/... \
+		-coverprofile=../../coverage-integration.out ./...
 
 test-bench: ## Run benchmarks
 	@go test -tags testing -bench=. -benchmem -benchtime=1s ./testing/benchmarks/...
