@@ -95,7 +95,7 @@ func escapeLike(s string) string {
 // applyApplicationSearch adds the shared search WHERE clause to a query or
 // aggregate builder and records the bound parameters in params. Text search ORs
 // an escaped infix ILIKE across name/slug; the status facet is an OR-set via
-// IN (rendered as = ANY); date bounds are inclusive GE/LE, each optional.
+// IN (rendered as = ANY); date bounds are inclusive >=/<=, each optional.
 func applyApplicationSearch[B searchFilterable[B]](b B, p ApplicationSearchParams, params map[string]any) B {
 	if p.Query != "" {
 		params["query"] = "%" + escapeLike(p.Query) + "%"
@@ -116,12 +116,12 @@ func applyApplicationSearch[B searchFilterable[B]](b B, p ApplicationSearchParam
 		if bound.From != nil {
 			param := field + "_from"
 			params[param] = *bound.From
-			b = b.Where(field, "GE", param)
+			b = b.Where(field, ">=", param)
 		}
 		if bound.To != nil {
 			param := field + "_to"
 			params[param] = *bound.To
-			b = b.Where(field, "LE", param)
+			b = b.Where(field, "<=", param)
 		}
 	}
 	return b
