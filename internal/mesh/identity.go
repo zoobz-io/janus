@@ -8,39 +8,28 @@ import (
 	"github.com/zoobz-io/capitan"
 
 	"github.com/zoobz-io/janus/events"
-	"github.com/zoobz-io/janus/database/models"
 	"github.com/zoobz-io/janus/database/stores"
 )
 
 // IdentityServer implements identitypb.IdentityServiceServer.
 type IdentityServer struct {
 	identitypb.UnimplementedIdentityServiceServer
+	stores      *stores.Stores
 	users       *stores.Users
 	accounts    *stores.Accounts
-	tenants     *stores.Tenants
-	memberships *stores.Memberships
 	entitlement *entitlementChecker
 }
 
-// NewIdentityServer creates a new IdentityServer.
-func NewIdentityServer(
-	users *stores.Users,
-	accounts *stores.Accounts,
-	tenants *stores.Tenants,
-	memberships *stores.Memberships,
-	applications *stores.Applications,
-	licenses *stores.Licenses,
-	grants *stores.Grants,
-	features *stores.Features,
-	scopes *stores.Scopes,
-) *IdentityServer {
+// NewIdentityServer creates a new IdentityServer over the store aggregate. The
+// aggregate is required (not just individual stores) because registration is a
+// transactional multi-store flow.
+func NewIdentityServer(st *stores.Stores) *IdentityServer {
 	return &IdentityServer{
-		users:       users,
-		accounts:    accounts,
-		tenants:     tenants,
-		memberships: memberships,
+		stores:   st,
+		users:    st.Users,
+		accounts: st.Accounts,
 		entitlement: newEntitlementChecker(
-			applications, licenses, grants, memberships, tenants, features, scopes,
+			st.Applications, st.Licenses, st.Grants, st.Memberships, st.Tenants, st.Features, st.Scopes,
 		),
 	}
 }
@@ -89,15 +78,13 @@ func (s *IdentityServer) ResolveIdentity(ctx context.Context, req *identitypb.Re
 	}, nil
 }
 
-// Register creates a user, links an external identity, and optionally creates a tenant.
+// Register creates a user, links an external identity, and optionally creates
+// a tenant — all in one transaction. Events emit only after the commit, so a
+// rolled-back registration emits nothing.
 func (s *IdentityServer) Register(ctx context.Context, req *identitypb.RegisterRequest) (*identitypb.RegisterResponse, error) {
-	user, err := s.users.CreateUser(ctx, req.Email, req.Name)
+	user, tenant, err := s.stores.RegisterUser(ctx, req.Email, req.Name, req.Provider, req.ProviderUserId, req.TenantName, req.TenantSlug)
 	if err != nil {
-		return nil, fmt.Errorf("creating user: %w", err)
-	}
-
-	if _, err := s.accounts.Link(ctx, user.ID, req.Provider, req.ProviderUserId); err != nil {
-		return nil, fmt.Errorf("linking identity: %w", err)
+		return nil, fmt.Errorf("registering user: %w", err)
 	}
 
 	events.UserCreated.Emit(ctx, events.UserEvent{UserID: user.ID, Email: req.Email})
@@ -106,21 +93,10 @@ func (s *IdentityServer) Register(ctx context.Context, req *identitypb.RegisterR
 	resp := &identitypb.RegisterResponse{
 		UserId: user.ID,
 	}
-
-	if req.TenantName != "" && req.TenantSlug != "" {
-		tenant, err := s.tenants.CreateTenant(ctx, req.TenantName, req.TenantSlug)
-		if err != nil {
-			return nil, fmt.Errorf("creating tenant: %w", err)
-		}
-
-		if _, err := s.memberships.Create(ctx, user.ID, tenant.ID, models.UserRoleOwner); err != nil {
-			return nil, fmt.Errorf("creating owner membership: %w", err)
-		}
-
+	if tenant != nil {
 		events.TenantCreated.Emit(ctx, events.TenantEvent{TenantID: tenant.ID})
 		resp.TenantId = tenant.ID
 	}
-
 	return resp, nil
 }
 

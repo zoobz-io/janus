@@ -16,17 +16,19 @@ import (
 // DirectoryServer implements directorypb.DirectoryServiceServer.
 type DirectoryServer struct {
 	directorypb.UnimplementedDirectoryServiceServer
-	users       *stores.Users
-	tenants     *stores.Tenants
-	memberships *stores.Memberships
+	stores  *stores.Stores
+	users   *stores.Users
+	tenants *stores.Tenants
 }
 
-// NewDirectoryServer creates a new DirectoryServer.
-func NewDirectoryServer(users *stores.Users, tenants *stores.Tenants, memberships *stores.Memberships) *DirectoryServer {
+// NewDirectoryServer creates a new DirectoryServer over the store aggregate.
+// The aggregate is required (not just individual stores) because tenant
+// creation with an owner is a transactional multi-store flow.
+func NewDirectoryServer(st *stores.Stores) *DirectoryServer {
 	return &DirectoryServer{
-		users:       users,
-		tenants:     tenants,
-		memberships: memberships,
+		stores:  st,
+		users:   st.Users,
+		tenants: st.Tenants,
 	}
 }
 
@@ -57,17 +59,18 @@ func (s *DirectoryServer) GetTenant(ctx context.Context, req *directorypb.GetTen
 	return tenantToProto(tenant), nil
 }
 
-// CreateTenant creates a new tenant with an owner.
+// CreateTenant creates a new tenant with an owner. Tenant and owner membership
+// land in one transaction; the event emits only after the commit.
 func (s *DirectoryServer) CreateTenant(ctx context.Context, req *directorypb.CreateTenantRequest) (*directorypb.CreateTenantResponse, error) {
-	tenant, err := s.tenants.CreateTenant(ctx, req.Name, req.Slug)
+	var tenant *models.Tenant
+	var err error
+	if req.OwnerUserId != "" {
+		tenant, _, err = s.stores.CreateTenantWithOwner(ctx, req.Name, req.Slug, req.OwnerUserId)
+	} else {
+		tenant, err = s.tenants.CreateTenant(ctx, req.Name, req.Slug)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("creating tenant: %w", err)
-	}
-
-	if req.OwnerUserId != "" {
-		if _, err := s.memberships.Create(ctx, req.OwnerUserId, tenant.ID, models.UserRoleOwner); err != nil {
-			return nil, fmt.Errorf("creating owner membership: %w", err)
-		}
 	}
 
 	events.TenantCreated.Emit(ctx, events.TenantEvent{TenantID: tenant.ID})

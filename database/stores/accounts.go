@@ -62,6 +62,20 @@ func (s *Accounts) Link(ctx context.Context, userID, provider, externalSubject s
 	return l, nil
 }
 
+// LinkTx links an external identity to a user inside an existing transaction.
+func (s *Accounts) LinkTx(ctx context.Context, tx *sqlx.Tx, userID, provider, externalSubject string) (*models.Account, error) {
+	l := &models.Account{
+		ID:              uuid.New().String(),
+		UserID:          userID,
+		Provider:        provider,
+		ExternalSubject: externalSubject,
+	}
+	if err := s.SetTx(ctx, tx, "", l); err != nil {
+		return nil, fmt.Errorf("linking identity: %w", err)
+	}
+	return l, nil
+}
+
 // Unlink removes a account by ID, scoped to a user.
 func (s *Accounts) Unlink(ctx context.Context, id, userID string) error {
 	results, err := s.Query().

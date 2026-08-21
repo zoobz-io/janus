@@ -45,6 +45,20 @@ func (s *Tenants) CreateTenant(ctx context.Context, name, slug string) (*models.
 	return t, nil
 }
 
+// CreateTenantTx creates a new tenant inside an existing transaction.
+func (s *Tenants) CreateTenantTx(ctx context.Context, tx *sqlx.Tx, name, slug string) (*models.Tenant, error) {
+	t := &models.Tenant{
+		ID:     uuid.New().String(),
+		Name:   name,
+		Slug:   slug,
+		Status: models.TenantStatusActive,
+	}
+	if err := s.SetTx(ctx, tx, "", t); err != nil {
+		return nil, fmt.Errorf("creating tenant: %w", err)
+	}
+	return t, nil
+}
+
 // UpdateTenant updates an existing tenant.
 func (s *Tenants) UpdateTenant(ctx context.Context, id, name string, status models.TenantStatus) (*models.Tenant, error) {
 	t, err := s.GetTenant(ctx, id)

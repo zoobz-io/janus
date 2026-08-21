@@ -18,11 +18,7 @@ func TestIdentityServer(t *testing.T) {
 	ctx := context.Background()
 	t.Cleanup(func() { cleanAll(t) })
 
-	srv := mesh.NewIdentityServer(
-		testStores.Users, testStores.Accounts, testStores.Tenants, testStores.Memberships,
-		testStores.Applications, testStores.Licenses, testStores.Grants,
-		testStores.Features, testStores.Scopes,
-	)
+	srv := mesh.NewIdentityServer(testStores)
 
 	var registeredUserID string
 
@@ -224,7 +220,7 @@ func TestDirectoryServer(t *testing.T) {
 	ctx := context.Background()
 	t.Cleanup(func() { cleanAll(t) })
 
-	srv := mesh.NewDirectoryServer(testStores.Users, testStores.Tenants, testStores.Memberships)
+	srv := mesh.NewDirectoryServer(testStores)
 
 	user, _ := testStores.Users.CreateUser(ctx, "dir-user@example.com", "Dir User")
 

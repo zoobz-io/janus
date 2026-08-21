@@ -13,3 +13,12 @@ type Tenants interface {
 	// CreateTenant creates a new tenant.
 	CreateTenant(ctx context.Context, name, slug string) (*models.Tenant, error)
 }
+
+// Provisioning defines the transactional multi-store flows the public API
+// depends on. Satisfied structurally by the store aggregate — these must not
+// be recomposed from single-store calls, which would reintroduce the
+// partial-write windows they exist to close.
+type Provisioning interface {
+	// CreateTenantWithOwner creates a tenant and its owner membership atomically.
+	CreateTenantWithOwner(ctx context.Context, name, slug, ownerUserID string) (*models.Tenant, *models.Membership, error)
+}

@@ -97,6 +97,20 @@ func (s *Memberships) Create(ctx context.Context, userID, tenantID string, role 
 	return m, nil
 }
 
+// CreateTx creates a new membership inside an existing transaction.
+func (s *Memberships) CreateTx(ctx context.Context, tx *sqlx.Tx, userID, tenantID string, role models.UserRole) (*models.Membership, error) {
+	m := &models.Membership{
+		ID:       uuid.New().String(),
+		UserID:   userID,
+		TenantID: tenantID,
+		Role:     role,
+	}
+	if err := s.SetTx(ctx, tx, "", m); err != nil {
+		return nil, fmt.Errorf("creating membership: %w", err)
+	}
+	return m, nil
+}
+
 // UpdateRole changes a user's role within a tenant. Returns ErrNotFound if the
 // membership does not exist.
 func (s *Memberships) UpdateRole(ctx context.Context, userID, tenantID string, role models.UserRole) (*models.Membership, error) {
