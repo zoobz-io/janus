@@ -160,3 +160,46 @@ func TestSearchUsersRequestValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestSearchTenantsRequestValidate(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     SearchTenantsRequest
+		wantErr bool
+	}{
+		{name: "empty is valid", req: SearchTenantsRequest{}},
+		{name: "known status facet (active/suspended)", req: SearchTenantsRequest{Facets: map[string][]string{"status": {"active", "suspended"}}}},
+		{
+			name:    "inactive is not a tenant status",
+			req:     SearchTenantsRequest{Facets: map[string][]string{"status": {"inactive"}}},
+			wantErr: true,
+		},
+		{
+			name:    "unknown facet field",
+			req:     SearchTenantsRequest{Facets: map[string][]string{"tier": {"pro"}}},
+			wantErr: true,
+		},
+		{
+			name:    "invalid sort field",
+			req:     SearchTenantsRequest{Sort: &SortSpec{Field: "slug", Order: "asc"}},
+			wantErr: true,
+		},
+		{name: "valid sort", req: SearchTenantsRequest{Sort: &SortSpec{Field: "created_at", Order: "desc"}}},
+		{
+			name:    "size above max",
+			req:     SearchTenantsRequest{Page: &PageRequest{Size: intPtr(101)}},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.req.Validate()
+			if tt.wantErr && err == nil {
+				t.Fatal("expected validation error, got nil")
+			}
+			if !tt.wantErr && err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+		})
+	}
+}

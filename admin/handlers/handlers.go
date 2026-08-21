@@ -10,7 +10,7 @@ func All() []rocco.Endpoint {
 		// Applications
 		listApplications, searchApplications, getApplication, createApplication, updateApplication,
 		// Tenants
-		listTenants, getTenant, createTenant, updateTenant,
+		listTenants, searchTenants, getTenant, createTenant, updateTenant,
 		// Tenant members
 		listMembers, addMember, updateMemberRole, removeMember,
 		// Users

@@ -141,6 +141,59 @@ func (r UserSearchResponse) Clone() UserSearchResponse {
 	return c
 }
 
+// Tenant search field configuration. status is a closed enum (active/suspended),
+// so its facet values are wire-validated.
+var (
+	tenantFacetFields  = []string{"status"}
+	tenantStatusValues = []string{"active", "suspended"}
+	tenantDateFields   = []string{"created_at", "updated_at"}
+	tenantSortFields   = []string{"created_at", "updated_at"}
+)
+
+// SearchTenantsRequest is the request body for POST /tenants/search. Every key is
+// optional: an empty body returns page 1, size 25, sorted updated_at desc,
+// unfiltered.
+type SearchTenantsRequest struct {
+	Facets map[string][]string  `json:"facets,omitempty" description:"Field-scoped filters: OR within a field, AND across fields"`
+	Dates  map[string]DateRange `json:"dates,omitempty" description:"Inclusive date-range filters keyed by field"`
+	Sort   *SortSpec            `json:"sort,omitempty" description:"Sort specification (default updated_at desc)"`
+	Page   *PageRequest         `json:"page,omitempty" description:"Pagination window (default page 1, size 25)"`
+	Query  string               `json:"query,omitempty" description:"Case-insensitive infix match over name and slug" example:"acme"`
+}
+
+// Validate enforces the malformed-request rules: unknown facet/date/sort fields,
+// unknown status values, invalid sort order, size out of [1,100], page number
+// below 1.
+func (r SearchTenantsRequest) Validate() error {
+	return validateSearchRequest(r.Facets, r.Dates, r.Sort, r.Page,
+		tenantFacetFields, tenantStatusValues, tenantDateFields, tenantSortFields)
+}
+
+// TenantSearchResponse is the response body for POST /tenants/search.
+type TenantSearchResponse struct {
+	Facets  map[string][]string `json:"facets" description:"Distinct facet values present in the filtered set"`
+	Tenants []TenantResponse    `json:"tenants" description:"Matching tenants for this page"`
+	Page    PageResponse        `json:"page" description:"Pagination metadata"`
+}
+
+// Clone returns a deep copy of the response.
+func (r TenantSearchResponse) Clone() TenantSearchResponse {
+	c := r
+	if r.Tenants != nil {
+		c.Tenants = make([]TenantResponse, len(r.Tenants))
+		copy(c.Tenants, r.Tenants)
+	}
+	if r.Facets != nil {
+		c.Facets = make(map[string][]string, len(r.Facets))
+		for k, v := range r.Facets {
+			vv := make([]string, len(v))
+			copy(vv, v)
+			c.Facets[k] = vv
+		}
+	}
+	return c
+}
+
 // SearchApplicationsRequest is the request body for POST /applications/search.
 // Every key is optional: an empty body returns page 1, size 25, sorted
 // updated_at desc, unfiltered.
