@@ -55,6 +55,22 @@ func (s *Users) CreateUser(ctx context.Context, email, displayName string) (*mod
 	return u, nil
 }
 
+// CreateUserTx creates a new user inside an existing transaction.
+func (s *Users) CreateUserTx(ctx context.Context, tx *sqlx.Tx, email, displayName string) (*models.User, error) {
+	now := time.Now()
+	u := &models.User{
+		ID:          uuid.New().String(),
+		Email:       email,
+		DisplayName: displayName,
+		Status:      models.UserStatusActive,
+		LastSeenAt:  &now,
+	}
+	if err := s.SetTx(ctx, tx, "", u); err != nil {
+		return nil, fmt.Errorf("creating user: %w", err)
+	}
+	return u, nil
+}
+
 // UpdateDisplayName updates a user's display name.
 func (s *Users) UpdateDisplayName(ctx context.Context, id, displayName string) (*models.User, error) {
 	u, err := s.GetUser(ctx, id)

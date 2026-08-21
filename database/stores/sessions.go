@@ -22,12 +22,14 @@ const DefaultSessionDuration = 24 * time.Hour
 // Sessions provides database access for sessions.
 type Sessions struct {
 	*sum.Database[models.Session]
+	db *sqlx.DB
 }
 
 // NewSessions creates a new sessions store.
 func NewSessions(db *sqlx.DB, renderer astql.Renderer) *Sessions {
 	return &Sessions{
 		Database: sum.NewDatabase[models.Session](db, "sessions", renderer),
+		db:       db,
 	}
 }
 
@@ -142,7 +144,9 @@ func (s *Sessions) RevokeByToken(ctx context.Context, token string) error {
 	return s.Delete(ctx, sess.ID)
 }
 
-// RevokeUserSessions deletes all sessions for a user. Returns the count revoked.
+// RevokeUserSessions deletes all sessions for a user in one transaction, so a
+// failure partway leaves every session intact rather than an arbitrary subset
+// revoked. Returns the count revoked.
 func (s *Sessions) RevokeUserSessions(ctx context.Context, userID string) (int, error) {
 	sessions, err := s.Query().
 		Where("user_id", "=", "user_id").
@@ -150,10 +154,21 @@ func (s *Sessions) RevokeUserSessions(ctx context.Context, userID string) (int, 
 	if err != nil {
 		return 0, fmt.Errorf("listing sessions for revocation: %w", err)
 	}
+	if len(sessions) == 0 {
+		return 0, nil
+	}
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return 0, fmt.Errorf("beginning revocation transaction: %w", err)
+	}
 	for _, sess := range sessions {
-		if err := s.Delete(ctx, sess.ID); err != nil {
+		if err := s.DeleteTx(ctx, tx, sess.ID); err != nil {
+			_ = tx.Rollback()
 			return 0, fmt.Errorf("revoking session %s: %w", sess.ID, err)
 		}
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("committing revocation: %w", err)
 	}
 	return len(sessions), nil
 }

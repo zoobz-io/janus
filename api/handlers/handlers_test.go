@@ -91,10 +91,20 @@ func (f *fakeAccounts) ListByUser(_ context.Context, _ string) ([]*models.Accoun
 
 func (f *fakeAccounts) Unlink(_ context.Context, _, _ string) error { return f.err }
 
+type fakeProvisioning struct {
+	tenant *models.Tenant
+	err    error
+}
+
+func (f *fakeProvisioning) CreateTenantWithOwner(_ context.Context, _, _, _ string) (*models.Tenant, *models.Membership, error) {
+	return f.tenant, nil, f.err
+}
+
 var (
-	testUsers    = &fakeUsers{}
-	testSessions = &fakeSessions{}
-	testAccounts = &fakeAccounts{}
+	testUsers        = &fakeUsers{}
+	testSessions     = &fakeSessions{}
+	testAccounts     = &fakeAccounts{}
+	testProvisioning = &fakeProvisioning{}
 )
 
 func TestMain(m *testing.M) {
@@ -106,6 +116,7 @@ func TestMain(m *testing.M) {
 	sum.Register[contracts.Tenants](k, fakeTenants{})
 	sum.Register[contracts.Sessions](k, testSessions)
 	sum.Register[contracts.Accounts](k, testAccounts)
+	sum.Register[contracts.Provisioning](k, testProvisioning)
 	sum.Freeze(k)
 	os.Exit(m.Run())
 }

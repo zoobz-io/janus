@@ -129,17 +129,13 @@ func run() error {
 	}
 
 	// gRPC service implementations (concrete stores).
-	identityServer := mesh.NewIdentityServer(
-		rt.Stores.Users, rt.Stores.Accounts, rt.Stores.Tenants, rt.Stores.Memberships,
-		rt.Stores.Applications, rt.Stores.Licenses, rt.Stores.Grants,
-		rt.Stores.Features, rt.Stores.Scopes,
-	)
+	identityServer := mesh.NewIdentityServer(rt.Stores)
 	sessionServer := mesh.NewSessionServer(
 		rt.Stores.Sessions, rt.Stores.Users, rt.Stores.Tenants,
 		rt.Stores.Applications, rt.Stores.Licenses, rt.Stores.Grants, rt.Stores.Memberships,
 		rt.Stores.Features, rt.Stores.Scopes,
 	)
-	directoryServer := mesh.NewDirectoryServer(rt.Stores.Users, rt.Stores.Tenants, rt.Stores.Memberships)
+	directoryServer := mesh.NewDirectoryServer(rt.Stores)
 	entitlementServer := mesh.NewEntitlementServer(
 		rt.Stores.Applications, rt.Stores.Licenses, rt.Stores.Grants, rt.Stores.Memberships,
 	)

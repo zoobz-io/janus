@@ -56,6 +56,7 @@ func run() error {
 	sum.Register[apicontracts.Accounts](rt.K, rt.Stores.Accounts)
 	sum.Register[apicontracts.Memberships](rt.K, rt.Stores.Memberships)
 	sum.Register[apicontracts.Tenants](rt.K, rt.Stores.Tenants)
+	sum.Register[apicontracts.Provisioning](rt.K, rt.Stores)
 	sum.Register[apicontracts.Applications](rt.K, rt.Stores.Applications)
 	sum.Register[apicontracts.Licenses](rt.K, rt.Stores.Licenses)
 	sum.Register[apicontracts.Grants](rt.K, rt.Stores.Grants)
@@ -181,17 +182,16 @@ func resolveOAuth(provider, userinfoURL string, st *stores.Stores) func(context.
 			}
 		}
 
-		// First contact: register.
+		// First contact: register. User and identity link land in one
+		// transaction — a user without a linked identity can never log in
+		// to reach their own record. Events emit only after the commit.
 		name := info.Name
 		if name == "" {
 			name = info.Email
 		}
-		user, err := st.Users.CreateUser(ctx, info.Email, name)
+		user, _, err := st.RegisterUser(ctx, info.Email, name, provider, info.Sub, "", "")
 		if err != nil {
-			return nil, fmt.Errorf("creating user: %w", err)
-		}
-		if _, err := st.Accounts.Link(ctx, user.ID, provider, info.Sub); err != nil {
-			return nil, fmt.Errorf("linking identity: %w", err)
+			return nil, fmt.Errorf("registering user: %w", err)
 		}
 		events.UserCreated.Emit(ctx, events.UserEvent{UserID: user.ID, Email: user.Email})
 		events.IdentityLinked.Emit(ctx, events.IdentityEvent{UserID: user.ID, Provider: provider})
