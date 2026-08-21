@@ -52,6 +52,22 @@ var createApplication = rocco.POST[wire.CreateApplicationRequest, wire.Applicati
 	WithAuthentication().
 	WithErrors(rocco.ErrValidationFailed)
 
+var searchApplications = rocco.POST[wire.SearchApplicationsRequest, wire.ApplicationSearchResponse]("/applications/search", func(r *rocco.Request[wire.SearchApplicationsRequest]) (wire.ApplicationSearchResponse, error) {
+	apps := sum.MustUse[contracts.Applications](r)
+
+	params, number, size := transformers.ResolveApplicationSearch(r.Body)
+	result, err := apps.Search(r, params)
+	if err != nil {
+		return wire.ApplicationSearchResponse{}, err
+	}
+	return transformers.ApplicationSearchToResponse(result, number, size), nil
+}).
+	WithSummary("Search applications").
+	WithDescription("Query applications with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.").
+	WithTags("Applications").
+	WithAuthentication().
+	WithErrors(rocco.ErrValidationFailed)
+
 var updateApplication = rocco.PATCH[wire.UpdateApplicationRequest, wire.ApplicationResponse]("/applications/{app_id}", func(r *rocco.Request[wire.UpdateApplicationRequest]) (wire.ApplicationResponse, error) {
 	apps := sum.MustUse[contracts.Applications](r)
 	app, err := apps.Update(r, pathID(r.Params, "app_id"), r.Body.Name, r.Body.Status)

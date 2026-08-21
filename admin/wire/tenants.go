@@ -13,7 +13,7 @@ func (r CreateTenantRequest) Validate() error {
 	return check.All(
 		check.Str(r.Name, "name").Required().MaxLen(255).V(),
 		check.Str(r.Slug, "slug").Required().MaxLen(100).V(),
-	)
+	).Err()
 }
 
 // UpdateTenantRequest is the request body for updating a tenant.
@@ -27,7 +27,7 @@ func (r UpdateTenantRequest) Validate() error {
 	return check.All(
 		check.Str(r.Name, "name").Required().MaxLen(255).V(),
 		check.Str(r.Status, "status").Required().OneOf([]string{"active", "suspended"}).V(),
-	)
+	).Err()
 }
 
 // TenantResponse is the admin API response for a tenant.

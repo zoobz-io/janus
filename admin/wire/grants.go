@@ -16,7 +16,7 @@ func (r CreateGrantRequest) Validate() error {
 	return check.All(
 		check.Str(r.UserID, "user_id").Required().V(),
 		check.Str(r.TenantID, "tenant_id").Required().V(),
-	)
+	).Err()
 }
 
 // UpdateGrantRequest is the request body for updating a grant's roles, scopes and tier.

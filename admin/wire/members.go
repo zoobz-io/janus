@@ -15,7 +15,7 @@ func (r AddMemberRequest) Validate() error {
 	return check.All(
 		check.Str(r.UserID, "user_id").Required().V(),
 		check.Str(r.Role, "role").Required().OneOf(memberRoles).V(),
-	)
+	).Err()
 }
 
 // UpdateMemberRoleRequest is the request body for updating a member's role.

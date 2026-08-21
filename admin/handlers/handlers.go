@@ -8,7 +8,7 @@ import "github.com/zoobz-io/rocco"
 func All() []rocco.Endpoint {
 	return []rocco.Endpoint{
 		// Applications
-		listApplications, getApplication, createApplication, updateApplication,
+		listApplications, searchApplications, getApplication, createApplication, updateApplication,
 		// Tenants
 		listTenants, getTenant, createTenant, updateTenant,
 		// Tenant members

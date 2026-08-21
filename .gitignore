@@ -44,3 +44,6 @@ tmp/
 tmp-api/
 tmp-admin/
 build-errors*.log
+
+# Generated OpenAPI spec (regenerate with `make openapi-admin`)
+web/packages/admin-sdk/openapi.json
