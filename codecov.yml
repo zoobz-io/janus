@@ -1,0 +1,11 @@
+# Coverage is reported under two flags so unit and integration numbers stay
+# distinguishable on the dashboard — integration coverage must never mask
+# unit-test decay. Status checks (project/patch) gate on the COMBINED coverage:
+# a changed line counts as covered if any suite exercises it. This is
+# deliberate: stores/mesh are DB-bound and meaningfully tested only by the
+# integration suite; demanding unit coverage there would produce mock-theater.
+flags:
+  unit:
+    carryforward: true
+  integration:
+    carryforward: true
