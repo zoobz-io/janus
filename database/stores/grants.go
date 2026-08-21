@@ -91,6 +91,14 @@ func (s *Grants) UpdateAccess(ctx context.Context, userID, tenantID, application
 	if ua == nil {
 		return nil, ErrNotFound
 	}
+	// Nil normalizes to empty so the TEXT[] NOT NULL columns never receive
+	// SQL NULL on update — the insert path in Grant guards the same way.
+	if roles == nil {
+		roles = []string{}
+	}
+	if scopes == nil {
+		scopes = []string{}
+	}
 	ua.Roles = roles
 	ua.Scopes = scopes
 	if err := s.Set(ctx, ua.ID, ua); err != nil {

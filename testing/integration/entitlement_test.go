@@ -116,6 +116,21 @@ func TestEntitlementAuthz(t *testing.T) {
 		}
 	})
 
+	t.Run("UpdateAccessNilRolesScopes", func(t *testing.T) {
+		// Nil must normalize to empty, not write SQL NULL into the
+		// TEXT[] NOT NULL columns (a caller omitting the fields sends nil).
+		updated, err := testStores.Grants.UpdateAccess(ctx, viewer.ID, tenant.ID, app.ID, nil, nil)
+		if err != nil {
+			t.Fatalf("UpdateAccess with nil slices: %v", err)
+		}
+		if updated.Roles == nil || len(updated.Roles) != 0 {
+			t.Fatalf("expected empty roles, got %v", updated.Roles)
+		}
+		if updated.Scopes == nil || len(updated.Scopes) != 0 {
+			t.Fatalf("expected empty scopes, got %v", updated.Scopes)
+		}
+	})
+
 	t.Run("ListByTenantAndApp", func(t *testing.T) {
 		uas, err := testStores.Grants.ListByTenantAndApp(ctx, tenant.ID, app.ID)
 		if err != nil {

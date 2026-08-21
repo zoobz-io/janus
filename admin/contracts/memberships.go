@@ -10,6 +10,7 @@ import (
 type Memberships interface {
 	ListByTenant(ctx context.Context, tenantID string, page models.OffsetPage) (*models.OffsetResult[models.Membership], error)
 	GetByUserAndTenant(ctx context.Context, userID, tenantID string) (*models.Membership, error)
+	CountOtherOwners(ctx context.Context, tenantID, excludeUserID string) (int64, error)
 	Create(ctx context.Context, userID, tenantID string, role models.UserRole) (*models.Membership, error)
 	UpdateRole(ctx context.Context, userID, tenantID string, role models.UserRole) (*models.Membership, error)
 	Remove(ctx context.Context, userID, tenantID string) error

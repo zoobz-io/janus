@@ -4,6 +4,7 @@ package integration
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/zoobz-io/janus/internal/authz"
@@ -36,6 +37,22 @@ func TestMembershipManagement(t *testing.T) {
 		}
 		if len(result.Items) != 2 {
 			t.Fatalf("expected 2 members, got %d", len(result.Items))
+		}
+		if result.Total != 2 {
+			t.Fatalf("expected Total 2, got %d", result.Total)
+		}
+	})
+
+	t.Run("ListByTenantTotalSpansPages", func(t *testing.T) {
+		result, err := testStores.Memberships.ListByTenant(ctx, tenant.ID, models.OffsetPage{Limit: 1})
+		if err != nil {
+			t.Fatalf("ListByTenant: %v", err)
+		}
+		if len(result.Items) != 1 {
+			t.Fatalf("expected 1 item on page, got %d", len(result.Items))
+		}
+		if result.Total != 2 {
+			t.Fatalf("expected Total 2 regardless of page size, got %d", result.Total)
 		}
 	})
 
@@ -176,6 +193,26 @@ func TestOwnerProtection(t *testing.T) {
 		err := authz.RequireOwnerExists(ctx, testStores.Memberships, tenant.ID, owner.ID)
 		if err != authz.ErrLastOwner {
 			t.Fatalf("expected ErrLastOwner after co-owner removed, got %v", err)
+		}
+	})
+
+	t.Run("CoOwnerBeyondFirstPage", func(t *testing.T) {
+		// Owner protection must not depend on page size. Fill the tenant with
+		// more members than MaxPageSize so a co-owner added last sorts past
+		// the first page by created_at, then verify the check still sees it.
+		for i := 0; i < models.MaxPageSize+5; i++ {
+			filler, err := testStores.Users.CreateUser(ctx, fmt.Sprintf("filler-%d@example.com", i), "Filler")
+			if err != nil {
+				t.Fatalf("CreateUser filler %d: %v", i, err)
+			}
+			if _, err := testStores.Memberships.Create(ctx, filler.ID, tenant.ID, models.UserRoleViewer); err != nil {
+				t.Fatalf("Create filler membership %d: %v", i, err)
+			}
+		}
+		testStores.Memberships.Create(ctx, coowner.ID, tenant.ID, models.UserRoleOwner)
+
+		if err := authz.RequireOwnerExists(ctx, testStores.Memberships, tenant.ID, owner.ID); err != nil {
+			t.Fatalf("co-owner beyond first page not seen: %v", err)
 		}
 	})
 }
