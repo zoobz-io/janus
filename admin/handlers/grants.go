@@ -11,11 +11,16 @@ import (
 
 var listGrants = rocco.GET[rocco.NoBody, wire.GrantListResponse]("/applications/{app_id}/grants", func(r *rocco.Request[rocco.NoBody]) (wire.GrantListResponse, error) {
 	grants := sum.MustUse[contracts.Grants](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
 	list, err := grants.ListByTenantAndApp(r, r.Params.Query["tenant_id"], pathID(r.Params, "app_id"))
 	if err != nil {
 		return wire.GrantListResponse{}, err
 	}
-	return wire.GrantListResponse{Grants: transformers.GrantsToResponse(list)}, nil
+	responses, err := transformers.GrantsToResponse(r, list, labels)
+	if err != nil {
+		return wire.GrantListResponse{}, err
+	}
+	return wire.GrantListResponse{Grants: responses}, nil
 }).
 	WithSummary("List user grants for an application in a tenant").
 	WithDescription("Returns the per-user grants for an application within a tenant. Pass tenant_id as a query parameter.").
@@ -26,6 +31,7 @@ var listGrants = rocco.GET[rocco.NoBody, wire.GrantListResponse]("/applications/
 
 var createGrant = rocco.POST[wire.CreateGrantRequest, wire.GrantResponse]("/applications/{app_id}/grants", func(r *rocco.Request[wire.CreateGrantRequest]) (wire.GrantResponse, error) {
 	grants := sum.MustUse[contracts.Grants](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
 	appID := pathID(r.Params, "app_id")
 
 	g, err := grants.Grant(r, r.Body.UserID, r.Body.TenantID, appID, r.Body.Roles, r.Body.Scopes)
@@ -38,7 +44,7 @@ var createGrant = rocco.POST[wire.CreateGrantRequest, wire.GrantResponse]("/appl
 			return wire.GrantResponse{}, err
 		}
 	}
-	return transformers.GrantToResponse(g), nil
+	return transformers.GrantToResponse(r, g, labels)
 }).
 	WithSummary("Grant a user access to an application").
 	WithDescription("Grants a user access to an application within a tenant, with explicit roles/scopes and an optional tier. Explicit scopes are admin-assigned; tier scopes are inherited.").
@@ -50,6 +56,7 @@ var createGrant = rocco.POST[wire.CreateGrantRequest, wire.GrantResponse]("/appl
 
 var updateGrant = rocco.PATCH[wire.UpdateGrantRequest, wire.GrantResponse]("/applications/{app_id}/grants/{tenant_id}/{user_id}", func(r *rocco.Request[wire.UpdateGrantRequest]) (wire.GrantResponse, error) {
 	grants := sum.MustUse[contracts.Grants](r)
+	labels := sum.MustUse[contracts.ApplicationLabels](r)
 	appID := pathID(r.Params, "app_id")
 	tenantID := pathID(r.Params, "tenant_id")
 	userID := pathID(r.Params, "user_id")
@@ -61,7 +68,7 @@ var updateGrant = rocco.PATCH[wire.UpdateGrantRequest, wire.GrantResponse]("/app
 	if err != nil {
 		return wire.GrantResponse{}, err
 	}
-	return transformers.GrantToResponse(g), nil
+	return transformers.GrantToResponse(r, g, labels)
 }).
 	WithSummary("Update a user's grant").
 	WithDescription("Replaces a grant's roles and scopes and sets (or clears) its tier.").

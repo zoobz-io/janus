@@ -25,12 +25,14 @@ import (
 
 	"github.com/zoobz-io/janus/database/models"
 	"github.com/zoobz-io/janus/database/stores"
+	"github.com/zoobz-io/janus/internal/labels"
 )
 
 var (
-	testDB     *sqlx.DB
-	testRedis  *goredis.Client
-	testStores *stores.Stores
+	testDB        *sqlx.DB
+	testRedis     *goredis.Client
+	testStores    *stores.Stores
+	testAppLabels *labels.ApplicationLabels
 )
 
 func TestMain(m *testing.M) {
@@ -116,6 +118,7 @@ func TestMain(m *testing.M) {
 
 	renderer := astqlpg.New()
 	testStores = stores.New(testDB, renderer)
+	testAppLabels = labels.NewApplicationLabels(testRedis, testStores.Applications)
 
 	code := m.Run()
 
@@ -132,6 +135,7 @@ func runMigrations(db *sqlx.DB) error {
 		"../../database/migrations/001_initial_schema.sql",
 		"../../database/migrations/002_aperture_config.sql",
 		"../../database/migrations/003_search_indexes.sql",
+		"../../database/migrations/004_applications_name_unique.sql",
 	}
 	for _, f := range files {
 		migration, err := os.ReadFile(f)

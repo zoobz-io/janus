@@ -16,6 +16,7 @@ import (
 	"github.com/zoobz-io/janus/events"
 	"github.com/zoobz-io/janus/internal/auth"
 	"github.com/zoobz-io/janus/internal/boot"
+	"github.com/zoobz-io/janus/internal/labels"
 )
 
 func main() {
@@ -42,8 +43,13 @@ func run() error {
 		return fmt.Errorf("failed to load cookie config: %w", cfgErr)
 	}
 
+	// Application label mapping: id<->name in shared Redis, resolved for outbound
+	// responses and kept current by domain events + boot reconciliation.
+	appLabels := labels.NewApplicationLabels(rt.Redis, rt.Stores.Applications)
+
 	// Admin API contracts — the same shared stores, narrowed to the admin
 	// capability boundary.
+	sum.Register[admincontracts.ApplicationLabels](rt.K, appLabels)
 	sum.Register[admincontracts.Applications](rt.K, rt.Stores.Applications)
 	sum.Register[admincontracts.Tenants](rt.K, rt.Stores.Tenants)
 	sum.Register[admincontracts.Memberships](rt.K, rt.Stores.Memberships)
@@ -58,6 +64,26 @@ func run() error {
 
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)
+
+	// Keep the application label cache current. Subscribe before reconciling so
+	// no mutation slips through the gap, then upsert every existing mapping.
+	// Listeners are retained for the process lifetime (run blocks on Run below).
+	createdListener := events.ApplicationCreated.Listen(func(ctx context.Context, e events.ApplicationEvent) {
+		if putErr := appLabels.Put(ctx, e.ApplicationID, e.Name); putErr != nil {
+			log.Printf("application label put (created) failed for %s: %v", e.ApplicationID, putErr)
+		}
+	})
+	defer createdListener.Close()
+	updatedListener := events.ApplicationUpdated.Listen(func(ctx context.Context, e events.ApplicationEvent) {
+		if putErr := appLabels.Put(ctx, e.ApplicationID, e.Name); putErr != nil {
+			log.Printf("application label put (updated) failed for %s: %v", e.ApplicationID, putErr)
+		}
+	})
+	defer updatedListener.Close()
+
+	if recErr := appLabels.Reconcile(ctx); recErr != nil {
+		return fmt.Errorf("reconciling application labels: %w", recErr)
+	}
 
 	// Observability.
 	otelProviders, err := boot.OTEL(ctx, "janus-admin")

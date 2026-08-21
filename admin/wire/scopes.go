@@ -10,16 +10,16 @@ type CreateScopeRequest struct {
 
 // Validate checks the request body.
 func (r CreateScopeRequest) Validate() error {
-	return check.Str(r.Name, "name").Required().MaxLen(255).V()
+	return check.Str(r.Name, "name").Required().MaxLen(255).V().Err()
 }
 
 // ScopeResponse is the admin API response for a scope.
 type ScopeResponse struct {
-	ID            string `json:"id" description:"Scope ID" example:"aa0e8400-e29b-41d4-a716-446655440000"`
-	ApplicationID string `json:"application_id" description:"Owning application ID" example:"770e8400-e29b-41d4-a716-446655440000"`
-	Name          string `json:"name" description:"Scope name" example:"projects:read"`
-	Description   string `json:"description" description:"Human-readable description" example:"Read projects"`
-	CreatedAt     string `json:"created_at" description:"When the scope was defined" example:"2026-07-12T12:00:00Z"`
+	ID          string `json:"id" description:"Scope ID" example:"aa0e8400-e29b-41d4-a716-446655440000"`
+	Application string `json:"application" description:"Owning application (label)" example:"nexus"`
+	Name        string `json:"name" description:"Scope name" example:"projects:read"`
+	Description string `json:"description" description:"Human-readable description" example:"Read projects"`
+	CreatedAt   string `json:"created_at" description:"When the scope was defined" example:"2026-07-12T12:00:00Z"`
 }
 
 // ScopeListResponse is the admin API response for a list of scopes.

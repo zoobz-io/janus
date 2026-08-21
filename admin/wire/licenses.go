@@ -9,15 +9,15 @@ type AuthorizeLicenseRequest struct {
 
 // Validate checks the request body.
 func (r AuthorizeLicenseRequest) Validate() error {
-	return check.Str(r.TenantID, "tenant_id").Required().V()
+	return check.Str(r.TenantID, "tenant_id").Required().V().Err()
 }
 
 // LicenseResponse is the admin API response for a license.
 type LicenseResponse struct {
-	ID            string `json:"id" description:"License ID" example:"880e8400-e29b-41d4-a716-446655440000"`
-	TenantID      string `json:"tenant_id" description:"Tenant ID" example:"660e8400-e29b-41d4-a716-446655440000"`
-	ApplicationID string `json:"application_id" description:"Application ID" example:"770e8400-e29b-41d4-a716-446655440000"`
-	CreatedAt     string `json:"created_at" description:"When the license was granted" example:"2026-05-01T12:00:00Z"`
+	ID          string `json:"id" description:"License ID" example:"880e8400-e29b-41d4-a716-446655440000"`
+	TenantID    string `json:"tenant_id" description:"Tenant ID" example:"660e8400-e29b-41d4-a716-446655440000"`
+	Application string `json:"application" description:"Application (label)" example:"nexus"`
+	CreatedAt   string `json:"created_at" description:"When the license was granted" example:"2026-05-01T12:00:00Z"`
 }
 
 // LicenseListResponse is the admin API response for a list of licenses.

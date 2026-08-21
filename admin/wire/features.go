@@ -9,7 +9,7 @@ type AddFeatureRequest struct {
 
 // Validate checks the request body.
 func (r AddFeatureRequest) Validate() error {
-	return check.Str(r.ScopeID, "scope_id").Required().V()
+	return check.Str(r.ScopeID, "scope_id").Required().V().Err()
 }
 
 // FeatureResponse is the admin API response for a scope bundled into a tier.

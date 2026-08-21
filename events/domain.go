@@ -40,6 +40,13 @@ type AppEntitlementEvent struct {
 	UserID        string // empty for tenant-level events
 }
 
+// ApplicationEvent carries data for application lifecycle events. Name is the
+// current name after the mutation, which drives the id<->label mapping.
+type ApplicationEvent struct {
+	ApplicationID string
+	Name          string
+}
+
 // Domain events for identity lifecycle.
 var (
 	UserCreated         = sum.NewInfoEvent[UserEvent](sum.NewSignal("janus.user.created", "New user provisioned"))
@@ -58,4 +65,6 @@ var (
 	TenantAppRevoked    = sum.NewInfoEvent[AppEntitlementEvent](sum.NewSignal("janus.tenant.app.revoked", "Tenant authorization for application revoked"))
 	UserAppGranted      = sum.NewInfoEvent[AppEntitlementEvent](sum.NewSignal("janus.user.app.granted", "User granted access to application"))
 	UserAppRevoked      = sum.NewInfoEvent[AppEntitlementEvent](sum.NewSignal("janus.user.app.revoked", "User access to application revoked"))
+	ApplicationCreated  = sum.NewInfoEvent[ApplicationEvent](sum.NewSignal("janus.application.created", "New application registered"))
+	ApplicationUpdated  = sum.NewInfoEvent[ApplicationEvent](sum.NewSignal("janus.application.updated", "Application updated"))
 )

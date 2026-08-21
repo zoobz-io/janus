@@ -33,14 +33,14 @@ func (r UpdateGrantRequest) Validate() error {
 
 // GrantResponse is the admin API response for a grant.
 type GrantResponse struct {
-	ID            string   `json:"id" description:"Grant ID" example:"990e8400-e29b-41d4-a716-446655440000"`
-	UserID        string   `json:"user_id" description:"User ID" example:"550e8400-e29b-41d4-a716-446655440000"`
-	TenantID      string   `json:"tenant_id" description:"Tenant ID" example:"660e8400-e29b-41d4-a716-446655440000"`
-	ApplicationID string   `json:"application_id" description:"Application ID" example:"770e8400-e29b-41d4-a716-446655440000"`
-	TierID        string   `json:"tier_id,omitempty" description:"Tier the grant is on, if any"`
-	CreatedAt     string   `json:"created_at" description:"When access was granted" example:"2026-05-01T12:00:00Z"`
-	Roles         []string `json:"roles" description:"Application-defined roles"`
-	Scopes        []string `json:"scopes" description:"Application-defined scopes"`
+	ID          string   `json:"id" description:"Grant ID" example:"990e8400-e29b-41d4-a716-446655440000"`
+	UserID      string   `json:"user_id" description:"User ID" example:"550e8400-e29b-41d4-a716-446655440000"`
+	TenantID    string   `json:"tenant_id" description:"Tenant ID" example:"660e8400-e29b-41d4-a716-446655440000"`
+	Application string   `json:"application" description:"Application (label)" example:"nexus"`
+	TierID      string   `json:"tier_id,omitempty" description:"Tier the grant is on, if any"`
+	CreatedAt   string   `json:"created_at" description:"When access was granted" example:"2026-05-01T12:00:00Z"`
+	Roles       []string `json:"roles" description:"Application-defined roles"`
+	Scopes      []string `json:"scopes" description:"Application-defined scopes"`
 }
 
 // GrantListResponse is the admin API response for a list of grants.
