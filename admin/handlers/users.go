@@ -33,6 +33,22 @@ var listUsers = rocco.GET[rocco.NoBody, wire.UserListResponse]("/users", func(r 
 	WithQueryParams("email", "limit", "offset").
 	WithAuthentication()
 
+var searchUsers = rocco.POST[wire.SearchUsersRequest, wire.UserSearchResponse]("/users/search", func(r *rocco.Request[wire.SearchUsersRequest]) (wire.UserSearchResponse, error) {
+	users := sum.MustUse[contracts.Users](r)
+
+	params, number, size := transformers.ResolveUserSearch(r.Body)
+	result, err := users.Search(r, params)
+	if err != nil {
+		return wire.UserSearchResponse{}, err
+	}
+	return transformers.UserSearchToResponse(result, number, size), nil
+}).
+	WithSummary("Search users").
+	WithDescription("Query users with text search over email and display name, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.").
+	WithTags("Users").
+	WithAuthentication().
+	WithErrors(rocco.ErrValidationFailed)
+
 var getUser = rocco.GET[rocco.NoBody, wire.UserResponse]("/users/{user_id}", func(r *rocco.Request[rocco.NoBody]) (wire.UserResponse, error) {
 	users := sum.MustUse[contracts.Users](r)
 	user, err := users.GetUser(r, pathID(r.Params, "user_id"))

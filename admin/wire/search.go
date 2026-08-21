@@ -52,6 +52,95 @@ var (
 	searchSortOrders        = []string{"asc", "desc"}
 )
 
+// validateSearchRequest runs the search contract's shared malformed-request
+// checks for an entity whose status facet is a closed enum: facet/date field
+// allowlists, status-value enum, sort field/order, and page bounds. Absent
+// values are legal (they take downstream defaults), so only present fields are
+// checked.
+func validateSearchRequest(
+	facets map[string][]string,
+	dates map[string]DateRange,
+	sort *SortSpec,
+	page *PageRequest,
+	facetFields, statusValues, dateFields, sortFields []string,
+) error {
+	validations := []*check.Validation{
+		check.OnlyKeys(facets, facetFields, "facets"),
+		check.OnlyKeys(dates, dateFields, "dates"),
+	}
+	for _, status := range facets["status"] {
+		validations = append(validations, check.OneOf(status, statusValues, "facets.status"))
+	}
+	if sort != nil {
+		validations = append(validations,
+			check.OneOf(sort.Field, sortFields, "sort.field"),
+			check.OneOf(strings.ToLower(sort.Order), searchSortOrders, "sort.order"),
+		)
+	}
+	if page != nil {
+		if page.Number != nil {
+			validations = append(validations, check.Min(*page.Number, 1, "page.number"))
+		}
+		if page.Size != nil {
+			validations = append(validations, check.Between(*page.Size, 1, 100, "page.size"))
+		}
+	}
+	return check.All(validations...).Err()
+}
+
+// User search field configuration. status is a closed enum (like applications),
+// so its facet values are wire-validated.
+var (
+	userFacetFields  = []string{"status"}
+	userStatusValues = []string{"active", "inactive"}
+	userDateFields   = []string{"created_at", "updated_at"}
+	userSortFields   = []string{"created_at", "updated_at"}
+)
+
+// SearchUsersRequest is the request body for POST /users/search. Every key is
+// optional: an empty body returns page 1, size 25, sorted updated_at desc,
+// unfiltered.
+type SearchUsersRequest struct {
+	Facets map[string][]string  `json:"facets,omitempty" description:"Field-scoped filters: OR within a field, AND across fields"`
+	Dates  map[string]DateRange `json:"dates,omitempty" description:"Inclusive date-range filters keyed by field"`
+	Sort   *SortSpec            `json:"sort,omitempty" description:"Sort specification (default updated_at desc)"`
+	Page   *PageRequest         `json:"page,omitempty" description:"Pagination window (default page 1, size 25)"`
+	Query  string               `json:"query,omitempty" description:"Case-insensitive infix match over email and display name" example:"jane"`
+}
+
+// Validate enforces the malformed-request rules: unknown facet/date/sort fields,
+// unknown status values, invalid sort order, size out of [1,100], page number
+// below 1.
+func (r SearchUsersRequest) Validate() error {
+	return validateSearchRequest(r.Facets, r.Dates, r.Sort, r.Page,
+		userFacetFields, userStatusValues, userDateFields, userSortFields)
+}
+
+// UserSearchResponse is the response body for POST /users/search.
+type UserSearchResponse struct {
+	Facets map[string][]string `json:"facets" description:"Distinct facet values present in the filtered set"`
+	Users  []UserResponse      `json:"users" description:"Matching users for this page"`
+	Page   PageResponse        `json:"page" description:"Pagination metadata"`
+}
+
+// Clone returns a deep copy of the response.
+func (r UserSearchResponse) Clone() UserSearchResponse {
+	c := r
+	if r.Users != nil {
+		c.Users = make([]UserResponse, len(r.Users))
+		copy(c.Users, r.Users)
+	}
+	if r.Facets != nil {
+		c.Facets = make(map[string][]string, len(r.Facets))
+		for k, v := range r.Facets {
+			vv := make([]string, len(v))
+			copy(vv, v)
+			c.Facets[k] = vv
+		}
+	}
+	return c
+}
+
 // SearchApplicationsRequest is the request body for POST /applications/search.
 // Every key is optional: an empty body returns page 1, size 25, sorted
 // updated_at desc, unfiltered.
@@ -68,28 +157,8 @@ type SearchApplicationsRequest struct {
 // [1,100], and page number below 1. Absent values are legal — they take
 // defaults applied downstream — so only present fields are checked.
 func (r SearchApplicationsRequest) Validate() error {
-	validations := []*check.Validation{
-		check.OnlyKeys(r.Facets, applicationFacetFields, "facets"),
-		check.OnlyKeys(r.Dates, applicationDateFields, "dates"),
-	}
-	for _, status := range r.Facets["status"] {
-		validations = append(validations, check.OneOf(status, applicationStatusValues, "facets.status"))
-	}
-	if r.Sort != nil {
-		validations = append(validations,
-			check.OneOf(r.Sort.Field, applicationSortFields, "sort.field"),
-			check.OneOf(strings.ToLower(r.Sort.Order), searchSortOrders, "sort.order"),
-		)
-	}
-	if r.Page != nil {
-		if r.Page.Number != nil {
-			validations = append(validations, check.Min(*r.Page.Number, 1, "page.number"))
-		}
-		if r.Page.Size != nil {
-			validations = append(validations, check.Between(*r.Page.Size, 1, 100, "page.size"))
-		}
-	}
-	return check.All(validations...).Err()
+	return validateSearchRequest(r.Facets, r.Dates, r.Sort, r.Page,
+		applicationFacetFields, applicationStatusValues, applicationDateFields, applicationSortFields)
 }
 
 // ApplicationSearchResponse is the response body for POST /applications/search.

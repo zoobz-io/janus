@@ -14,7 +14,7 @@ func All() []rocco.Endpoint {
 		// Tenant members
 		listMembers, addMember, updateMemberRole, removeMember,
 		// Users
-		listUsers, getUser, createUser, updateUser,
+		listUsers, searchUsers, getUser, createUser, updateUser,
 		// User sessions
 		listUserSessions, revokeUserSession, revokeAllUserSessions,
 		// User accounts
