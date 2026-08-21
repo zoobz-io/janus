@@ -59,20 +59,15 @@ func (s *Grants) GetByUserAndApp(ctx context.Context, userID, tenantID, applicat
 	return results[0], nil
 }
 
-// orEmpty normalizes a nil slice to an empty one so the TEXT[] NOT NULL
-// columns never receive SQL NULL on insert or update.
-func orEmpty(ss []string) []string {
-	if ss == nil {
-		return []string{}
-	}
-	return ss
-}
-
 // Grant delegates access to an application for a user within a tenant
 // with the given application-specific roles and scopes.
 func (s *Grants) Grant(ctx context.Context, userID, tenantID, applicationID string, roles, scopes []string) (*models.Grant, error) {
-	roles = orEmpty(roles)
-	scopes = orEmpty(scopes)
+	if roles == nil {
+		roles = []string{}
+	}
+	if scopes == nil {
+		scopes = []string{}
+	}
 	ua := &models.Grant{
 		ID:            uuid.New().String(),
 		UserID:        userID,
@@ -96,8 +91,16 @@ func (s *Grants) UpdateAccess(ctx context.Context, userID, tenantID, application
 	if ua == nil {
 		return nil, ErrNotFound
 	}
-	ua.Roles = orEmpty(roles)
-	ua.Scopes = orEmpty(scopes)
+	// Nil normalizes to empty so the TEXT[] NOT NULL columns never receive
+	// SQL NULL on update — the insert path in Grant guards the same way.
+	if roles == nil {
+		roles = []string{}
+	}
+	if scopes == nil {
+		scopes = []string{}
+	}
+	ua.Roles = roles
+	ua.Scopes = scopes
 	if err := s.Set(ctx, ua.ID, ua); err != nil {
 		return nil, fmt.Errorf("updating grant access: %w", err)
 	}
