@@ -1,0 +1,29 @@
+name: Labels
+
+# Apply the label taxonomy in .github/labels.yml. Runs when the config (or this
+# workflow) changes on main, and on demand. skip-delete is on, so labels not in
+# the file — including GitHub's stock labels — are left untouched; flip it off
+# only after deciding to prune those.
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/labels.yml
+      - .github/workflows/labels.yml
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  sync:
+    name: Sync labels
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crazy-max/ghaction-github-labeler@v5
+        with:
+          github-token: ${{ github.token }}
+          yaml-file: .github/labels.yml
+          skip-delete: true
+          dry-run: false
