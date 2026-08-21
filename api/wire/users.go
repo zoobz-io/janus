@@ -51,5 +51,5 @@ type UpdateProfileRequest struct {
 
 // Validate checks the request body.
 func (r UpdateProfileRequest) Validate() error {
-	return check.Str(r.DisplayName, "display_name").Required().MaxLen(255).V()
+	return check.Str(r.DisplayName, "display_name").Required().MaxLen(255).V().Err()
 }

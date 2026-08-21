@@ -13,7 +13,7 @@ func (r CreateTenantRequest) Validate() error {
 	return check.All(
 		check.Str(r.Name, "name").Required().MaxLen(255).V(),
 		check.Str(r.Slug, "slug").Required().MaxLen(100).V(),
-	)
+	).Err()
 }
 
 // TenantResponse is the public API response for a tenant.
