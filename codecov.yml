@@ -9,3 +9,14 @@ flags:
     carryforward: true
   integration:
     carryforward: true
+
+coverage:
+  status:
+    # Patch: changed lines must be >=70% covered by some suite (unit or
+    # integration — the gate reads the combined report). Blocking is the
+    # ruleset's job: codecov/patch must be in the required status checks or
+    # this remains advisory. Project status is deliberately unconfigured and
+    # stays on codecov's auto ratchet against the base commit.
+    patch:
+      default:
+        target: 70%
