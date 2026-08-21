@@ -33,6 +33,16 @@ jobs:
           version: v2.7.2
           args: --config=.golangci.yml --timeout=5m
 
+  integration:
+    name: Integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - run: make test-integration
+
   security:
     name: Security
     runs-on: ubuntu-latest
@@ -66,23 +76,9 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  benchmark:
-    name: Benchmark
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
-      - run: make test-bench | tee benchmark_results.txt
-      - uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-results
-          path: benchmark_results.txt
-
   ci-complete:
     name: CI Complete
-    needs: [test, lint, security, coverage, benchmark]
+    needs: [test, integration, lint, security, coverage]
     runs-on: ubuntu-latest
     steps:
       - run: echo "CI complete"
