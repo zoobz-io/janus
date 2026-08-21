@@ -5,82 +5,29 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
-	"github.com/zoobz-io/grub"
+	"github.com/alicebob/miniredis/v2"
+	goredis "github.com/redis/go-redis/v9"
+	"github.com/zoobz-io/capitan"
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/janus/database/models"
+	"github.com/zoobz-io/janus/events"
 )
 
 func TestMain(m *testing.M) {
+	// Sync mode makes event emission deterministic; must precede default init.
+	capitan.Configure(capitan.WithSyncMode())
 	// sum.NewStore requires the sum service to be initialized.
 	sum.New()
 	sum.Start()
 	os.Exit(m.Run())
 }
 
-// memProvider is an in-memory grub.StoreProvider so the mapping logic can be
-// driven without Redis.
-type memProvider struct {
-	data map[string][]byte
-}
-
-func newMemProvider() *memProvider { return &memProvider{data: map[string][]byte{}} }
-
-func (p *memProvider) Get(_ context.Context, key string) ([]byte, error) {
-	v, ok := p.data[key]
-	if !ok {
-		return nil, grub.ErrNotFound
-	}
-	return v, nil
-}
-func (p *memProvider) Set(_ context.Context, key string, value []byte, _ time.Duration) error {
-	p.data[key] = value
-	return nil
-}
-func (p *memProvider) Delete(_ context.Context, key string) error {
-	if _, ok := p.data[key]; !ok {
-		return grub.ErrNotFound
-	}
-	delete(p.data, key)
-	return nil
-}
-func (p *memProvider) Exists(_ context.Context, key string) (bool, error) {
-	_, ok := p.data[key]
-	return ok, nil
-}
-func (p *memProvider) List(_ context.Context, prefix string, limit int) ([]string, error) {
-	var keys []string
-	for k := range p.data {
-		if len(k) >= len(prefix) && k[:len(prefix)] == prefix {
-			keys = append(keys, k)
-			if limit > 0 && len(keys) >= limit {
-				break
-			}
-		}
-	}
-	return keys, nil
-}
-func (p *memProvider) GetBatch(_ context.Context, keys []string) (map[string][]byte, error) {
-	out := make(map[string][]byte, len(keys))
-	for _, k := range keys {
-		if v, ok := p.data[k]; ok {
-			out[k] = v
-		}
-	}
-	return out, nil
-}
-func (p *memProvider) SetBatch(_ context.Context, items map[string][]byte, _ time.Duration) error {
-	for k, v := range items {
-		p.data[k] = v
-	}
-	return nil
-}
-
 // fakeApps is the read-repair / reconcile source.
 type fakeApps struct {
-	byID map[string]*models.Application
+	byID    map[string]*models.Application
+	listErr error
 }
 
 func (f *fakeApps) GetApplication(_ context.Context, id string) (*models.Application, error) {
@@ -90,7 +37,11 @@ func (f *fakeApps) GetApplication(_ context.Context, id string) (*models.Applica
 	}
 	return a, nil
 }
+
 func (f *fakeApps) ListAll(_ context.Context) ([]*models.Application, error) {
+	if f.listErr != nil {
+		return nil, f.listErr
+	}
 	out := make([]*models.Application, 0, len(f.byID))
 	for _, a := range f.byID {
 		out = append(out, a)
@@ -100,16 +51,23 @@ func (f *fakeApps) ListAll(_ context.Context) ([]*models.Application, error) {
 
 var storeCounter int
 
-// newTestLabels builds an ApplicationLabels over the in-memory provider. Each
-// call uses a unique catalog name (sum.NewStore panics on duplicates).
-func newTestLabels(apps applicationSource) *ApplicationLabels {
+// newTestLabels builds an ApplicationLabels over a real (in-process) Redis via
+// miniredis, exercising the actual redis provider — no Docker required. Each call
+// uses a unique catalog name (sum.NewStore panics on duplicates).
+func newTestLabels(t *testing.T, apps applicationSource) *ApplicationLabels {
+	t.Helper()
+	mr := miniredis.RunT(t)
+	client := goredis.NewClient(&goredis.Options{Addr: mr.Addr()})
+	t.Cleanup(func() { _ = client.Close() })
 	storeCounter++
-	return newApplicationLabels(newMemProvider(), apps, fmt.Sprintf("test-app-labels-%d", storeCounter))
+	return newApplicationLabels(newRedisProvider(client), apps, fmt.Sprintf("test-app-labels-%d", storeCounter))
 }
+
+func emptyApps() *fakeApps { return &fakeApps{byID: map[string]*models.Application{}} }
 
 func TestPutAndResolve(t *testing.T) {
 	ctx := context.Background()
-	l := newTestLabels(&fakeApps{byID: map[string]*models.Application{}})
+	l := newTestLabels(t, emptyApps())
 
 	if err := l.Put(ctx, "app-1", "Acme"); err != nil {
 		t.Fatalf("Put: %v", err)
@@ -124,11 +82,15 @@ func TestPutAndResolve(t *testing.T) {
 	if id, ok, _ := l.ResolveID(ctx, "Acme"); !ok || id != "app-1" {
 		t.Fatalf("name->id = %q,%v; want app-1,true", id, ok)
 	}
+	// Unknown name resolves to not-ok, no error.
+	if _, ok, err := l.ResolveID(ctx, "Nope"); ok || err != nil {
+		t.Fatalf("unknown name = ok:%v err:%v; want false,nil", ok, err)
+	}
 }
 
 func TestRenameRetainsLegacyName(t *testing.T) {
 	ctx := context.Background()
-	l := newTestLabels(&fakeApps{byID: map[string]*models.Application{}})
+	l := newTestLabels(t, emptyApps())
 
 	_ = l.Put(ctx, "app-2", "OldName")
 	_ = l.Put(ctx, "app-2", "NewName")
@@ -147,7 +109,7 @@ func TestRenameRetainsLegacyName(t *testing.T) {
 
 func TestNameReusePointsAtNewApp(t *testing.T) {
 	ctx := context.Background()
-	l := newTestLabels(&fakeApps{byID: map[string]*models.Application{}})
+	l := newTestLabels(t, emptyApps())
 
 	_ = l.Put(ctx, "app-3", "Shared")
 	_ = l.Put(ctx, "app-3", "Renamed")
@@ -163,9 +125,8 @@ func TestReadRepairHealsColdCache(t *testing.T) {
 	apps := &fakeApps{byID: map[string]*models.Application{
 		"app-5": {ID: "app-5", Name: "Repairable"},
 	}}
-	l := newTestLabels(apps)
+	l := newTestLabels(t, apps)
 
-	// Cold cache: resolves via read-repair.
 	names, err := l.ResolveNames(ctx, []string{"app-5"})
 	if err != nil {
 		t.Fatalf("ResolveNames: %v", err)
@@ -189,7 +150,7 @@ func TestReadRepairHealsColdCache(t *testing.T) {
 
 func TestResolveNamesDedupesAndSkipsEmpty(t *testing.T) {
 	ctx := context.Background()
-	l := newTestLabels(&fakeApps{byID: map[string]*models.Application{}})
+	l := newTestLabels(t, emptyApps())
 	_ = l.Put(ctx, "app-6", "Dup")
 
 	names, err := l.ResolveNames(ctx, []string{"app-6", "app-6", ""})
@@ -199,6 +160,10 @@ func TestResolveNamesDedupesAndSkipsEmpty(t *testing.T) {
 	if len(names) != 1 || names["app-6"] != "Dup" {
 		t.Fatalf("dedupe/empty handling = %v", names)
 	}
+	// Empty id slice short-circuits.
+	if out, err := l.ResolveNames(ctx, nil); err != nil || len(out) != 0 {
+		t.Fatalf("empty resolve = %v,%v", out, err)
+	}
 }
 
 func TestReconcileUpsertsAll(t *testing.T) {
@@ -207,7 +172,7 @@ func TestReconcileUpsertsAll(t *testing.T) {
 		"app-7": {ID: "app-7", Name: "One"},
 		"app-8": {ID: "app-8", Name: "Two"},
 	}}
-	l := newTestLabels(apps)
+	l := newTestLabels(t, apps)
 
 	if err := l.Reconcile(ctx); err != nil {
 		t.Fatalf("Reconcile: %v", err)
@@ -219,5 +184,49 @@ func TestReconcileUpsertsAll(t *testing.T) {
 	// Idempotent.
 	if err := l.Reconcile(ctx); err != nil {
 		t.Fatalf("Reconcile 2: %v", err)
+	}
+}
+
+func TestStartReconcilesAndAppliesEvents(t *testing.T) {
+	ctx := context.Background()
+	apps := &fakeApps{byID: map[string]*models.Application{
+		"seed": {ID: "seed", Name: "Seed"},
+	}}
+	l := newTestLabels(t, apps)
+
+	stop, err := l.Start(ctx)
+	if err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	defer stop()
+
+	// Reconcile ran during Start.
+	if id, ok, _ := l.ResolveID(ctx, "Seed"); !ok || id != "seed" {
+		t.Fatal("Start did not reconcile the seed application")
+	}
+
+	// Created event is applied through the subscriber (sync mode -> deterministic).
+	events.ApplicationCreated.Emit(ctx, events.ApplicationEvent{ApplicationID: "e1", Name: "Evented"})
+	if id, ok, _ := l.ResolveID(ctx, "Evented"); !ok || id != "e1" {
+		t.Fatal("ApplicationCreated not applied by listener")
+	}
+
+	// Updated (rename) event is applied.
+	events.ApplicationUpdated.Emit(ctx, events.ApplicationEvent{ApplicationID: "e1", Name: "Renamed"})
+	names, _ := l.ResolveNames(ctx, []string{"e1"})
+	if names["e1"] != "Renamed" {
+		t.Fatalf("ApplicationUpdated not applied: %v", names)
+	}
+}
+
+func TestStartReturnsReconcileError(t *testing.T) {
+	l := newTestLabels(t, &fakeApps{listErr: fmt.Errorf("db down")})
+
+	stop, err := l.Start(context.Background())
+	if err == nil {
+		t.Fatal("expected reconcile error from Start")
+	}
+	if stop != nil {
+		t.Fatal("stop should be nil when Start fails")
 	}
 }

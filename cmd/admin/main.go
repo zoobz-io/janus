@@ -65,25 +65,12 @@ func run() error {
 	sum.Freeze(rt.K)
 	capitan.Emit(ctx, events.StartupServicesReady)
 
-	// Keep the application label cache current. Subscribe before reconciling so
-	// no mutation slips through the gap, then upsert every existing mapping.
-	// Listeners are retained for the process lifetime (run blocks on Run below).
-	createdListener := events.ApplicationCreated.Listen(func(ctx context.Context, e events.ApplicationEvent) {
-		if putErr := appLabels.Put(ctx, e.ApplicationID, e.Name); putErr != nil {
-			log.Printf("application label put (created) failed for %s: %v", e.ApplicationID, putErr)
-		}
-	})
-	defer createdListener.Close()
-	updatedListener := events.ApplicationUpdated.Listen(func(ctx context.Context, e events.ApplicationEvent) {
-		if putErr := appLabels.Put(ctx, e.ApplicationID, e.Name); putErr != nil {
-			log.Printf("application label put (updated) failed for %s: %v", e.ApplicationID, putErr)
-		}
-	})
-	defer updatedListener.Close()
-
-	if recErr := appLabels.Reconcile(ctx); recErr != nil {
-		return fmt.Errorf("reconciling application labels: %w", recErr)
+	// Keep the application label cache current and reconciled with the table.
+	stopLabels, labelErr := appLabels.Start(ctx)
+	if labelErr != nil {
+		return labelErr
 	}
+	defer stopLabels()
 
 	// Observability.
 	otelProviders, err := boot.OTEL(ctx, "janus-admin")

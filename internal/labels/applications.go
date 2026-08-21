@@ -3,13 +3,16 @@ package labels
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	goredis "github.com/redis/go-redis/v9"
+	"github.com/zoobz-io/capitan"
 	"github.com/zoobz-io/grub"
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/janus/database/models"
 	"github.com/zoobz-io/janus/database/stores"
+	"github.com/zoobz-io/janus/events"
 )
 
 // applicationSource is the read side of the applications store the label cache
@@ -55,6 +58,35 @@ func newApplicationLabels(provider grub.StoreProvider, apps applicationSource, n
 		store: sum.NewStore[labelEntry](provider, name),
 		apps:  apps,
 	}
+}
+
+// Start begins keeping the application label cache current and reconciles it
+// against the source table. It subscribes to application lifecycle events, then
+// runs the initial reconciliation — subscribe-before-reconcile is deliberate so
+// no mutation slips through the gap. Sync failures are reported through the
+// label-sync ops signal (visible to the observability stack), not swallowed.
+//
+// Returns a stop func that unsubscribes; call it on shutdown. On reconcile
+// failure the subscription is torn down and the error is returned.
+func (l *ApplicationLabels) Start(ctx context.Context) (stop func(), err error) {
+	put := func(ctx context.Context, e events.ApplicationEvent) {
+		if putErr := l.Put(ctx, e.ApplicationID, e.Name); putErr != nil {
+			capitan.Warn(ctx, events.LabelSyncFailed,
+				events.OpAppIDKey.Field(e.ApplicationID), events.OpErrorKey.Field(putErr))
+		}
+	}
+	created := events.ApplicationCreated.Listen(put)
+	updated := events.ApplicationUpdated.Listen(put)
+	stop = func() {
+		created.Close()
+		updated.Close()
+	}
+
+	if recErr := l.Reconcile(ctx); recErr != nil {
+		stop()
+		return nil, fmt.Errorf("reconciling application labels: %w", recErr)
+	}
+	return stop, nil
 }
 
 // Put writes both mapping directions for one application. Mappings never expire.
