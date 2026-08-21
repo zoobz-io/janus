@@ -160,3 +160,80 @@ func TestSearchUsersRequestValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestSearchTenantsRequestValidate(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     SearchTenantsRequest
+		wantErr bool
+	}{
+		{name: "empty is valid", req: SearchTenantsRequest{}},
+		{name: "known status facet (active/suspended)", req: SearchTenantsRequest{Facets: map[string][]string{"status": {"active", "suspended"}}}},
+		{
+			name:    "inactive is not a tenant status",
+			req:     SearchTenantsRequest{Facets: map[string][]string{"status": {"inactive"}}},
+			wantErr: true,
+		},
+		{
+			name:    "unknown facet field",
+			req:     SearchTenantsRequest{Facets: map[string][]string{"tier": {"pro"}}},
+			wantErr: true,
+		},
+		{
+			name:    "invalid sort field",
+			req:     SearchTenantsRequest{Sort: &SortSpec{Field: "slug", Order: "asc"}},
+			wantErr: true,
+		},
+		{name: "valid sort", req: SearchTenantsRequest{Sort: &SortSpec{Field: "created_at", Order: "desc"}}},
+		{
+			name:    "size above max",
+			req:     SearchTenantsRequest{Page: &PageRequest{Size: intPtr(101)}},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.req.Validate()
+			if tt.wantErr && err == nil {
+				t.Fatal("expected validation error, got nil")
+			}
+			if !tt.wantErr && err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+		})
+	}
+}
+
+func TestTenantSearchResponseClone(t *testing.T) {
+	orig := TenantSearchResponse{
+		Tenants: []TenantResponse{{ID: "t1", Name: "Acme"}},
+		Page:    PageResponse{Number: 1, Size: 25, TotalItems: 1, TotalPages: 1},
+		Facets:  map[string][]string{"status": {"active"}},
+	}
+	clone := orig.Clone()
+
+	// Equal by value.
+	if len(clone.Tenants) != 1 || clone.Tenants[0].Name != "Acme" || clone.Facets["status"][0] != "active" {
+		t.Fatalf("clone lost data: %+v", clone)
+	}
+
+	// Deep: mutating the clone's slice/map must not touch the original.
+	clone.Tenants[0].Name = "Changed"
+	clone.Facets["status"][0] = "suspended"
+	clone.Facets["new"] = []string{"x"}
+	if orig.Tenants[0].Name != "Acme" {
+		t.Fatal("Tenants slice was shared, not deep-copied")
+	}
+	if orig.Facets["status"][0] != "active" {
+		t.Fatal("Facets values slice was shared, not deep-copied")
+	}
+	if _, present := orig.Facets["new"]; present {
+		t.Fatal("Facets map was shared, not deep-copied")
+	}
+
+	// Nil slice/map clone cleanly.
+	empty := TenantSearchResponse{}.Clone()
+	if empty.Tenants != nil || empty.Facets != nil {
+		t.Fatalf("empty clone should keep nils: %+v", empty)
+	}
+}

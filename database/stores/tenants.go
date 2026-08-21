@@ -7,10 +7,39 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/zoobz-io/astql"
+	"github.com/zoobz-io/soy"
 	"github.com/zoobz-io/sum"
 
 	"github.com/zoobz-io/janus/database/models"
 )
+
+// tenantDateFields is the set of timestamp columns the tenant search contract
+// exposes for date filtering, in a fixed order for stable SQL generation.
+var tenantDateFields = []string{"created_at", "updated_at"}
+
+// applyTenantSearch adds the shared tenant-search WHERE clause: escaped infix
+// ILIKE over name/slug, the status facet as an IN set, and inclusive >=/<= date
+// bounds.
+func applyTenantSearch[B searchFilterable[B]](b B, p TenantSearchParams, params map[string]any) B {
+	b = applyTextSearch(b, p.Query, params, "name", "slug")
+	b = applyStatusFacet(b, p.Statuses, params)
+	return applyDateBounds(b, p.Dates, tenantDateFields, params)
+}
+
+// Search runs the admin search over tenants: one filtered page, the total count,
+// and the distinct status values present in that set. All three share one WHERE.
+func (s *Tenants) Search(ctx context.Context, p TenantSearchParams) (*TenantSearchResult, error) {
+	params := map[string]any{}
+	items, total, statuses, err := runSearch(ctx, params,
+		func() *soy.Query[models.Tenant] { return applyTenantSearch(s.Query(), p, params) },
+		applyTenantSearch(s.Count(), p, params),
+		p.Sort, p.Page.Offset, p.Page.Limit,
+		"status", func(t *models.Tenant) string { return t.Status })
+	if err != nil {
+		return nil, err
+	}
+	return &TenantSearchResult{Items: items, TotalItems: total, Statuses: statuses}, nil
+}
 
 // Tenants provides database access for tenants.
 type Tenants struct {

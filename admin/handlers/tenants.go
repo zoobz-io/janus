@@ -23,6 +23,22 @@ var listTenants = rocco.GET[rocco.NoBody, wire.TenantListResponse]("/tenants", f
 	WithQueryParams("limit", "offset").
 	WithAuthentication()
 
+var searchTenants = rocco.POST[wire.SearchTenantsRequest, wire.TenantSearchResponse]("/tenants/search", func(r *rocco.Request[wire.SearchTenantsRequest]) (wire.TenantSearchResponse, error) {
+	tenants := sum.MustUse[contracts.Tenants](r)
+
+	params, number, size := transformers.ResolveTenantSearch(r.Body)
+	result, err := tenants.Search(r, params)
+	if err != nil {
+		return wire.TenantSearchResponse{}, err
+	}
+	return transformers.TenantSearchToResponse(result, number, size), nil
+}).
+	WithSummary("Search tenants").
+	WithDescription("Query tenants with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.").
+	WithTags("Tenants").
+	WithAuthentication().
+	WithErrors(rocco.ErrValidationFailed)
+
 var getTenant = rocco.GET[rocco.NoBody, wire.TenantResponse]("/tenants/{tenant_id}", func(r *rocco.Request[rocco.NoBody]) (wire.TenantResponse, error) {
 	tenants := sum.MustUse[contracts.Tenants](r)
 	tenant, err := tenants.GetTenant(r, pathID(r.Params, "tenant_id"))

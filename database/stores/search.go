@@ -187,3 +187,27 @@ type UserSearchResult struct {
 	Statuses   []string
 	TotalItems int64
 }
+
+// TenantSearchParams is the resolved input to Tenants.Search. All filtering is
+// optional; the zero value selects everything.
+type TenantSearchParams struct {
+	// Dates maps a timestamp column ("created_at"/"updated_at") to its inclusive
+	// bounds. Absent keys are unconstrained.
+	Dates map[string]DateBound
+	// Sort is the resolved ordering (defaulted to updated_at DESC by the handler).
+	Sort SearchSort
+	// Query is the case-insensitive infix text match over name/slug.
+	Query string
+	// Statuses is the OR-set for the status facet. Empty means no status filter.
+	Statuses []string
+	// Page is the resolved, clamped pagination window.
+	Page SearchPage
+}
+
+// TenantSearchResult carries a page of tenants plus TotalItems for page math and
+// Statuses — the distinct facet values present in the filtered set.
+type TenantSearchResult struct {
+	Items      []*models.Tenant
+	Statuses   []string
+	TotalItems int64
+}
