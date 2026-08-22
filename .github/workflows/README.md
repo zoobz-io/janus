@@ -9,7 +9,7 @@ jobs plus a gate:
 
 | Job | What it runs |
 |-----|--------------|
-| **test** | `make test` on a Go matrix — **1.24** and **1.25**. |
+| **test** | `make test` on Go **1.25** (the module's minimum per `go.mod`). |
 | **lint** | [`golangci-lint-action@v7`](https://github.com/golangci/golangci-lint-action), golangci-lint **v2.7.2**, against `.golangci.yml`. |
 | **integration** | `make coverage-integration`, then uploads `coverage-integration.out` to Codecov under the **`integration`** flag. |
 | **security** | [`gosec@v2.22.11`](https://github.com/securego/gosec) → SARIF, uploaded via `github/codeql-action/upload-sarif@v3`. |
