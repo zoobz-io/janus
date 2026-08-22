@@ -17,6 +17,7 @@ var listTenants = rocco.GET[rocco.NoBody, wire.TenantListResponse]("/tenants", f
 	}
 	return wire.TenantListResponse{Tenants: transformers.TenantsToResponse(result.Items), Total: result.Total}, nil
 }).
+	WithName("list-tenants").
 	WithSummary("List tenants").
 	WithDescription("Returns a paginated list of all tenants. Use limit and offset to page.").
 	WithTags("Tenants").
@@ -33,6 +34,7 @@ var searchTenants = rocco.POST[wire.SearchTenantsRequest, wire.TenantSearchRespo
 	}
 	return transformers.TenantSearchToResponse(result, number, size), nil
 }).
+	WithName("search-tenants").
 	WithSummary("Search tenants").
 	WithDescription("Query tenants with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.").
 	WithTags("Tenants").
@@ -47,6 +49,7 @@ var getTenant = rocco.GET[rocco.NoBody, wire.TenantResponse]("/tenants/{tenant_i
 	}
 	return transformers.TenantToResponse(tenant), nil
 }).
+	WithName("get-tenant").
 	WithSummary("Get a tenant").
 	WithDescription("Fetches a single tenant by ID.").
 	WithTags("Tenants").
@@ -62,6 +65,7 @@ var createTenant = rocco.POST[wire.CreateTenantRequest, wire.TenantResponse]("/t
 	}
 	return transformers.TenantToResponse(tenant), nil
 }).
+	WithName("create-tenant").
 	WithSummary("Create a tenant").
 	WithDescription("Creates a new customer organization.").
 	WithTags("Tenants").
@@ -77,6 +81,7 @@ var updateTenant = rocco.PATCH[wire.UpdateTenantRequest, wire.TenantResponse]("/
 	}
 	return transformers.TenantToResponse(tenant), nil
 }).
+	WithName("update-tenant").
 	WithSummary("Update a tenant").
 	WithDescription("Updates a tenant's name and status. Set status to 'suspended' to disable it.").
 	WithTags("Tenants").

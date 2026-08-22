@@ -18,6 +18,7 @@ var listApplications = rocco.GET[rocco.NoBody, wire.ApplicationListResponse]("/a
 	}
 	return wire.ApplicationListResponse{Applications: transformers.ApplicationsToResponse(list)}, nil
 }).
+	WithName("list-applications").
 	WithSummary("List all applications").
 	WithDescription("Returns every application on the mesh, including inactive ones. The public catalog only exposes active applications.").
 	WithTags("Applications").
@@ -31,6 +32,7 @@ var getApplication = rocco.GET[rocco.NoBody, wire.ApplicationResponse]("/applica
 	}
 	return transformers.ApplicationToResponse(app), nil
 }).
+	WithName("get-application").
 	WithSummary("Get an application").
 	WithDescription("Fetches a single application by ID, including its current status.").
 	WithTags("Applications").
@@ -47,6 +49,7 @@ var createApplication = rocco.POST[wire.CreateApplicationRequest, wire.Applicati
 	events.ApplicationCreated.Emit(r, events.ApplicationEvent{ApplicationID: app.ID, Name: app.Name})
 	return transformers.ApplicationToResponse(app), nil
 }).
+	WithName("create-application").
 	WithSummary("Register an application").
 	WithDescription("Registers a new application. The slug must match the certificate CN of the service's mesh nodes.").
 	WithTags("Applications").
@@ -64,6 +67,7 @@ var searchApplications = rocco.POST[wire.SearchApplicationsRequest, wire.Applica
 	}
 	return transformers.ApplicationSearchToResponse(result, number, size), nil
 }).
+	WithName("search-applications").
 	WithSummary("Search applications").
 	WithDescription("Query applications with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.").
 	WithTags("Applications").
@@ -79,6 +83,7 @@ var updateApplication = rocco.PATCH[wire.UpdateApplicationRequest, wire.Applicat
 	events.ApplicationUpdated.Emit(r, events.ApplicationEvent{ApplicationID: app.ID, Name: app.Name})
 	return transformers.ApplicationToResponse(app), nil
 }).
+	WithName("update-application").
 	WithSummary("Update an application").
 	WithDescription("Updates an application's name and status. Set status to 'inactive' to soft-disable it — there is no hard delete.").
 	WithTags("Applications").

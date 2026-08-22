@@ -21,6 +21,7 @@ var listMySessions = rocco.GET[rocco.NoBody, wire.SessionListResponse]("/me/sess
 		Sessions: transformers.SessionsToResponse(sessions),
 	}, nil
 }).
+	WithName("list-my-sessions").
 	WithSummary("List my sessions").
 	WithTags("Sessions").
 	WithAuthentication()
@@ -36,6 +37,7 @@ var revokeMySession = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/me/sessions/{id
 	}
 	return rocco.NoBody{}, nil
 }).
+	WithName("revoke-my-session").
 	WithSummary("Revoke a session").
 	WithTags("Sessions").
 	WithPathParams("id").
@@ -51,6 +53,7 @@ var revokeAllMySessions = rocco.DELETE[rocco.NoBody, wire.RevokeAllSessionsRespo
 	}
 	return wire.RevokeAllSessionsResponse{RevokedCount: count}, nil
 }).
+	WithName("revoke-all-my-sessions").
 	WithSummary("Revoke all my sessions").
 	WithTags("Sessions").
 	WithAuthentication()

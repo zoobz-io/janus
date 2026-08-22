@@ -31,6 +31,7 @@ var getMyAuthorization = rocco.GET[rocco.NoBody, wire.AuthorizationResponse]("/m
 
 	return transformers.AuthorizationToResponse(r.Identity.ID(), app, tenants), nil
 }).
+	WithName("get-my-authorization").
 	WithSummary("Get my authorization for an application").
 	WithTags("Applications").
 	WithPathParams("app_slug").

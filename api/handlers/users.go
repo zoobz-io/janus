@@ -41,6 +41,7 @@ var getMyProfile = rocco.GET[rocco.NoBody, wire.UserResponse]("/me", func(r *roc
 
 	return transformers.UserToResponse(user, mems, tenantNames), nil
 }).
+	WithName("get-my-profile").
 	WithSummary("Get my profile").
 	WithTags("Profile").
 	WithAuthentication().
@@ -74,6 +75,7 @@ var updateMyProfile = rocco.PUT[wire.UpdateProfileRequest, wire.UserResponse]("/
 
 	return transformers.UserToResponse(user, mems, tenantNames), nil
 }).
+	WithName("update-my-profile").
 	WithSummary("Update my profile").
 	WithTags("Profile").
 	WithAuthentication().

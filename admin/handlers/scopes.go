@@ -22,6 +22,7 @@ var listScopes = rocco.GET[rocco.NoBody, wire.ScopeListResponse]("/applications/
 	}
 	return wire.ScopeListResponse{Scopes: responses}, nil
 }).
+	WithName("list-scopes").
 	WithSummary("List application scopes").
 	WithDescription("Returns the scope catalog defined for an application.").
 	WithTags("Scopes").
@@ -37,6 +38,7 @@ var createScope = rocco.POST[wire.CreateScopeRequest, wire.ScopeResponse]("/appl
 	}
 	return transformers.ScopeToResponse(r, sc, labels)
 }).
+	WithName("create-scope").
 	WithSummary("Define an application scope").
 	WithDescription("Adds a scope to an application's catalog. Scopes are opaque permission strings the application interprets itself.").
 	WithTags("Scopes").
@@ -52,6 +54,7 @@ var deleteScope = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/applications/{app_i
 	}
 	return rocco.NoBody{}, nil
 }).
+	WithName("delete-scope").
 	WithSummary("Delete an application scope").
 	WithDescription("Removes a scope from the catalog. Any tier features referencing it are cascaded automatically.").
 	WithTags("Scopes").

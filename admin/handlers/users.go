@@ -27,6 +27,7 @@ var listUsers = rocco.GET[rocco.NoBody, wire.UserListResponse]("/users", func(r 
 	}
 	return wire.UserListResponse{Users: transformers.UsersToResponse(result.Items), Total: result.Total}, nil
 }).
+	WithName("list-users").
 	WithSummary("List users").
 	WithDescription("Returns a paginated list of users. Pass email to look up a single user by address.").
 	WithTags("Users").
@@ -43,6 +44,7 @@ var searchUsers = rocco.POST[wire.SearchUsersRequest, wire.UserSearchResponse]("
 	}
 	return transformers.UserSearchToResponse(result, number, size), nil
 }).
+	WithName("search-users").
 	WithSummary("Search users").
 	WithDescription("Query users with text search over email and display name, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.").
 	WithTags("Users").
@@ -57,6 +59,7 @@ var getUser = rocco.GET[rocco.NoBody, wire.UserResponse]("/users/{user_id}", fun
 	}
 	return transformers.UserToResponse(user), nil
 }).
+	WithName("get-user").
 	WithSummary("Get a user").
 	WithDescription("Fetches a single user by ID.").
 	WithTags("Users").
@@ -72,6 +75,7 @@ var createUser = rocco.POST[wire.CreateUserRequest, wire.UserResponse]("/users",
 	}
 	return transformers.UserToResponse(user), nil
 }).
+	WithName("create-user").
 	WithSummary("Create a user").
 	WithDescription("Creates a user directly. Normally users are provisioned automatically via the OIDC login flow.").
 	WithTags("Users").
@@ -87,6 +91,7 @@ var updateUser = rocco.PATCH[wire.UpdateUserRequest, wire.UserResponse]("/users/
 	}
 	return transformers.UserToResponse(user), nil
 }).
+	WithName("update-user").
 	WithSummary("Update a user").
 	WithDescription("Updates a user's display name and status. Set status to 'inactive' to disable the account.").
 	WithTags("Users").
