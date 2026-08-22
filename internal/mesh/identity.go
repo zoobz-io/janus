@@ -29,7 +29,7 @@ func NewIdentityServer(st *stores.Stores) *IdentityServer {
 		users:    st.Users,
 		accounts: st.Accounts,
 		entitlement: newEntitlementChecker(
-			st.Applications, st.Licenses, st.Grants, st.Memberships, st.Tenants, st.Features, st.Scopes,
+			st.Applications, st.Licenses, st.Grants, st.Memberships, st.Tenants, st.Features, st.Scopes, st.Users,
 		),
 	}
 }

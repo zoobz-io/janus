@@ -37,7 +37,7 @@ func NewSessionServer(
 		sessions: sessions,
 		users:    users,
 		entitlement: newEntitlementChecker(
-			applications, licenses, grants, memberships, tenants, features, scopes,
+			applications, licenses, grants, memberships, tenants, features, scopes, users,
 		),
 	}
 }
