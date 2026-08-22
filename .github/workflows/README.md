@@ -1,51 +1,29 @@
 # .github/workflows
 
-GitHub Actions CI/CD workflows.
+Two workflows. No release pipeline — Janus ships nothing from CI.
 
-## Workflows
+## ci.yml
 
-### ci.yml
+The gate on every push to `main` and every pull request against it. Seven working
+jobs plus a gate:
 
-Main continuous integration pipeline. Runs on push to main and pull requests.
+| Job | What it runs |
+|-----|--------------|
+| **test** | `make test` on a Go matrix — **1.24** and **1.25**. |
+| **lint** | [`golangci-lint-action@v7`](https://github.com/golangci/golangci-lint-action), golangci-lint **v2.7.2**, against `.golangci.yml`. |
+| **integration** | `make coverage-integration`, then uploads `coverage-integration.out` to Codecov under the **`integration`** flag. |
+| **security** | [`gosec@v2.22.11`](https://github.com/securego/gosec) → SARIF, uploaded via `github/codeql-action/upload-sarif@v3`. |
+| **coverage** | `make coverage`, then uploads `coverage.out` to Codecov under the **`unit`** flag. |
+| **web** | In [`web/`](../../web/): pnpm `typecheck`, `lint`, `inspect`, `test`, `build`. |
+| **ci-complete** | Gate job. `needs: [test, integration, lint, security, coverage, web]` — branch protection watches this one. |
 
-**Jobs:**
-- **test** - Run tests on Go 1.24 and 1.25
-- **lint** - Run golangci-lint
-- **security** - Run gosec and upload SARIF results
-- **coverage** - Generate and upload coverage to Codecov
-- **benchmark** - Run benchmarks and upload results
-- **ci-complete** - Gate job requiring all others to pass
+## labels.yml
 
-### Adding New Workflows
+Keeps the repository's label taxonomy in sync with
+[`.github/labels.yml`](../labels.yml) via
+[`crazy-max/ghaction-github-labeler@v5`](https://github.com/crazy-max/ghaction-github-labeler).
 
-Common patterns:
-
-```yaml
-# Release workflow
-name: Release
-on:
-  push:
-    tags:
-      - 'v*'
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
-      - uses: goreleaser/goreleaser-action@v5
-        with:
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-## Guidelines
-
-- Use specific versions for actions (v4, not latest)
-- Use matrix strategy for testing multiple Go versions
-- Upload artifacts for debugging and tracking
-- Use `continue-on-error` for non-critical jobs
-- Gate merges on `ci-complete` job
+Runs on pushes to `main` that touch the label files (`.github/labels.yml` or the
+workflow itself), and on `workflow_dispatch`. **`skip-delete` is on**, so labels
+absent from the file — including GitHub's stock set — are left untouched rather than
+pruned.

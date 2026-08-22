@@ -1,54 +1,15 @@
 # testing/benchmarks
 
-Performance benchmarks.
-
-## Purpose
-
-Measure and track performance of critical code paths. Benchmarks help identify regressions and optimization opportunities.
-
-## Running
+The benchmark home. The target is wired; the suite is not written yet.
 
 ```bash
-make test-bench
+make test-bench   # go test -bench=. -benchmem over ./testing/benchmarks/...
 ```
 
-## Pattern
+**There are no benchmarks here yet.** This directory and its `make` target exist so
+the first bench has a place to land and a command that already runs it — but until a
+`Benchmark…` function is committed, `make test-bench` has nothing to measure. Don't
+read a performance story into an empty room.
 
-```go
-//go:build testing
-
-package benchmarks
-
-import "testing"
-
-func BenchmarkUserLookup(b *testing.B) {
-    // Setup
-    ctx := context.Background()
-    users := setupUsersStore(b)
-
-    b.ResetTimer()
-    for i := 0; i < b.N; i++ {
-        _, _ = users.Get(ctx, "1000")
-    }
-}
-
-func BenchmarkUserLookup_Parallel(b *testing.B) {
-    ctx := context.Background()
-    users := setupUsersStore(b)
-
-    b.ResetTimer()
-    b.RunParallel(func(pb *testing.PB) {
-        for pb.Next() {
-            _, _ = users.Get(ctx, "1000")
-        }
-    })
-}
-```
-
-## Guidelines
-
-- Use `b.ResetTimer()` after setup
-- Use `b.RunParallel()` for concurrent benchmarks
-- Include `-benchmem` flag to track allocations
-- Compare results over time to detect regressions
-- Focus on hot paths and frequently called code
+When you add one, drop a `…_test.go` file here under the `//go:build testing` tag with
+a standard `func BenchmarkX(b *testing.B)`, and it's picked up automatically.

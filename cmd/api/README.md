@@ -1,54 +1,43 @@
-# cmd/app
+# cmd/api
 
-Public API binary entrypoint.
+The public API binary. Serves the user-facing HTTP surface — profile, sessions,
+linked accounts, tenant creation, own entitlements — on `config.App` port
+(`APP_PORT`, default `8080`).
 
-## Purpose
+This is the entrypoint; the surface it exposes — endpoints, the four-package
+pattern, and the auth model — lives in [`api/`](../../api/). The runtime it boots
+on lives in [`internal/boot/`](../../internal/boot/).
 
-Contains `main.go` with the application bootstrap logic. Uses the `run() error` pattern for clean error handling.
+## What `run()` does
 
-## Bootstrap Sequence
+`main` calls `run() error` and lets a returned error be fatal. `run` then:
 
-```go
-func run() error {
-    ctx := context.Background()
+1. **Boots the shared runtime** — [`boot.Init(ctx)`](../../internal/boot/) returns
+   the `Runtime` with the registry left unfrozen.
+2. **Loads its own config** — `config.App` and `config.Auth` on top of the shared
+   database/redis/encryption/OTEL load.
+3. **Registers the public contracts** — Users, Sessions, Accounts, Memberships,
+   Tenants, Provisioning, Applications, Licenses, Grants, and Authorizations
+   (backed by `authz.NewEntitlements`). Then `wire.RegisterBoundaries` and
+   `sum.Freeze` — no registration after this point.
+4. **Wires observability** — OTEL providers plus the [aperture](https://github.com/zoobz-io/aperture)
+   bridge, then `observe.StartSchemaSync` to publish the event schema.
+5. **Wires authentication** — cookie + bearer via `auth.NewSessionStore` and
+   `auth.NewAuthenticator`; see [`internal/auth`](../../internal/auth/).
+6. **Wires the OAuth login flow** — `auth.Discover` resolves the issuer's OIDC
+   endpoints (never assumed to sit under the issuer prefix — Google spreads them
+   across hosts), and `handlers.AllWithAuth` mounts `/auth/login`, `/auth/callback`,
+   and `/auth/logout`.
+7. **Serves** — `rt.Svc.Run("", appCfg.Port)`.
 
-    // 1. Initialize sum service and registry
-    svc := sum.New()
-    k := sum.Start()
+The OAuth `Resolve` callback (`resolveOAuth`) maps IdP userinfo onto a janus user
+in three steps — linked account wins, then verified-email linking, then
+first-contact registration — documented at the call site in
+[`main.go`](main.go).
 
-    // 2. Load all configs
-    if err := sum.Config[config.App](ctx, k, nil); err != nil {
-        return fmt.Errorf("failed to load app config: %w", err)
-    }
+## Run it
 
-    // 3. Connect to infrastructure
-    db, err := sqlx.Connect("postgres", dbCfg.DSN())
-    defer func() { _ = db.Close() }()
-
-    // 4. Create and register stores
-    // Import: "github.com/zoobz-io/janus/api/stores"
-    // Import: "github.com/zoobz-io/janus/api/contracts"
-    allStores, err := stores.New(db, renderer, bucketProvider)
-    sum.Register[contracts.Users](k, allStores.Users)
-
-    // 5. Register boundaries
-    sum.NewBoundary[models.User](k)
-    wire.RegisterBoundaries(k)
-
-    // 6. Freeze registry (no more registrations after this)
-    sum.Freeze(k)
-
-    // 7. Register handlers and run
-    // Import: "github.com/zoobz-io/janus/api/handlers"
-    svc.Handle(handlers.All()...)
-    return svc.Run("", appCfg.Port)
-}
+```bash
+make dev-api   # API + postgres + redis + migrate, in compose
+make run       # against an already-running database
 ```
-
-## Guidelines
-
-- Keep `main()` minimal - just call `run()` and handle the error
-- Use `defer` for cleanup (database connections, etc.)
-- Emit events at startup milestones for observability
-- Load all configs before connecting to infrastructure
-- Register all services before calling `sum.Freeze(k)`

@@ -1,44 +1,36 @@
 # contracts
 
-Interface definitions for the public API surface.
+The Go interfaces the public API is allowed to call. Handlers depend on these
+interfaces; [`database/stores`](../../database/stores/) implements them. The seam is the
+point: the *same* store instance backs both this narrow public contract and the broad
+admin one — each surface simply declares a different method set. See
+[the four-package pattern](../README.md#the-four-package-pattern) for where contracts sit
+in the request flow.
 
-## Purpose
-
-Define the boundaries between layers. Handlers depend on contracts, stores implement contracts. This enables testing with mocks and keeps dependencies flowing in one direction.
-
-## Pattern
+What makes the public contracts *public* is how little they expose. `Users` is the whole
+argument:
 
 ```go
-// contracts/users.go
-package contracts
-
-import (
-    "context"
-
-    "github.com/zoobz-io/janus/models"
-)
-
 type Users interface {
-    // Get retrieves a user by primary key.
-    Get(ctx context.Context, key string) (*models.User, error)
-    // Set creates or updates a user.
-    Set(ctx context.Context, key string, user *models.User) error
-    // GetByLogin retrieves a user by login name.
-    GetByLogin(ctx context.Context, login string) (*models.User, error)
+	GetUser(ctx context.Context, id string) (*models.User, error)
+	UpdateDisplayName(ctx context.Context, id, displayName string) (*models.User, error)
 }
 ```
 
-## Guidelines
+Read yourself, rename yourself — nothing more. `Sessions`, `Accounts`, `Tenants`,
+`Grants`, and `Authorizations` are cut to the same shape: every method is scoped to the
+caller's own identity, and there is no cross-tenant or administrative verb anywhere in the
+package. `Provisioning` (in [`tenants.go`](tenants.go)) is the one exception to
+one-method-does-one-thing: `CreateTenantWithOwner` is a transactional multi-store flow,
+satisfied structurally by the store aggregate so the tenant and its owner membership land
+atomically — it must not be recomposed from single-store calls.
 
-- One interface per domain entity
-- First parameter is always `context.Context`
-- Return pointers for single entities, slices for lists
-- Return `error` as the last return value
-- Document each method with a brief comment
-- Keep interfaces focused - prefer multiple small interfaces over one large one
+Two interfaces are defined but drive no public endpoint. [`licenses.go`](licenses.go)
+carries `Licenses`, and [`memberships.go`](memberships.go)'s `Memberships` exposes list
+and write verbs the public [`All()`](../handlers/handlers.go) never registers — the public
+surface only reads memberships, as part of assembling a profile. They live here so both
+this surface and the admin surface can register and reuse the same contract types over the
+same stores; the public handler set just declines to wire them to routes.
 
-## Naming
-
-- Interface names are nouns: `Users`, `Repositories`, `Sessions`
-- Method names follow Go conventions: `Get`, `Set`, `List`, `Delete`
-- Use `ByX` suffix for lookup methods: `GetByLogin`, `ListByUserID`
+Models are in [`database/models`](../../database/models/); the module is
+`github.com/zoobz-io/janus`.

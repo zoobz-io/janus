@@ -37,6 +37,12 @@ ap, err := aperture.New(
 | `Endpoint` | OTLP HTTP endpoint | `localhost:4318` |
 | `ServiceName` | Service name in telemetry | `janus` |
 
+`New` strips any `http://` or `https://` prefix from `Endpoint` — the OTLP exporters add
+the scheme themselves — so a full URL and a bare `host:port` both work. It also registers
+the meter and tracer providers **globally** (`otel.SetMeterProvider`,
+`otel.SetTracerProvider`), so instrumentation reaching for the global providers picks
+these up.
+
 ## Environment Variables
 
 The application reads these for configuration:

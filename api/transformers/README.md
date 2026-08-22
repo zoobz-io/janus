@@ -1,55 +1,19 @@
 # transformers
 
-Pure functions for mapping between models and wire types for the public API surface.
+Pure functions mapping [`database/models`](../../database/models/) to [`wire`](../wire/)
+types. No I/O, no database calls, no mutation of the models passed in — a transformer takes
+a model (and whatever context the wire shape needs) and returns a DTO. This is the third
+step of [the four-package pattern](../README.md#the-four-package-pattern).
 
-## Purpose
-
-Provide a clean separation between internal models and API types. Transformers handle all conversions, keeping handlers focused on orchestration.
-
-## Pattern
+The naming is `XToResponse` for one and `XsToResponse` for a slice:
+`SessionToResponse` / `SessionsToResponse`, `AccountToResponse` /
+`AccountsToResponse`, and so on. A transformer takes exactly the inputs its wire shape
+needs — sometimes just the model, sometimes more:
 
 ```go
-// transformers/users.go
-package transformers
-
-import (
-    "github.com/zoobz-io/janus/models"
-    "github.com/zoobz-io/janus/wire"
-)
-
-// UserToResponse transforms a User model to an API response.
-func UserToResponse(u *models.User) wire.UserResponse {
-    return wire.UserResponse{
-        ID:        u.ID,
-        Login:     u.Login,
-        Email:     u.Email,
-        Name:      u.Name,
-        AvatarURL: u.AvatarURL,
-    }
-}
-
-// UsersToResponse transforms a slice of User models to responses.
-func UsersToResponse(users []*models.User) []wire.UserResponse {
-    result := make([]wire.UserResponse, len(users))
-    for i, u := range users {
-        result[i] = UserToResponse(u)
-    }
-    return result
-}
-
-// ApplyUserUpdate applies a UserUpdateRequest to a User model.
-func ApplyUserUpdate(req wire.UserUpdateRequest, u *models.User) {
-    if req.Name != nil {
-        u.Name = req.Name
-    }
-}
+func UserToResponse(u *models.User, memberships []*models.Membership, tenantNames map[string]string) wire.UserResponse
 ```
 
-## Guidelines
-
-- Pure functions only - no side effects, no database calls
-- One file per domain entity
-- Name pattern: `ModelToResponse`, `ModelsToResponse`, `ApplyModelUpdate`
-- Handle nil checks gracefully
-- Use `Apply*` prefix for mutation functions that modify models in place
-- Keep logic simple - complex transformations may indicate a design issue
+because a `UserResponse` carries the user's memberships with their tenant names, and those
+are separate reads the handler gathers first. There is no `Apply*` / in-place-mutation
+convention here — everything returns a fresh wire value.
