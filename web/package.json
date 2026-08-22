@@ -15,7 +15,7 @@
     "inspect": "prettier --check .",
     "test": "pnpm -r run test",
     "coverage": "vitest run --coverage",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run stub && pnpm -r run typecheck"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
