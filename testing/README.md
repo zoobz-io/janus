@@ -1,171 +1,22 @@
 # testing
 
-Test infrastructure: fixtures, mocks, and helpers.
+Where the tests that don't sit next to the code live. This directory holds only
+this README — the suites are the two subdirectories below.
 
-## Purpose
+Most of Janus is covered by Go unit tests that live beside the code they exercise,
+as `…_test.go` files under the `//go:build testing` tag. Run them from the repo root:
 
-Provide reusable test utilities that make writing tests fast and consistent. All files use the `//go:build testing` build tag.
-
-## Fixtures
-
-Create test data with sensible defaults:
-
-```go
-//go:build testing
-
-package testing
-
-import (
-    "testing"
-
-    "github.com/zoobz-io/janus/models"
-)
-
-func NewUser(t *testing.T) *models.User {
-    t.Helper()
-    return &models.User{
-        ID:          1000,
-        Login:       "testuser",
-        Email:       "test@example.com",
-        AccessToken: "test-token",
-    }
-}
-
-func NewUsers(t *testing.T, n int) []*models.User {
-    t.Helper()
-    users := make([]*models.User, n)
-    for i := range users {
-        users[i] = NewUser(t)
-        users[i].ID = int64(1000 + i)
-    }
-    return users
-}
+```bash
+make test        # every unit test, race detector on
+make test-unit   # the same, -short (skips anything that reaches for Docker)
 ```
 
-## Mocks
+What lives here is everything that can't run beside the code:
 
-Function-field pattern for flexible mocking:
+| Directory | What it is |
+|-----------|------------|
+| [`integration/`](integration/) | A separate Go module holding the real integration suite — testcontainers spin up ephemeral Postgres and Redis, the goose migrations run, and the tests drive the actual stores. Needs Docker. |
+| [`benchmarks/`](benchmarks/) | Home for `go test -bench` benchmarks, run via `make test-bench`. Wired but still empty — see its README. |
 
-```go
-//go:build testing
-
-package testing
-
-import (
-    "context"
-
-    "github.com/zoobz-io/janus/models"
-)
-
-type MockUsers struct {
-    OnGet        func(ctx context.Context, key string) (*models.User, error)
-    OnSet        func(ctx context.Context, key string, user *models.User) error
-    OnGetByLogin func(ctx context.Context, login string) (*models.User, error)
-}
-
-func (m *MockUsers) Get(ctx context.Context, key string) (*models.User, error) {
-    if m.OnGet != nil {
-        return m.OnGet(ctx, key)
-    }
-    return &models.User{}, nil  // sensible default
-}
-
-func (m *MockUsers) Set(ctx context.Context, key string, user *models.User) error {
-    if m.OnSet != nil {
-        return m.OnSet(ctx, key, user)
-    }
-    return nil
-}
-
-func (m *MockUsers) GetByLogin(ctx context.Context, login string) (*models.User, error) {
-    if m.OnGetByLogin != nil {
-        return m.OnGetByLogin(ctx, login)
-    }
-    return &models.User{}, nil
-}
-```
-
-## Registry Helpers
-
-```go
-//go:build testing
-
-package testing
-
-import (
-    "context"
-    "testing"
-
-    "github.com/zoobzio/sum"
-    sumtest "github.com/zoobzio/sum/testing"
-    "github.com/zoobz-io/janus/contracts"
-)
-
-type RegistryOption func(k sum.Key)
-
-func WithUsers(u contracts.Users) RegistryOption {
-    return func(k sum.Key) {
-        sum.Register[contracts.Users](k, u)
-    }
-}
-
-func SetupRegistry(t *testing.T, opts ...RegistryOption) context.Context {
-    t.Helper()
-    sum.Reset()
-    k := sum.Start()
-    for _, opt := range opts {
-        opt(k)
-    }
-    sum.Freeze(k)
-    t.Cleanup(sum.Reset)
-    return sumtest.TestContext(t)
-}
-```
-
-## Usage in Tests
-
-```go
-//go:build testing
-
-package handlers
-
-import (
-    "testing"
-
-    rtesting "github.com/zoobzio/rocco/testing"
-    janustest "github.com/zoobz-io/janus/testing"
-)
-
-func TestGetMe(t *testing.T) {
-    user := janustest.NewUser(t)
-    mu := &janustest.MockUsers{
-        OnGet: func(ctx context.Context, key string) (*models.User, error) {
-            return user, nil
-        },
-    }
-
-    _ = janustest.SetupRegistry(t, janustest.WithUsers(mu))
-
-    // Test handler...
-}
-```
-
-## Directory Structure
-
-```
-testing/
-├── helpers.go      # Fixtures and registry setup
-├── mocks.go        # Mock implementations
-├── integration/    # Integration tests
-│   └── README.md
-└── benchmarks/     # Performance benchmarks
-    └── README.md
-```
-
-## Guidelines
-
-- Always use `//go:build testing` build tag
-- Always call `t.Helper()` in helper functions
-- Provide sensible defaults in mocks (return empty structs, not errors)
-- Use `With*` pattern for registry options
-- Clean up with `t.Cleanup(sum.Reset)`
+The integration suite is its own module because it pulls in testcontainers and its
+Docker toolchain; keeping that dependency tree out of the root `go.mod` is the point.

@@ -1,90 +1,52 @@
-# events
+# Events
 
-Event definitions for observability and inter-component communication.
+Typed [capitan](https://github.com/zoobz-io/capitan) events with `janus.*` signals,
+bridged to OpenTelemetry via [aperture](https://github.com/zoobz-io/aperture) — the metric
+and log mapping lives in the `aperture_schema` config row polled by
+[`internal/observe`](../internal/observe/). Domain mutations emit; the bridge turns the
+emissions into counters and logs.
 
-## Purpose
+Three files, three flavors.
 
-Define typed events that can be emitted and listened to throughout the application. Events enable loose coupling between components and provide observability hooks.
+## Domain events — [`domain.go`](domain.go)
 
-## Startup Signals
+Flat package-level vars, each declared with
+`sum.NewInfoEvent[Payload](sum.NewSignal("janus.…", "description"))`. Eighteen of them,
+grouped by the payload struct they carry.
 
-For operational events (startup milestones, health checks), use direct capitan signals:
+| Payload | Fields | Events |
+|---------|--------|--------|
+| `UserEvent` | `UserID`, `Email` | `UserCreated`, `UserUpdated` |
+| `SessionEvent` | `SessionID`, `UserID`, `IssuedBy` | `SessionCreated`, `SessionRevoked`, `SessionExpired` |
+| `IdentityEvent` | `UserID`, `Provider` | `IdentityLinked`, `IdentityUnlinked` |
+| `TenantEvent` | `TenantID` | `TenantCreated`, `TenantUpdated` |
+| `MembershipEvent` | `UserID`, `TenantID`, `Role` | `MemberAdded`, `MemberUpdated`, `MemberRemoved` |
+| `AppEntitlementEvent` | `TenantID`, `ApplicationID`, `UserID` (empty for tenant-level) | `TenantAppAuthorized`, `TenantAppRevoked`, `UserAppGranted`, `UserAppRevoked` |
+| `ApplicationEvent` | `ApplicationID`, `Name` | `ApplicationCreated`, `ApplicationUpdated` |
 
-```go
-// events/startup.go
-package events
+Signal names follow the payload's domain: `janus.user.created`, `janus.session.revoked`,
+`janus.tenant.app.authorized`, and so on.
 
-import "github.com/zoobzio/capitan"
+Most of these exist to be counted (see the metric list in
+[`migrations/002`](../database/migrations/002_aperture_config.sql)), but two drive real
+machinery: `ApplicationCreated` and `ApplicationUpdated` feed the id↔name label cache in
+[`internal/labels`](../internal/labels/) — its listener writes the new `Name` into Redis
+on every emission.
 
-var (
-    StartupDatabaseConnected = capitan.NewSignal("app.startup.database.connected", "Database connected")
-    StartupStorageConnected  = capitan.NewSignal("app.startup.storage.connected", "Storage connected")
-    StartupServicesReady     = capitan.NewSignal("app.startup.services.ready", "All services registered")
-    StartupServerListening   = capitan.NewSignal("app.startup.server.listening", "HTTP server listening")
-)
+## Operational signals — [`operational.go`](operational.go)
 
-// Field keys for additional data.
-var (
-    StartupPortKey  = capitan.NewIntKey("port")
-    StartupErrorKey = capitan.NewErrorKey("error")
-)
-```
+Raw `capitan.NewSignal` warnings, not typed events — they carry key/value context rather
+than a domain payload. Three:
 
-Usage:
-```go
-capitan.Emit(ctx, events.StartupDatabaseConnected)
-capitan.Emit(ctx, events.StartupServerListening, events.StartupPortKey.Field(8080))
-```
+- `EntitlementCheckSkipped` — `janus.ops.entitlement.skipped`
+- `LastSeenUpdateFailed` — `janus.ops.last_seen.failed`
+- `LabelSyncFailed` — `janus.ops.label_sync.failed` (emitted when the labels listener
+  above fails to write a mapping)
 
-## Domain Events
+Field keys `OpUserIDKey`, `OpAppIDKey`, `OpErrorKey` accompany them.
 
-For business events with typed payloads, use `sum.Event[T]`:
+## Startup signals — [`startup.go`](startup.go)
 
-```go
-// events/user.go
-package events
-
-import (
-    "github.com/zoobzio/capitan"
-    "github.com/zoobzio/sum"
-)
-
-type UserCreatedEvent struct {
-    UserID int64
-    Login  string
-}
-
-// Signals are always defined as vars.
-var UserCreatedSignal = capitan.NewSignal("app.user.created", "User created")
-
-var User = struct {
-    Created sum.Event[UserCreatedEvent]
-}{
-    Created: sum.NewInfoEvent[UserCreatedEvent](UserCreatedSignal),
-}
-```
-
-Emitting:
-```go
-events.User.Created.Emit(ctx, events.UserCreatedEvent{
-    UserID: user.ID,
-    Login:  user.Login,
-})
-```
-
-Listening:
-```go
-listener := events.User.Created.Listen(func(ctx context.Context, e events.UserCreatedEvent) {
-    log.Printf("User created: %s", e.Login)
-})
-defer listener.Close()
-```
-
-## Guidelines
-
-- Use direct capitan signals for operational/startup events
-- Use `sum.Event[T]` for domain events with typed payloads
-- Group related events in namespace structs
-- Keep event structs simple - just the data needed by listeners
-- Close listeners when no longer needed
-- Document signal descriptions for observability tools
+`janus.startup.*` lifecycle markers, also raw capitan signals: `DatabaseConnected`,
+`RedisConnected`, `ServicesReady`, `OTELReady`, `ApertureReady`, `ServerListening`,
+`MeshReady`. Field keys `StartupPortKey`, `StartupWorkersKey`, `StartupErrorKey`.

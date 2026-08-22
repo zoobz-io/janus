@@ -1,87 +1,62 @@
-# models
+# Models
 
-Domain models representing core business entities.
+The domain types. Each is a plain Go struct with `db` tags; the store layer maps it to
+one Postgres table. IDs are application-generated UUIDs stored as `TEXT` — Go `string`
+fields, never `int64`, never a database default. For how these entities relate — licenses,
+grants, effective scopes, the one-round-trip resolver — see the [root README](../../README.md).
 
-## Purpose
+## Persisted entities
 
-Define the shape of data as it exists in storage and throughout the application. Models are the source of truth for entity structure.
+Eleven types, each 1:1 with a table in
+[`migrations/001_initial_schema.sql`](../migrations/001_initial_schema.sql).
 
-## Pattern
+### Identity & directory
 
-```go
-// models/user.go
-package models
+| Type | Table | Key fields | Uniqueness |
+|------|-------|-----------|------------|
+| **User** ([`user.go`](user.go)) | `users` | `email`, `display_name`, `status` (`active`/`inactive`), `last_seen_at *time.Time` | `email` unique |
+| **Tenant** ([`tenant.go`](tenant.go)) | `tenants` | `name`, `slug`, `status` (`active`/`suspended`) | `slug` unique |
+| **Membership** ([`membership.go`](membership.go)) | `memberships` | `user_id`, `tenant_id`, `role` (`viewer`/`editor`/`admin`/`owner`) | `unique(user_id, tenant_id)` |
+| **Account** ([`account.go`](account.go)) | `accounts` | `user_id`, `provider` (`zitadel`/`auth0`/`github`/`google`), `external_subject` | `unique(provider, external_subject)` |
+| **Session** ([`session.go`](session.go)) | `sessions` | `token_hash`, `issued_by`, `user_agent`, `ip_address`, `expires_at` | `token_hash` unique |
+| **Application** ([`application.go`](application.go)) | `applications` | `name`, `slug`, `status` | `slug` unique (and `name`, added by [`004`](../migrations/004_applications_name_unique.sql)) |
 
-import (
-    "context"
-    "time"
+**Account** carries a former `LinkedIdentity` heritage: its method receivers are still
+named `l`, and the identity events it drives are `IdentityLinked`/`IdentityUnlinked`.
 
-    "github.com/zoobzio/sum"
-)
+**Session** stores only a SHA-256 hash of the token. `TokenHash` is tagged `json:"-"` —
+the raw token never leaves the process and never lands in the database; the hash is
+already irreversible, so no boundary encryption is applied. `Expired()` reports whether
+`ExpiresAt` has passed.
 
-type User struct {
-    ID          int64     `json:"id" db:"id" constraints:"primarykey"`
-    Login       string    `json:"login" db:"login" constraints:"notnull,unique"`
-    Email       string    `json:"email" db:"email" constraints:"notnull"`
-    Name        *string   `json:"name,omitempty" db:"name"`
-    AccessToken string    `json:"-" db:"access_token" store.encrypt:"aes" load.decrypt:"aes"`
-    CreatedAt   time.Time `json:"created_at" db:"created_at" default:"now()"`
-    UpdatedAt   time.Time `json:"updated_at" db:"updated_at" default:"now()"`
-}
+### Entitlements
 
-// BeforeSave encrypts sensitive fields before persistence.
-func (u *User) BeforeSave(ctx context.Context) error {
-    b := sum.MustUse[*sum.Boundary[User]](ctx)
-    stored, err := b.Store(ctx, *u)
-    if err != nil {
-        return err
-    }
-    *u = stored
-    return nil
-}
+| Type | Table | Key fields | Uniqueness |
+|------|-------|-----------|------------|
+| **Scope** ([`scope.go`](scope.go)) | `scopes` | `application_id`, `name`, `description` | `unique(application_id, name)` |
+| **Tier** ([`tier.go`](tier.go)) | `tiers` | `application_id`, `slug`, `name`, `rank int` | `unique(application_id, slug)` |
+| **Feature** ([`feature.go`](feature.go)) | `features` | `tier_id`, `scope_id` | `unique(tier_id, scope_id)` |
+| **License** ([`license.go`](license.go)) | `licenses` | `tenant_id`, `application_id` | `unique(tenant_id, application_id)` |
+| **Grant** ([`grant.go`](grant.go)) | `grants` | `user_id`, `tenant_id`, `application_id`, `tier_id *string` (nullable), `roles`, `scopes` | `unique(user_id, tenant_id, application_id)` |
 
-// AfterLoad decrypts sensitive fields after loading.
-func (u *User) AfterLoad(ctx context.Context) error {
-    b := sum.MustUse[*sum.Boundary[User]](ctx)
-    loaded, err := b.Load(ctx, *u)
-    if err != nil {
-        return err
-    }
-    *u = loaded
-    return nil
-}
+**Feature** bundles one scope into one tier. Both foreign keys are `ON DELETE CASCADE` —
+delete a tier or a scope and its feature rows go with it.
 
-// Clone returns a deep copy.
-func (u User) Clone() User {
-    c := u
-    if u.Name != nil {
-        n := *u.Name
-        c.Name = &n
-    }
-    return c
-}
-```
+**Grant**'s `Roles` and `Scopes` are `pq.StringArray` mapped to Postgres `text[]`
+(`type:"text[]"`). janus stores and returns them; it does not interpret them. `TierID` is
+a nullable `*string` — a grant may sit on a tier or on none.
 
-## Struct Tags
+## Non-persisted helpers
 
-| Tag | Purpose | Example |
-|-----|---------|---------|
-| `json` | JSON serialization | `json:"id"` |
-| `db` | Database column mapping | `db:"user_id"` |
-| `constraints` | Schema constraints | `constraints:"primarykey"` |
-| `default` | Database default | `default:"now()"` |
-| `store.encrypt` | Encrypt on save | `store.encrypt:"aes"` |
-| `load.decrypt` | Decrypt on load | `load.decrypt:"aes"` |
+These live in the package but back no table.
 
-## Lifecycle Hooks
-
-- `BeforeSave(ctx context.Context) error` - Called before insert/update
-- `AfterLoad(ctx context.Context) error` - Called after select
-
-## Guidelines
-
-- Use `json:"-"` for fields that should never be serialized (tokens, passwords)
-- Use pointer types for optional fields (`*string`, `*time.Time`)
-- Implement `Clone()` for models that need copying
-- Keep models as pure data structures - business logic belongs in services
-- Register boundaries in main.go: `sum.NewBoundary[models.User](k)`
+- **AuthorizedTenant** ([`authorization.go`](authorization.go)) — the resolved view of a
+  user's access to one application through one tenant: `tenant_id`, `tenant_name`,
+  `Role`, `AppRoles`, `AppScopes`. Computed from License + Grant (+ tier features) at
+  resolution time by [`internal/authz`](../../internal/authz/), never stored.
+- **Config** ([`config.go`](config.go)) — a `key`/`value` runtime-config row. Its table
+  is added by [`migrations/002`](../migrations/002_aperture_config.sql), not 001; it backs
+  the aperture schema polled by [`internal/observe`](../../internal/observe/).
+- **OffsetPage** / **OffsetResult[T]** ([`pagination.go`](pagination.go)) — offset
+  pagination. `PageSize()` clamps to `DefaultPageSize` (20) when unset and `MaxPageSize`
+  (100) at the ceiling.
