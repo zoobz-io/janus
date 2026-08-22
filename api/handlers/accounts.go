@@ -21,6 +21,7 @@ var listMyAccounts = rocco.GET[rocco.NoBody, wire.AccountListResponse]("/me/acco
 		Accounts: transformers.AccountsToResponse(identities),
 	}, nil
 }).
+	WithName("list-my-accounts").
 	WithSummary("List my accounts").
 	WithTags("Accounts").
 	WithAuthentication()
@@ -36,6 +37,7 @@ var unlinkMyAccount = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/me/accounts/{id
 	}
 	return rocco.NoBody{}, nil
 }).
+	WithName("unlink-my-account").
 	WithSummary("Unlink an account").
 	WithTags("Accounts").
 	WithPathParams("id").

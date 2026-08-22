@@ -20,6 +20,7 @@ var listApplications = rocco.GET[rocco.NoBody, wire.ApplicationListResponse]("/a
 		Applications: transformers.ApplicationsToResponse(apps),
 	}, nil
 }).
+	WithName("list-applications").
 	WithSummary("List available applications").
 	WithTags("Applications").
 	WithAuthentication()
@@ -37,6 +38,7 @@ var listMyApplications = rocco.GET[rocco.NoBody, wire.GrantListResponse]("/me/te
 		Grants: transformers.GrantsToResponse(uas),
 	}, nil
 }).
+	WithName("list-my-applications").
 	WithSummary("List my application grants within a tenant").
 	WithTags("Applications").
 	WithPathParams("tenant_id").

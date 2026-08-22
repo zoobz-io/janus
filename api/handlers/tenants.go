@@ -18,6 +18,7 @@ var createMyTenant = rocco.POST[wire.CreateTenantRequest, wire.TenantResponse]("
 
 	return transformers.TenantToResponse(tenant), nil
 }).
+	WithName("create-my-tenant").
 	WithSummary("Create a new tenant").
 	WithTags("Tenants").
 	WithSuccessStatus(201).

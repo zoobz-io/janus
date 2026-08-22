@@ -15,6 +15,7 @@ var listProviders = rocco.GET[rocco.NoBody, wire.ProviderListResponse]("/provide
 		models.ProviderGoogle,
 	}}, nil
 }).
+	WithName("list-providers").
 	WithSummary("List supported identity providers").
 	WithDescription("Returns the external identity providers janus supports for account linking.").
 	WithTags("Providers").
