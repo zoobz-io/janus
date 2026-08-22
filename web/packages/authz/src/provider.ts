@@ -9,24 +9,10 @@
  * carry the incoming request's cookie.
  */
 
-import { defineProvider } from "letters-patent/kit";
-
 import type { Authorization, Identity, Options, Session } from "./types";
 
-/** The hosted login flow's URL under an API base — navigate the browser here. */
-export const loginUrl = (api: string): string =>
-  `${api.replace(/\/+$/, "")}/auth/login`;
-
-/** A response settled to its body, or null when the caller isn't signed in. */
-const settle = async <T>(res: Response): Promise<T | null> => {
-  if (res.status === 401) {
-    return null;
-  }
-  if (!res.ok) {
-    throw new Error(`janus answered ${res.status} for ${res.url}`);
-  }
-  return (await res.json()) as T;
-};
+import { defineProvider } from "letters-patent/kit";
+import { settle, loginUrl } from "./util";
 
 export const createProvider = defineProvider<Options, Session>(
   (options, bridge) => {

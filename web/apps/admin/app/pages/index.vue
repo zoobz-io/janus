@@ -1,5 +1,5 @@
 <script lang="ts">
-import { loginUrl } from "@janus/crest";
+import { loginUrl } from "@janus/authz";
 
 import {
   useAsyncData,

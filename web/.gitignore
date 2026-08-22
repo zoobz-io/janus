@@ -1,14 +1,16 @@
 node_modules/
 dist/
+.dist/
 build/
 .turbo/
 .nuxt/
 .output/
 .data/
+.coverage/
 *.tsbuildinfo
 
 # Generated openapi-typescript client schemas (regenerated on build from the
-# committed openapi.json).
+# committed data/openapi.json specs).
 *.gen.ts
 .env
 .env.*

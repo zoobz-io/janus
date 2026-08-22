@@ -1,36 +1,36 @@
 {
-  "name": "@janus/admin-sdk",
+  "name": "@janus/authz",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "sideEffects": false,
-  "main": "./.dist/index.mjs",
-  "types": "./.dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./.dist/index.d.ts",
       "import": "./.dist/index.mjs"
     }
   },
+  "main": "./.dist/index.mjs",
+  "types": "./.dist/index.d.ts",
   "files": [
     ".dist"
   ],
   "scripts": {
-    "generate": "openapi-typescript ./data/openapi.json -o ./src/schema.ts",
     "build": "unbuild",
     "stub": "unbuild --stub",
     "dev": "unbuild --stub",
     "lint": "eslint .",
-    "typecheck": "pnpm run generate && tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "clean": "rm -rf .dist src/schema.ts"
+    "clean": "rm -rf .dist"
   },
   "dependencies": {
-    "openapi-press": "0.1.1"
+    "@letters-patent/kit": "0.0.1",
+    "@letters-patent/schema": "0.0.1",
+    "letters-patent": "0.0.1"
   },
   "devDependencies": {
     "eslint": "10.9.0",
-    "openapi-typescript": "7.9.1",
     "typescript": "5.9.3",
     "unbuild": "3.6.1",
     "vitest": "4.1.11"

@@ -1,13 +1,13 @@
 /**
  * The auth endpoints the browser transport dials (/api/auth/*). Each
- * request constructs a @janus/crest provider around the h3 event: the
+ * request constructs a @janus/authz provider around the h3 event: the
  * caller's cookie is forwarded to the janus public API, and the bridge maps
  * janus's session payload into the admin contract — first entitled tenant
  * wins (operators act through one tenant; janus-ops in practice).
  */
 
 import { defineAuthHandlers } from "@letters-patent/nuxt/server";
-import { createProvider } from "@janus/crest";
+import { createProvider } from "@janus/authz";
 import { defineSchema } from "letters-patent";
 import { getHeader } from "h3";
 
