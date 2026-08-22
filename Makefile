@@ -1,4 +1,4 @@
-.PHONY: setup build run run-admin run-mesh test test-unit test-integration coverage-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-admin web-install web-check web-build
+.PHONY: setup build run run-admin run-mesh test test-unit test-integration coverage-integration test-bench lint lint-fix coverage clean help check ci install-tools install-hooks dev-api dev-admin dev-observability dev-down dev-logs dev-reset openapi-admin web-install web-check web-lint web-test web-build
 
 .DEFAULT_GOAL := help
 
@@ -73,13 +73,19 @@ dev-reset: ## Reset development environment (removes volumes)
 # =============================================================================
 
 openapi-admin: ## Dump the admin API OpenAPI spec into the admin SDK package
-	@go run ./cmd/adminspec web/packages/admin-sdk/openapi.json
+	@go run ./cmd/adminspec web/packages/admin-sdk/data/openapi.json
 
 web-install: ## Install web workspace dependencies
 	@cd web && pnpm install
 
 web-check: ## Typecheck the web workspace
 	@cd web && pnpm run typecheck
+
+web-lint: ## Lint the web workspace
+	@cd web && pnpm run lint
+
+web-test: ## Run web workspace tests
+	@cd web && pnpm run test
 
 web-build: ## Build the web workspace (SDK packages + admin app)
 	@cd web && pnpm run build
@@ -147,8 +153,8 @@ install-hooks: ## Install git pre-commit hook
 # CI
 # =============================================================================
 
-check: test lint web-check ## Run tests, lint, and web typecheck (quick validation)
+check: test lint web-check web-lint web-test ## Run Go + web tests, lint, and typecheck (quick validation)
 	@echo "All checks passed!"
 
-ci: clean lint test test-integration coverage web-check web-build ## Full CI simulation (integration needs Docker)
+ci: clean lint test test-integration coverage web-check web-lint web-test web-build ## Full CI simulation (integration needs Docker)
 	@echo "CI simulation complete!"

@@ -83,9 +83,32 @@ jobs:
           files: coverage.out
           flags: unit
 
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: web/.nvmrc
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run typecheck
+      - run: pnpm run lint
+      - run: pnpm run inspect
+      - run: pnpm run test
+      - run: pnpm run build
+
   ci-complete:
     name: CI Complete
-    needs: [test, integration, lint, security, coverage]
+    needs: [test, integration, lint, security, coverage, web]
     runs-on: ubuntu-latest
     steps:
       - run: echo "CI complete"

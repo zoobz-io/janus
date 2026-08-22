@@ -1,0 +1,3456 @@
+{
+  "paths": {
+    "/applications": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List all applications",
+        "description": "Returns every application on the mesh, including inactive ones. The public catalog only exposes active applications.",
+        "operationId": "get-applications-95fdd064",
+        "tags": [
+          "Applications"
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApplicationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Register an application",
+        "description": "Registers a new application. The slug must match the certificate CN of the service's mesh nodes.",
+        "operationId": "post-applications-d4f9a5d9",
+        "tags": [
+          "Applications"
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/search": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchApplicationsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationSearchResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Search applications",
+        "description": "Query applications with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.",
+        "operationId": "post-applications-search-b726cbd7",
+        "tags": [
+          "Applications"
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get an application",
+        "description": "Fetches a single application by ID, including its current status.",
+        "operationId": "get-applications-app_id-49948e56",
+        "tags": [
+          "Applications"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateApplicationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Update an application",
+        "description": "Updates an application's name and status. Set status to 'inactive' to soft-disable it — there is no hard delete.",
+        "operationId": "patch-applications-app_id-fca29560",
+        "tags": [
+          "Applications"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}/grants": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List user grants for an application in a tenant",
+        "description": "Returns the per-user grants for an application within a tenant. Pass tenant_id as a query parameter.",
+        "operationId": "get-applications-app_id-grants-a8028de8",
+        "tags": [
+          "Grants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tenant_id",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGrantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Grant a user access to an application",
+        "description": "Grants a user access to an application within a tenant, with explicit roles/scopes and an optional tier. Explicit scopes are admin-assigned; tier scopes are inherited.",
+        "operationId": "post-applications-app_id-grants-e41e4795",
+        "tags": [
+          "Grants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}/grants/{tenant_id}/{user_id}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoBody"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Revoke a user's grant",
+        "description": "Removes a user's access to an application within a tenant.",
+        "operationId": "delete-applications-app_id-grants-tenant_id-user_id-dc650d03",
+        "tags": [
+          "Grants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tenant_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGrantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Update a user's grant",
+        "description": "Replaces a grant's roles and scopes and sets (or clears) its tier.",
+        "operationId": "patch-applications-app_id-grants-tenant_id-user_id-801fc1e3",
+        "tags": [
+          "Grants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tenant_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}/licenses": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenseListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List tenants licensed for an application",
+        "description": "Returns the tenants authorized to use an application.",
+        "operationId": "get-applications-app_id-licenses-d3151d81",
+        "tags": [
+          "Licenses"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorizeLicenseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenseResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Authorize a tenant for an application",
+        "description": "Licenses a tenant to use the application. A user cannot be granted access in a tenant that is not licensed.",
+        "operationId": "post-applications-app_id-licenses-2d9551e8",
+        "tags": [
+          "Licenses"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}/licenses/{tenant_id}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoBody"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Revoke a tenant's license for an application",
+        "description": "Removes a tenant's authorization to use the application.",
+        "operationId": "delete-applications-app_id-licenses-tenant_id-b1702939",
+        "tags": [
+          "Licenses"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tenant_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}/scopes": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List application scopes",
+        "description": "Returns the scope catalog defined for an application.",
+        "operationId": "get-applications-app_id-scopes-bb001539",
+        "tags": [
+          "Scopes"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScopeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Define an application scope",
+        "description": "Adds a scope to an application's catalog. Scopes are opaque permission strings the application interprets itself.",
+        "operationId": "post-applications-app_id-scopes-5b7cb4c4",
+        "tags": [
+          "Scopes"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}/scopes/{scope_id}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoBody"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Delete an application scope",
+        "description": "Removes a scope from the catalog. Any tier features referencing it are cascaded automatically.",
+        "operationId": "delete-applications-app_id-scopes-scope_id-5d946dd4",
+        "tags": [
+          "Scopes"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "scope_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}/tiers": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TierListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List application tiers",
+        "description": "Returns the subscription tiers defined for an application, ordered by rank.",
+        "operationId": "get-applications-app_id-tiers-76d8865e",
+        "tags": [
+          "Tiers"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTierRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TierResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Define an application tier",
+        "description": "Adds a subscription tier to an application. Bundle scopes into it via its features.",
+        "operationId": "post-applications-app_id-tiers-0369e777",
+        "tags": [
+          "Tiers"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}/tiers/{tier_id}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoBody"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Delete an application tier",
+        "description": "Removes a tier. Its feature bundles are cascaded; grants that referenced it keep their explicit scopes.",
+        "operationId": "delete-applications-app_id-tiers-tier_id-8b34822b",
+        "tags": [
+          "Tiers"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tier_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}/tiers/{tier_id}/features": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List scopes bundled into a tier",
+        "description": "Returns the scopes bundled into a tier — the features every subscriber on this tier inherits.",
+        "operationId": "get-applications-app_id-tiers-tier_id-features-3aabb5ef",
+        "tags": [
+          "Tiers"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tier_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Bundle a scope into a tier",
+        "description": "Adds a scope to a tier's bundle. Users on the tier inherit it immediately — scope composition is dynamic.",
+        "operationId": "post-applications-app_id-tiers-tier_id-features-f2e84ec7",
+        "tags": [
+          "Tiers"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tier_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/applications/{app_id}/tiers/{tier_id}/features/{scope_id}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoBody"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Unbundle a scope from a tier",
+        "description": "Removes a scope from a tier's bundle.",
+        "operationId": "delete-applications-app_id-tiers-tier_id-features-scope_id-a9b6e84e",
+        "tags": [
+          "Tiers"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "app_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tier_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "scope_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/providers": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List supported identity providers",
+        "description": "Returns the external identity providers janus supports for account linking.",
+        "operationId": "get-providers-b79ba169",
+        "tags": [
+          "Providers"
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/tenants": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List tenants",
+        "description": "Returns a paginated list of all tenants. Use limit and offset to page.",
+        "operationId": "get-tenants-bc5602b4",
+        "tags": [
+          "Tenants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTenantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Create a tenant",
+        "description": "Creates a new customer organization.",
+        "operationId": "post-tenants-16e03dea",
+        "tags": [
+          "Tenants"
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/tenants/search": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchTenantsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantSearchResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Search tenants",
+        "description": "Query tenants with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.",
+        "operationId": "post-tenants-search-dbf84c8a",
+        "tags": [
+          "Tenants"
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/tenants/{tenant_id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get a tenant",
+        "description": "Fetches a single tenant by ID.",
+        "operationId": "get-tenants-tenant_id-121bd7df",
+        "tags": [
+          "Tenants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tenant_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTenantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Update a tenant",
+        "description": "Updates a tenant's name and status. Set status to 'suspended' to disable it.",
+        "operationId": "patch-tenants-tenant_id-a5662f1f",
+        "tags": [
+          "Tenants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tenant_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/tenants/{tenant_id}/members": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List tenant members",
+        "description": "Returns the members of a tenant with their roles, paginated.",
+        "operationId": "get-tenants-tenant_id-members-7a200357",
+        "tags": [
+          "Tenants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tenant_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMemberRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Add a tenant member",
+        "description": "Adds a user to a tenant with a role (viewer, editor, admin, or owner).",
+        "operationId": "post-tenants-tenant_id-members-9dca2309",
+        "tags": [
+          "Tenants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tenant_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/tenants/{tenant_id}/members/{user_id}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoBody"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Remove a tenant member",
+        "description": "Removes a user from a tenant. Removing the last owner is rejected.",
+        "operationId": "delete-tenants-tenant_id-members-user_id-995b0890",
+        "tags": [
+          "Tenants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tenant_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrForbidden"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Update a member's role",
+        "description": "Changes a member's role within a tenant. Demoting the last owner is rejected.",
+        "operationId": "patch-tenants-tenant_id-members-user_id-09410691",
+        "tags": [
+          "Tenants"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "tenant_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List users",
+        "description": "Returns a paginated list of users. Pass email to look up a single user by address.",
+        "operationId": "get-users-ea06f17d",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "email",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Create a user",
+        "description": "Creates a user directly. Normally users are provisioned automatically via the OIDC login flow.",
+        "operationId": "post-users-f6cb2532",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/users/search": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchUsersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSearchResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Search users",
+        "description": "Query users with text search over email and display name, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.",
+        "operationId": "post-users-search-002a16d9",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/users/{user_id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Get a user",
+        "description": "Fetches a single user by ID.",
+        "operationId": "get-users-user_id-90f0cdbf",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrValidationFailed"
+                }
+              }
+            },
+            "description": "UnprocessableEntity"
+          }
+        },
+        "summary": "Update a user",
+        "description": "Updates a user's display name and status. Set status to 'inactive' to disable the account.",
+        "operationId": "patch-users-user_id-e2a65134",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/users/{user_id}/accounts": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List a user's linked accounts",
+        "description": "Returns the external identity-provider accounts linked to a user.",
+        "operationId": "get-users-user_id-accounts-f62eec64",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/users/{user_id}/accounts/{account_id}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoBody"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Unlink a user's account",
+        "description": "Removes a linked external account from a user.",
+        "operationId": "delete-users-user_id-accounts-account_id-88d1ae20",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "account_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/users/{user_id}/sessions": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionListResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "List a user's sessions",
+        "description": "Returns the active sessions for a user.",
+        "operationId": "get-users-user_id-sessions-8fb04a63",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      },
+      "delete": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeAllSessionsResponse"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "Revoke all of a user's sessions",
+        "description": "Revokes every active session for a user and returns the count revoked.",
+        "operationId": "delete-users-user_id-sessions-4c86483a",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    },
+    "/users/{user_id}/sessions/{session_id}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoBody"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrNotFound"
+                }
+              }
+            },
+            "description": "NotFound"
+          }
+        },
+        "summary": "Revoke a user's session",
+        "description": "Revokes a single session by ID.",
+        "operationId": "delete-users-user_id-sessions-session_id-6acbfd7c",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "session_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": null
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountListResponse": {
+        "properties": {
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/AccountResponse"
+            },
+            "type": "array",
+            "description": "Linked accounts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "accounts"
+        ]
+      },
+      "AccountResponse": {
+        "properties": {
+          "external_subject": {
+            "example": "gh-123",
+            "type": "string",
+            "description": "External subject ID"
+          },
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Account ID"
+          },
+          "linked_at": {
+            "example": "2026-05-01T12:00:00Z",
+            "type": "string",
+            "description": "When the account was linked"
+          },
+          "provider": {
+            "example": "github",
+            "type": "string",
+            "description": "Identity provider"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "provider",
+          "external_subject",
+          "linked_at"
+        ]
+      },
+      "AddFeatureRequest": {
+        "properties": {
+          "scope_id": {
+            "example": "aa0e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Scope ID to bundle into the tier"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scope_id"
+        ]
+      },
+      "AddMemberRequest": {
+        "properties": {
+          "role": {
+            "example": "viewer",
+            "type": "string",
+            "description": "Role to assign"
+          },
+          "user_id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "User ID to add"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "role"
+        ]
+      },
+      "ApplicationListResponse": {
+        "properties": {
+          "applications": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationResponse"
+            },
+            "type": "array",
+            "description": "Applications"
+          }
+        },
+        "type": "object",
+        "required": [
+          "applications"
+        ]
+      },
+      "ApplicationResponse": {
+        "properties": {
+          "created_at": {
+            "example": "2026-01-01T00:00:00Z",
+            "type": "string",
+            "description": "Creation timestamp (RFC 3339)"
+          },
+          "id": {
+            "example": "770e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Application ID"
+          },
+          "name": {
+            "example": "Nexus",
+            "type": "string",
+            "description": "Application name"
+          },
+          "slug": {
+            "example": "nexus",
+            "type": "string",
+            "description": "Application slug"
+          },
+          "status": {
+            "example": "active",
+            "type": "string",
+            "description": "Application status"
+          },
+          "updated_at": {
+            "example": "2026-08-21T00:00:00Z",
+            "type": "string",
+            "description": "Last update timestamp (RFC 3339)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "status",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "ApplicationSearchResponse": {
+        "properties": {
+          "applications": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationResponse"
+            },
+            "type": "array",
+            "description": "Matching applications for this page"
+          },
+          "facets": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "description": "Distinct facet values present in the filtered set"
+          },
+          "page": {
+            "description": "Pagination metadata",
+            "$ref": "#/components/schemas/PageResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "facets",
+          "applications",
+          "page"
+        ]
+      },
+      "AuthorizeLicenseRequest": {
+        "properties": {
+          "tenant_id": {
+            "example": "660e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Tenant ID to authorize"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tenant_id"
+        ]
+      },
+      "CreateApplicationRequest": {
+        "properties": {
+          "name": {
+            "example": "Nexus",
+            "type": "string",
+            "description": "Application name"
+          },
+          "slug": {
+            "example": "nexus",
+            "type": "string",
+            "description": "URL-safe slug (matches the service cert CN)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CreateGrantRequest": {
+        "properties": {
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Application-defined roles"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Application-defined scopes"
+          },
+          "tenant_id": {
+            "example": "660e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Tenant the access is scoped to"
+          },
+          "tier_id": {
+            "type": "string",
+            "description": "Optional tier to place the grant on"
+          },
+          "user_id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "User ID to grant access to"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "tenant_id",
+          "roles",
+          "scopes"
+        ]
+      },
+      "CreateScopeRequest": {
+        "properties": {
+          "description": {
+            "example": "Read projects",
+            "type": "string",
+            "description": "Human-readable description"
+          },
+          "name": {
+            "example": "projects:read",
+            "type": "string",
+            "description": "Scope name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ]
+      },
+      "CreateTenantRequest": {
+        "properties": {
+          "name": {
+            "example": "Acme Corp",
+            "type": "string",
+            "description": "Tenant name"
+          },
+          "slug": {
+            "example": "acme-corp",
+            "type": "string",
+            "description": "URL-safe tenant slug"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CreateTierRequest": {
+        "properties": {
+          "name": {
+            "example": "Pro",
+            "type": "string",
+            "description": "Tier display name"
+          },
+          "rank": {
+            "example": 1,
+            "type": "integer",
+            "description": "Ordering rank (ascending)"
+          },
+          "slug": {
+            "example": "pro",
+            "type": "string",
+            "description": "URL-safe tier slug"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "rank"
+        ]
+      },
+      "CreateUserRequest": {
+        "properties": {
+          "display_name": {
+            "example": "Jane Doe",
+            "type": "string",
+            "description": "Display name"
+          },
+          "email": {
+            "example": "jane@example.com",
+            "type": "string",
+            "description": "Email address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "display_name"
+        ]
+      },
+      "DateRange": {
+        "properties": {
+          "from": {
+            "example": "2026-01-01T00:00:00Z",
+            "format": "date-time",
+            "type": "string",
+            "description": "Inclusive lower bound (RFC 3339)"
+          },
+          "to": {
+            "example": "2026-08-21T00:00:00Z",
+            "format": "date-time",
+            "type": "string",
+            "description": "Inclusive upper bound (RFC 3339)"
+          }
+        },
+        "type": "object"
+      },
+      "ErrForbidden": {
+        "properties": {
+          "code": {
+            "const": "FORBIDDEN",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ErrNotFound": {
+        "properties": {
+          "code": {
+            "const": "NOT_FOUND",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "resource": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ErrValidationFailed": {
+        "properties": {
+          "code": {
+            "const": "VALIDATION_FAILED",
+            "type": "string",
+            "description": "Machine-readable error code"
+          },
+          "details": {
+            "properties": {
+              "fields": {
+                "items": {
+                  "$ref": "#/components/schemas/ValidationFieldError"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object",
+            "required": [
+              "fields"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "FeatureListResponse": {
+        "properties": {
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/FeatureResponse"
+            },
+            "type": "array",
+            "description": "Scopes bundled into the tier"
+          }
+        },
+        "type": "object",
+        "required": [
+          "features"
+        ]
+      },
+      "FeatureResponse": {
+        "properties": {
+          "created_at": {
+            "example": "2026-07-12T12:00:00Z",
+            "type": "string",
+            "description": "When the scope was bundled"
+          },
+          "id": {
+            "example": "cc0e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Feature ID"
+          },
+          "scope_id": {
+            "example": "aa0e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Scope ID"
+          },
+          "tier_id": {
+            "example": "bb0e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Tier ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tier_id",
+          "scope_id",
+          "created_at"
+        ]
+      },
+      "GrantListResponse": {
+        "properties": {
+          "grants": {
+            "items": {
+              "$ref": "#/components/schemas/GrantResponse"
+            },
+            "type": "array",
+            "description": "User grants"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grants"
+        ]
+      },
+      "GrantResponse": {
+        "properties": {
+          "application": {
+            "example": "nexus",
+            "type": "string",
+            "description": "Application (label)"
+          },
+          "created_at": {
+            "example": "2026-05-01T12:00:00Z",
+            "type": "string",
+            "description": "When access was granted"
+          },
+          "id": {
+            "example": "990e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Grant ID"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Application-defined roles"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Application-defined scopes"
+          },
+          "tenant_id": {
+            "example": "660e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Tenant ID"
+          },
+          "tier_id": {
+            "type": "string",
+            "description": "Tier the grant is on, if any"
+          },
+          "user_id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "User ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "tenant_id",
+          "application",
+          "created_at",
+          "roles",
+          "scopes"
+        ]
+      },
+      "LicenseListResponse": {
+        "properties": {
+          "licenses": {
+            "items": {
+              "$ref": "#/components/schemas/LicenseResponse"
+            },
+            "type": "array",
+            "description": "Licenses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "licenses"
+        ]
+      },
+      "LicenseResponse": {
+        "properties": {
+          "application": {
+            "example": "nexus",
+            "type": "string",
+            "description": "Application (label)"
+          },
+          "created_at": {
+            "example": "2026-05-01T12:00:00Z",
+            "type": "string",
+            "description": "When the license was granted"
+          },
+          "id": {
+            "example": "880e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "License ID"
+          },
+          "tenant_id": {
+            "example": "660e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Tenant ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tenant_id",
+          "application",
+          "created_at"
+        ]
+      },
+      "MemberListResponse": {
+        "properties": {
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/MemberResponse"
+            },
+            "type": "array",
+            "description": "Tenant members"
+          },
+          "total": {
+            "example": 7,
+            "type": "integer",
+            "description": "Total member count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "members",
+          "total"
+        ]
+      },
+      "MemberResponse": {
+        "properties": {
+          "created_at": {
+            "example": "2026-05-01T12:00:00Z",
+            "type": "string",
+            "description": "When the membership was created"
+          },
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Membership ID"
+          },
+          "role": {
+            "example": "admin",
+            "type": "string",
+            "description": "Role"
+          },
+          "tenant_id": {
+            "example": "660e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Tenant ID"
+          },
+          "user_id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "User ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "tenant_id",
+          "role",
+          "created_at"
+        ]
+      },
+      "NoBody": {
+        "type": "object"
+      },
+      "PageRequest": {
+        "properties": {
+          "number": {
+            "example": 1,
+            "type": "integer",
+            "description": "1-based page number (default 1)"
+          },
+          "size": {
+            "example": 25,
+            "type": "integer",
+            "description": "Page size, 1-100 (default 25)"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponse": {
+        "properties": {
+          "number": {
+            "example": 1,
+            "type": "integer",
+            "description": "Current page number"
+          },
+          "size": {
+            "example": 25,
+            "type": "integer",
+            "description": "Page size"
+          },
+          "total_items": {
+            "example": 57,
+            "type": "integer",
+            "description": "Total items across all pages"
+          },
+          "total_pages": {
+            "example": 3,
+            "type": "integer",
+            "description": "Total number of pages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "size",
+          "total_items",
+          "total_pages"
+        ]
+      },
+      "ProviderListResponse": {
+        "properties": {
+          "providers": {
+            "example": [
+              "zitadel"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Supported identity providers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "providers"
+        ]
+      },
+      "RevokeAllSessionsResponse": {
+        "properties": {
+          "revoked_count": {
+            "example": 3,
+            "type": "integer",
+            "description": "Number of sessions revoked"
+          }
+        },
+        "type": "object",
+        "required": [
+          "revoked_count"
+        ]
+      },
+      "ScopeListResponse": {
+        "properties": {
+          "scopes": {
+            "items": {
+              "$ref": "#/components/schemas/ScopeResponse"
+            },
+            "type": "array",
+            "description": "Application scopes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scopes"
+        ]
+      },
+      "ScopeResponse": {
+        "properties": {
+          "application": {
+            "example": "nexus",
+            "type": "string",
+            "description": "Owning application (label)"
+          },
+          "created_at": {
+            "example": "2026-07-12T12:00:00Z",
+            "type": "string",
+            "description": "When the scope was defined"
+          },
+          "description": {
+            "example": "Read projects",
+            "type": "string",
+            "description": "Human-readable description"
+          },
+          "id": {
+            "example": "aa0e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Scope ID"
+          },
+          "name": {
+            "example": "projects:read",
+            "type": "string",
+            "description": "Scope name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "application",
+          "name",
+          "description",
+          "created_at"
+        ]
+      },
+      "SearchApplicationsRequest": {
+        "properties": {
+          "dates": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DateRange"
+            },
+            "type": "object",
+            "description": "Inclusive date-range filters keyed by field"
+          },
+          "facets": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "description": "Field-scoped filters: OR within a field, AND across fields"
+          },
+          "page": {
+            "description": "Pagination window (default page 1, size 25)",
+            "$ref": "#/components/schemas/PageRequest"
+          },
+          "query": {
+            "example": "acme",
+            "type": "string",
+            "description": "Case-insensitive infix match over name and slug"
+          },
+          "sort": {
+            "description": "Sort specification (default updated_at desc)",
+            "$ref": "#/components/schemas/SortSpec"
+          }
+        },
+        "type": "object"
+      },
+      "SearchTenantsRequest": {
+        "properties": {
+          "dates": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DateRange"
+            },
+            "type": "object",
+            "description": "Inclusive date-range filters keyed by field"
+          },
+          "facets": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "description": "Field-scoped filters: OR within a field, AND across fields"
+          },
+          "page": {
+            "description": "Pagination window (default page 1, size 25)",
+            "$ref": "#/components/schemas/PageRequest"
+          },
+          "query": {
+            "example": "acme",
+            "type": "string",
+            "description": "Case-insensitive infix match over name and slug"
+          },
+          "sort": {
+            "description": "Sort specification (default updated_at desc)",
+            "$ref": "#/components/schemas/SortSpec"
+          }
+        },
+        "type": "object"
+      },
+      "SearchUsersRequest": {
+        "properties": {
+          "dates": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DateRange"
+            },
+            "type": "object",
+            "description": "Inclusive date-range filters keyed by field"
+          },
+          "facets": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "description": "Field-scoped filters: OR within a field, AND across fields"
+          },
+          "page": {
+            "description": "Pagination window (default page 1, size 25)",
+            "$ref": "#/components/schemas/PageRequest"
+          },
+          "query": {
+            "example": "jane",
+            "type": "string",
+            "description": "Case-insensitive infix match over email and display name"
+          },
+          "sort": {
+            "description": "Sort specification (default updated_at desc)",
+            "$ref": "#/components/schemas/SortSpec"
+          }
+        },
+        "type": "object"
+      },
+      "SessionListResponse": {
+        "properties": {
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/SessionResponse"
+            },
+            "type": "array",
+            "description": "Active sessions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sessions"
+        ]
+      },
+      "SessionResponse": {
+        "properties": {
+          "created_at": {
+            "example": "2026-05-01T12:00:00Z",
+            "type": "string",
+            "description": "When the session was created"
+          },
+          "expires_at": {
+            "example": "2026-05-02T12:00:00Z",
+            "type": "string",
+            "description": "When the session expires"
+          },
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Session ID"
+          },
+          "ip_address": {
+            "example": "192.168.1.1",
+            "type": "string",
+            "description": "Last known IP"
+          },
+          "issued_by": {
+            "example": "nexus",
+            "type": "string",
+            "description": "Service that created the session"
+          },
+          "user_agent": {
+            "example": "Mozilla/5.0",
+            "type": "string",
+            "description": "Device/browser info"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "issued_by",
+          "created_at",
+          "expires_at"
+        ]
+      },
+      "SortSpec": {
+        "properties": {
+          "field": {
+            "example": "created_at",
+            "type": "string",
+            "description": "Field to sort by"
+          },
+          "order": {
+            "example": "desc",
+            "type": "string",
+            "description": "Sort direction: asc or desc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "order"
+        ]
+      },
+      "TenantListResponse": {
+        "properties": {
+          "tenants": {
+            "items": {
+              "$ref": "#/components/schemas/TenantResponse"
+            },
+            "type": "array",
+            "description": "Tenants"
+          },
+          "total": {
+            "example": 42,
+            "type": "integer",
+            "description": "Total tenant count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tenants",
+          "total"
+        ]
+      },
+      "TenantResponse": {
+        "properties": {
+          "id": {
+            "example": "660e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Tenant ID"
+          },
+          "name": {
+            "example": "Acme Corp",
+            "type": "string",
+            "description": "Tenant name"
+          },
+          "slug": {
+            "example": "acme-corp",
+            "type": "string",
+            "description": "Tenant slug"
+          },
+          "status": {
+            "example": "active",
+            "type": "string",
+            "description": "Tenant status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "status"
+        ]
+      },
+      "TenantSearchResponse": {
+        "properties": {
+          "facets": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "description": "Distinct facet values present in the filtered set"
+          },
+          "page": {
+            "description": "Pagination metadata",
+            "$ref": "#/components/schemas/PageResponse"
+          },
+          "tenants": {
+            "items": {
+              "$ref": "#/components/schemas/TenantResponse"
+            },
+            "type": "array",
+            "description": "Matching tenants for this page"
+          }
+        },
+        "type": "object",
+        "required": [
+          "facets",
+          "tenants",
+          "page"
+        ]
+      },
+      "TierListResponse": {
+        "properties": {
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/TierResponse"
+            },
+            "type": "array",
+            "description": "Application subscription tiers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tiers"
+        ]
+      },
+      "TierResponse": {
+        "properties": {
+          "application": {
+            "example": "nexus",
+            "type": "string",
+            "description": "Owning application (label)"
+          },
+          "created_at": {
+            "example": "2026-07-12T12:00:00Z",
+            "type": "string",
+            "description": "When the tier was defined"
+          },
+          "id": {
+            "example": "bb0e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "Tier ID"
+          },
+          "name": {
+            "example": "Pro",
+            "type": "string",
+            "description": "Tier display name"
+          },
+          "rank": {
+            "example": 1,
+            "type": "integer",
+            "description": "Ordering rank"
+          },
+          "slug": {
+            "example": "pro",
+            "type": "string",
+            "description": "Tier slug"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "application",
+          "slug",
+          "name",
+          "created_at",
+          "rank"
+        ]
+      },
+      "UpdateApplicationRequest": {
+        "properties": {
+          "name": {
+            "example": "Nexus",
+            "type": "string",
+            "description": "Application name"
+          },
+          "status": {
+            "example": "active",
+            "type": "string",
+            "description": "Application status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status"
+        ]
+      },
+      "UpdateGrantRequest": {
+        "properties": {
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Application-defined roles"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Application-defined scopes"
+          },
+          "tier_id": {
+            "type": "string",
+            "description": "Tier to place the grant on (empty clears it)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roles",
+          "scopes"
+        ]
+      },
+      "UpdateMemberRoleRequest": {
+        "properties": {
+          "role": {
+            "example": "admin",
+            "type": "string",
+            "description": "New role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role"
+        ]
+      },
+      "UpdateTenantRequest": {
+        "properties": {
+          "name": {
+            "example": "Acme Corp",
+            "type": "string",
+            "description": "Tenant name"
+          },
+          "status": {
+            "example": "active",
+            "type": "string",
+            "description": "Tenant status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status"
+        ]
+      },
+      "UpdateUserRequest": {
+        "properties": {
+          "display_name": {
+            "example": "Jane Doe",
+            "type": "string",
+            "description": "Display name"
+          },
+          "status": {
+            "example": "active",
+            "type": "string",
+            "description": "Account status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "display_name",
+          "status"
+        ]
+      },
+      "UserListResponse": {
+        "properties": {
+          "total": {
+            "example": 128,
+            "type": "integer",
+            "description": "Total user count"
+          },
+          "users": {
+            "items": {
+              "$ref": "#/components/schemas/UserResponse"
+            },
+            "type": "array",
+            "description": "Users"
+          }
+        },
+        "type": "object",
+        "required": [
+          "users",
+          "total"
+        ]
+      },
+      "UserResponse": {
+        "properties": {
+          "created_at": {
+            "example": "2026-05-01T12:00:00Z",
+            "type": "string",
+            "description": "When the user was created"
+          },
+          "display_name": {
+            "example": "Jane Doe",
+            "type": "string",
+            "description": "Display name"
+          },
+          "email": {
+            "example": "jane@example.com",
+            "type": "string",
+            "description": "Email address"
+          },
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "description": "User ID"
+          },
+          "last_seen_at": {
+            "example": "2026-07-12T12:00:00Z",
+            "type": "string",
+            "description": "When the user was last seen"
+          },
+          "status": {
+            "example": "active",
+            "type": "string",
+            "description": "Account status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "display_name",
+          "status",
+          "created_at"
+        ]
+      },
+      "UserSearchResponse": {
+        "properties": {
+          "facets": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "description": "Distinct facet values present in the filtered set"
+          },
+          "page": {
+            "description": "Pagination metadata",
+            "$ref": "#/components/schemas/PageResponse"
+          },
+          "users": {
+            "items": {
+              "$ref": "#/components/schemas/UserResponse"
+            },
+            "type": "array",
+            "description": "Matching users for this page"
+          }
+        },
+        "type": "object",
+        "required": [
+          "facets",
+          "users",
+          "page"
+        ]
+      },
+      "ValidationFieldError": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "The field that failed validation"
+          },
+          "message": {
+            "type": "string",
+            "description": "Description of the validation failure"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "message"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "Bearer token authentication",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "info": {
+    "title": "Janus Admin API",
+    "description": "Operator API for managing every application, tenant, user, and access grant across the zoobz-io mesh. All endpoints require an authenticated session.",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "tags": [
+    {
+      "name": "Applications",
+      "description": "Register and manage the products on the mesh."
+    },
+    {
+      "name": "Scopes",
+      "description": "The permission catalog each application defines."
+    },
+    {
+      "name": "Tiers",
+      "description": "Subscription tiers and the scopes they bundle (features)."
+    },
+    {
+      "name": "Licenses",
+      "description": "Tenant authorizations to use an application."
+    },
+    {
+      "name": "Grants",
+      "description": "A user's access to an application within a tenant."
+    },
+    {
+      "name": "Tenants",
+      "description": "Customer organizations and their members."
+    },
+    {
+      "name": "Users",
+      "description": "People, their sessions, and linked identity accounts."
+    },
+    {
+      "name": "Providers",
+      "description": "Supported external identity providers."
+    }
+  ],
+  "x-tagGroups": [
+    {
+      "name": "Catalog",
+      "tags": [
+        "Applications",
+        "Scopes",
+        "Tiers",
+        "Licenses",
+        "Grants"
+      ]
+    },
+    {
+      "name": "Directory",
+      "tags": [
+        "Tenants",
+        "Users",
+        "Providers"
+      ]
+    }
+  ]
+}

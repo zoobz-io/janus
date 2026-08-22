@@ -1,0 +1,38 @@
+{
+  "name": "@janus/authz",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./.dist/index.d.ts",
+      "import": "./.dist/index.mjs"
+    }
+  },
+  "main": "./.dist/index.mjs",
+  "types": "./.dist/index.d.ts",
+  "files": [
+    ".dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "stub": "unbuild --stub",
+    "dev": "unbuild --stub",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "clean": "rm -rf .dist"
+  },
+  "dependencies": {
+    "@letters-patent/kit": "0.0.1",
+    "@letters-patent/schema": "0.0.1",
+    "letters-patent": "0.0.1"
+  },
+  "devDependencies": {
+    "eslint": "10.9.0",
+    "typescript": "5.9.3",
+    "unbuild": "3.6.1",
+    "vitest": "4.1.11"
+  }
+}

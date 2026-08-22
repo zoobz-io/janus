@@ -1,5 +1,5 @@
 /**
- * @janus/crest — the letters-patent provider for janus.
+ * @janus/authz — the letters-patent provider for janus.
  *
  * Janus is the org's auth service; letters-patent is how an app consumes
  * one. This package is the bridge between them: `createProvider(schema,
@@ -8,7 +8,7 @@
  * sessions, licensing, and grants.
  *
  *     import { defineSchema } from "letters-patent";
- *     import { createProvider } from "@janus/crest";
+ *     import { createProvider } from "@janus/authz";
  *
  *     const provider = createProvider(schema, { api: "/api/janus", app: "janus-admin" }, (session) => ({
  *       id: session.identity.id,
@@ -19,7 +19,8 @@
  *     }));
  */
 
-export { createProvider, loginUrl } from "./provider.js";
+export { createProvider } from "./provider";
+export { loginUrl } from "./util";
 export type {
   Application,
   Authorization,
@@ -28,4 +29,4 @@ export type {
   Membership,
   Options,
   Session,
-} from "./types.js";
+} from "./types";

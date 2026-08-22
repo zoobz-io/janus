@@ -8,8 +8,8 @@
  * (retry, timeouts, caching, …) is applied per endpoint through `.with`.
  */
 
-export { createAdminClient } from "./client.js";
-export type { AdminClient } from "./client.js";
+export { createAdminClient } from "./client";
+export type { AdminClient } from "./client";
 
 // Re-export openapi-press's shared surface so consumers configure, instrument,
 // and catch without a second dependency.
@@ -39,4 +39,4 @@ export * from "openapi-press/error";
 
 // The generated schema types, for consumers that want to name request/response
 // shapes directly (e.g. `components["schemas"]["TenantResponse"]`).
-export type { components, paths } from "./schema.gen.js";
+export type { components, paths } from "./schema";
