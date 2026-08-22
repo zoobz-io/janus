@@ -6,11 +6,11 @@ This is a private pnpm workspace — nothing here publishes. It exists to turn t
 
 Three members, each with its own README:
 
-| Member | Package | What it is |
-|--------|---------|------------|
-| [`apps/admin`](apps/admin/) | `@janus/admin` | The Nuxt 4 operator console — eight domain pages over the admin API. |
-| [`packages/admin-sdk`](packages/admin-sdk/) | `@janus/admin-sdk` | The generated, fully-typed admin client. Regenerated from the admin OpenAPI spec. |
-| [`packages/authz`](packages/authz/) | `@janus/authz` | The letters-patent auth provider — the runtime login/authorization path to the Janus *public* API. |
+| Member                                      | Package            | What it is                                                                                         |
+| ------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------- |
+| [`apps/admin`](apps/admin/)                 | `@janus/admin`     | The Nuxt 4 operator console — eight domain pages over the admin API.                               |
+| [`packages/admin-sdk`](packages/admin-sdk/) | `@janus/admin-sdk` | The generated, fully-typed admin client. Regenerated from the admin OpenAPI spec.                  |
+| [`packages/authz`](packages/authz/)         | `@janus/authz`     | The letters-patent auth provider — the runtime login/authorization path to the Janus _public_ API. |
 
 ## Two paths, not one
 
@@ -21,7 +21,7 @@ the whole mental model:
   `@janus/admin-sdk` to the **admin API** (`127.0.0.1:8081`), proxied at `/api/admin`.
 - **Auth** — who is signed in and what they may see — goes through `@janus/authz` to the
   **public API** (`127.0.0.1:8080`). Login is redirect-based; the resolved session gates
-  the pages. The admin API itself only checks that *a* session exists (see the
+  the pages. The admin API itself only checks that _a_ session exists (see the
   [known gap](../admin/README.md#authentication-and-authorization)).
 
 ```
@@ -73,15 +73,15 @@ web/
 
 Run from `web/`. Everything with `-r` fans out across all three members.
 
-| Script | Does |
-|--------|------|
-| `pnpm build` | `pnpm -r run build` — builds the SDK packages, then the app. |
-| `pnpm dev` | `pnpm -r --parallel run dev` — all members in watch mode. |
-| `pnpm lint` | ESLint over the workspace. |
-| `pnpm format` / `pnpm inspect` | Prettier write / check. |
-| `pnpm test` | `pnpm -r run test` — each member's Vitest suite. |
-| `pnpm coverage` | Root Vitest coverage run. |
-| `pnpm typecheck` | `pnpm -r run stub && pnpm -r run typecheck`. The stub pass builds `@janus/authz`'s `unbuild` stub so its `.dist` entry points resolve *before* the type pass runs — typecheck never depends on a full build. |
+| Script                         | Does                                                                                                                                                                                                         |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm build`                   | `pnpm -r run build` — builds the SDK packages, then the app.                                                                                                                                                 |
+| `pnpm dev`                     | `pnpm -r --parallel run dev` — all members in watch mode.                                                                                                                                                    |
+| `pnpm lint`                    | ESLint over the workspace.                                                                                                                                                                                   |
+| `pnpm format` / `pnpm inspect` | Prettier write / check.                                                                                                                                                                                      |
+| `pnpm test`                    | `pnpm -r run test` — each member's Vitest suite.                                                                                                                                                             |
+| `pnpm coverage`                | Root Vitest coverage run.                                                                                                                                                                                    |
+| `pnpm typecheck`               | `pnpm -r run stub && pnpm -r run typecheck`. The stub pass builds `@janus/authz`'s `unbuild` stub so its `.dist` entry points resolve _before_ the type pass runs — typecheck never depends on a full build. |
 
 ## From the repo root
 

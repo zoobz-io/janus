@@ -5,7 +5,7 @@ The letters-patent auth **provider** for Janus. An app owns a
 roles, and user shape. This package is the vendor behind that contract: it turns the
 contract into live login and authorization backed by the Janus **public** auth API.
 
-This is the runtime **auth** path. It is *not* the admin data SDK
+This is the runtime **auth** path. It is _not_ the admin data SDK
 ([`@janus/admin-sdk`](../admin-sdk/)) — that one talks CRUD to the admin API; this one talks
 identity and entitlements to the public API. An app uses both.
 
@@ -13,13 +13,17 @@ identity and entitlements to the public API. An app uses both.
 import { defineSchema } from "letters-patent";
 import { createProvider } from "@janus/authz";
 
-const provider = createProvider(schema, { api: "/api/janus", app: "janus-admin" }, (session) => ({
-  id: session.identity.id,
-  email: session.identity.email,
-  name: session.identity.display_name,
-  scopes: session.authorization.tenants[0]?.scopes ?? [],
-  roles: session.authorization.tenants[0]?.roles ?? [],
-}));
+const provider = createProvider(
+  schema,
+  { api: "/api/janus", app: "janus-admin" },
+  (session) => ({
+    id: session.identity.id,
+    email: session.identity.email,
+    name: session.identity.display_name,
+    scopes: session.authorization.tenants[0]?.scopes ?? [],
+    roles: session.authorization.tenants[0]?.roles ?? [],
+  }),
+);
 ```
 
 ## What the provider does
@@ -35,8 +39,8 @@ yields three letters-patent callbacks:
   `/me/authorization/{app}` (app-scoped authorization) **in parallel**, both carrying the
   ambient cookie (`credentials: "include"`). A `401` on either → signed out. And unless
   `requireEntitlement` is `false`, a valid session with **no entitled tenants** also
-  resolves to signed out — being authenticated to Janus but not entitled to *this* app
-  means not signed in *for this app*. Otherwise it hands `{ identity, authorization }` to
+  resolves to signed out — being authenticated to Janus but not entitled to _this_ app
+  means not signed in _for this app_. Otherwise it hands `{ identity, authorization }` to
   the app-supplied bridge.
 
 Server-side callers (e.g. a Nuxt crest handler) pass a `headers` carrying the incoming

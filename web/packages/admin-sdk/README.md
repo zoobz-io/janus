@@ -8,7 +8,9 @@ the server, and a renamed field is a compile error, not a 2 a.m. surprise.
 import { createAdminClient } from "@janus/admin-sdk";
 
 const admin = createAdminClient();
-const { users, total } = await admin.users.list({ query: { limit: "20", offset: "0" } });
+const { users, total } = await admin.users.list({
+  query: { limit: "20", offset: "0" },
+});
 const members = await admin.tenants.members.list(tenantId);
 ```
 
@@ -36,7 +38,7 @@ pnpm generate        # TS side: openapi-typescript ./data/openapi.json -o ./src/
 ## The client tree
 
 [`src/client.ts`](src/client.ts) uses `definePress<paths>()` to bind each operation to its
-generated type, then assembles a resource-namespaced tree — the *only* file here that is
+generated type, then assembles a resource-namespaced tree — the _only_ file here that is
 hand-authored:
 
 ```
