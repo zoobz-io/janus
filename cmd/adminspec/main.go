@@ -20,7 +20,7 @@ import (
 
 // defaultOut is where the spec lands when no path argument is given: the admin
 // SDK package's committed spec snapshot.
-const defaultOut = "web/packages/admin-sdk/openapi.json"
+const defaultOut = "web/packages/admin-sdk/data/openapi.json"
 
 func main() {
 	if err := run(); err != nil {
