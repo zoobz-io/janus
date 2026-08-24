@@ -16,8 +16,8 @@
     "@janus/authz": "workspace:*",
     "@letters-patent/nuxt": "0.0.1",
     "@openapi-press/nuxt": "0.1.1",
-    "@zoobzio/foundation": "0.0.20",
-    "@zoobzio/foundation-mcp": "0.0.20",
+    "@zoobzio/foundation": "0.0.21",
+    "@zoobzio/foundation-mcp": "0.0.21",
     "letters-patent": "0.0.1",
     "nuxt": "4.4.8",
     "vue": "3.5.24"
