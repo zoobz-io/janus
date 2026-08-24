@@ -8,6 +8,8 @@ export default defineNuxtIconSheetsConfig({
   name: "Janus Admin Icons",
   icons: {
     applications: "lucide:app-window",
+    overview: "lucide:layout-dashboard",
+    view: "lucide:eye",
     scopes: "lucide:key-round",
     tiers: "lucide:layers",
     licenses: "lucide:scroll-text",

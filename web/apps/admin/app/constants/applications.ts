@@ -19,6 +19,9 @@ export const APPLICATIONS_TABLE = applications.defineTable({
     { key: "updated_at", label: "Updated", type: "datetime", sortable: true },
   ],
   rowKey: "id",
+  actions: {
+    view: { icon: "view", label: "View" },
+  },
 });
 
 export const APPLICATIONS_WORKSPACE = defineWorkspace({
