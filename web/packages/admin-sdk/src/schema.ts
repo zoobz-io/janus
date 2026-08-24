@@ -15,13 +15,13 @@ export interface paths {
          * List all applications
          * @description Returns every application on the mesh, including inactive ones. The public catalog only exposes active applications.
          */
-        get: operations["get-applications-95fdd064"];
+        get: operations["list-applications"];
         put?: never;
         /**
          * Register an application
          * @description Registers a new application. The slug must match the certificate CN of the service's mesh nodes.
          */
-        post: operations["post-applications-d4f9a5d9"];
+        post: operations["create-application"];
         delete?: never;
         options?: never;
         head?: never;
@@ -41,7 +41,7 @@ export interface paths {
          * Search applications
          * @description Query applications with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.
          */
-        post: operations["post-applications-search-b726cbd7"];
+        post: operations["search-applications"];
         delete?: never;
         options?: never;
         head?: never;
@@ -59,7 +59,7 @@ export interface paths {
          * Get an application
          * @description Fetches a single application by ID, including its current status.
          */
-        get: operations["get-applications-app_id-49948e56"];
+        get: operations["get-application"];
         put?: never;
         post?: never;
         delete?: never;
@@ -69,7 +69,7 @@ export interface paths {
          * Update an application
          * @description Updates an application's name and status. Set status to 'inactive' to soft-disable it — there is no hard delete.
          */
-        patch: operations["patch-applications-app_id-fca29560"];
+        patch: operations["update-application"];
         trace?: never;
     };
     "/applications/{app_id}/grants": {
@@ -83,13 +83,13 @@ export interface paths {
          * List user grants for an application in a tenant
          * @description Returns the per-user grants for an application within a tenant. Pass tenant_id as a query parameter.
          */
-        get: operations["get-applications-app_id-grants-a8028de8"];
+        get: operations["list-grants"];
         put?: never;
         /**
          * Grant a user access to an application
          * @description Grants a user access to an application within a tenant, with explicit roles/scopes and an optional tier. Explicit scopes are admin-assigned; tier scopes are inherited.
          */
-        post: operations["post-applications-app_id-grants-e41e4795"];
+        post: operations["create-grant"];
         delete?: never;
         options?: never;
         head?: never;
@@ -110,14 +110,14 @@ export interface paths {
          * Revoke a user's grant
          * @description Removes a user's access to an application within a tenant.
          */
-        delete: operations["delete-applications-app_id-grants-tenant_id-user_id-dc650d03"];
+        delete: operations["revoke-grant"];
         options?: never;
         head?: never;
         /**
          * Update a user's grant
          * @description Replaces a grant's roles and scopes and sets (or clears) its tier.
          */
-        patch: operations["patch-applications-app_id-grants-tenant_id-user_id-801fc1e3"];
+        patch: operations["update-grant"];
         trace?: never;
     };
     "/applications/{app_id}/licenses": {
@@ -131,13 +131,13 @@ export interface paths {
          * List tenants licensed for an application
          * @description Returns the tenants authorized to use an application.
          */
-        get: operations["get-applications-app_id-licenses-d3151d81"];
+        get: operations["list-licenses"];
         put?: never;
         /**
          * Authorize a tenant for an application
          * @description Licenses a tenant to use the application. A user cannot be granted access in a tenant that is not licensed.
          */
-        post: operations["post-applications-app_id-licenses-2d9551e8"];
+        post: operations["authorize-license"];
         delete?: never;
         options?: never;
         head?: never;
@@ -158,7 +158,7 @@ export interface paths {
          * Revoke a tenant's license for an application
          * @description Removes a tenant's authorization to use the application.
          */
-        delete: operations["delete-applications-app_id-licenses-tenant_id-b1702939"];
+        delete: operations["revoke-license"];
         options?: never;
         head?: never;
         patch?: never;
@@ -175,13 +175,13 @@ export interface paths {
          * List application scopes
          * @description Returns the scope catalog defined for an application.
          */
-        get: operations["get-applications-app_id-scopes-bb001539"];
+        get: operations["list-scopes"];
         put?: never;
         /**
          * Define an application scope
          * @description Adds a scope to an application's catalog. Scopes are opaque permission strings the application interprets itself.
          */
-        post: operations["post-applications-app_id-scopes-5b7cb4c4"];
+        post: operations["create-scope"];
         delete?: never;
         options?: never;
         head?: never;
@@ -202,7 +202,7 @@ export interface paths {
          * Delete an application scope
          * @description Removes a scope from the catalog. Any tier features referencing it are cascaded automatically.
          */
-        delete: operations["delete-applications-app_id-scopes-scope_id-5d946dd4"];
+        delete: operations["delete-scope"];
         options?: never;
         head?: never;
         patch?: never;
@@ -219,13 +219,13 @@ export interface paths {
          * List application tiers
          * @description Returns the subscription tiers defined for an application, ordered by rank.
          */
-        get: operations["get-applications-app_id-tiers-76d8865e"];
+        get: operations["list-tiers"];
         put?: never;
         /**
          * Define an application tier
          * @description Adds a subscription tier to an application. Bundle scopes into it via its features.
          */
-        post: operations["post-applications-app_id-tiers-0369e777"];
+        post: operations["create-tier"];
         delete?: never;
         options?: never;
         head?: never;
@@ -246,7 +246,7 @@ export interface paths {
          * Delete an application tier
          * @description Removes a tier. Its feature bundles are cascaded; grants that referenced it keep their explicit scopes.
          */
-        delete: operations["delete-applications-app_id-tiers-tier_id-8b34822b"];
+        delete: operations["delete-tier"];
         options?: never;
         head?: never;
         patch?: never;
@@ -263,13 +263,13 @@ export interface paths {
          * List scopes bundled into a tier
          * @description Returns the scopes bundled into a tier — the features every subscriber on this tier inherits.
          */
-        get: operations["get-applications-app_id-tiers-tier_id-features-3aabb5ef"];
+        get: operations["list-features"];
         put?: never;
         /**
          * Bundle a scope into a tier
          * @description Adds a scope to a tier's bundle. Users on the tier inherit it immediately — scope composition is dynamic.
          */
-        post: operations["post-applications-app_id-tiers-tier_id-features-f2e84ec7"];
+        post: operations["add-feature"];
         delete?: never;
         options?: never;
         head?: never;
@@ -290,7 +290,7 @@ export interface paths {
          * Unbundle a scope from a tier
          * @description Removes a scope from a tier's bundle.
          */
-        delete: operations["delete-applications-app_id-tiers-tier_id-features-scope_id-a9b6e84e"];
+        delete: operations["remove-feature"];
         options?: never;
         head?: never;
         patch?: never;
@@ -307,7 +307,7 @@ export interface paths {
          * List supported identity providers
          * @description Returns the external identity providers janus supports for account linking.
          */
-        get: operations["get-providers-b79ba169"];
+        get: operations["list-providers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -327,13 +327,13 @@ export interface paths {
          * List tenants
          * @description Returns a paginated list of all tenants. Use limit and offset to page.
          */
-        get: operations["get-tenants-bc5602b4"];
+        get: operations["list-tenants"];
         put?: never;
         /**
          * Create a tenant
          * @description Creates a new customer organization.
          */
-        post: operations["post-tenants-16e03dea"];
+        post: operations["create-tenant"];
         delete?: never;
         options?: never;
         head?: never;
@@ -353,7 +353,7 @@ export interface paths {
          * Search tenants
          * @description Query tenants with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.
          */
-        post: operations["post-tenants-search-dbf84c8a"];
+        post: operations["search-tenants"];
         delete?: never;
         options?: never;
         head?: never;
@@ -371,7 +371,7 @@ export interface paths {
          * Get a tenant
          * @description Fetches a single tenant by ID.
          */
-        get: operations["get-tenants-tenant_id-121bd7df"];
+        get: operations["get-tenant"];
         put?: never;
         post?: never;
         delete?: never;
@@ -381,7 +381,7 @@ export interface paths {
          * Update a tenant
          * @description Updates a tenant's name and status. Set status to 'suspended' to disable it.
          */
-        patch: operations["patch-tenants-tenant_id-a5662f1f"];
+        patch: operations["update-tenant"];
         trace?: never;
     };
     "/tenants/{tenant_id}/members": {
@@ -395,13 +395,13 @@ export interface paths {
          * List tenant members
          * @description Returns the members of a tenant with their roles, paginated.
          */
-        get: operations["get-tenants-tenant_id-members-7a200357"];
+        get: operations["list-members"];
         put?: never;
         /**
          * Add a tenant member
          * @description Adds a user to a tenant with a role (viewer, editor, admin, or owner).
          */
-        post: operations["post-tenants-tenant_id-members-9dca2309"];
+        post: operations["add-member"];
         delete?: never;
         options?: never;
         head?: never;
@@ -422,14 +422,14 @@ export interface paths {
          * Remove a tenant member
          * @description Removes a user from a tenant. Removing the last owner is rejected.
          */
-        delete: operations["delete-tenants-tenant_id-members-user_id-995b0890"];
+        delete: operations["remove-member"];
         options?: never;
         head?: never;
         /**
          * Update a member's role
          * @description Changes a member's role within a tenant. Demoting the last owner is rejected.
          */
-        patch: operations["patch-tenants-tenant_id-members-user_id-09410691"];
+        patch: operations["update-member-role"];
         trace?: never;
     };
     "/users": {
@@ -443,13 +443,13 @@ export interface paths {
          * List users
          * @description Returns a paginated list of users. Pass email to look up a single user by address.
          */
-        get: operations["get-users-ea06f17d"];
+        get: operations["list-users"];
         put?: never;
         /**
          * Create a user
          * @description Creates a user directly. Normally users are provisioned automatically via the OIDC login flow.
          */
-        post: operations["post-users-f6cb2532"];
+        post: operations["create-user"];
         delete?: never;
         options?: never;
         head?: never;
@@ -469,7 +469,7 @@ export interface paths {
          * Search users
          * @description Query users with text search over email and display name, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.
          */
-        post: operations["post-users-search-002a16d9"];
+        post: operations["search-users"];
         delete?: never;
         options?: never;
         head?: never;
@@ -487,7 +487,7 @@ export interface paths {
          * Get a user
          * @description Fetches a single user by ID.
          */
-        get: operations["get-users-user_id-90f0cdbf"];
+        get: operations["get-user"];
         put?: never;
         post?: never;
         delete?: never;
@@ -497,7 +497,7 @@ export interface paths {
          * Update a user
          * @description Updates a user's display name and status. Set status to 'inactive' to disable the account.
          */
-        patch: operations["patch-users-user_id-e2a65134"];
+        patch: operations["update-user"];
         trace?: never;
     };
     "/users/{user_id}/accounts": {
@@ -511,7 +511,7 @@ export interface paths {
          * List a user's linked accounts
          * @description Returns the external identity-provider accounts linked to a user.
          */
-        get: operations["get-users-user_id-accounts-f62eec64"];
+        get: operations["list-user-accounts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -534,7 +534,7 @@ export interface paths {
          * Unlink a user's account
          * @description Removes a linked external account from a user.
          */
-        delete: operations["delete-users-user_id-accounts-account_id-88d1ae20"];
+        delete: operations["unlink-user-account"];
         options?: never;
         head?: never;
         patch?: never;
@@ -551,14 +551,14 @@ export interface paths {
          * List a user's sessions
          * @description Returns the active sessions for a user.
          */
-        get: operations["get-users-user_id-sessions-8fb04a63"];
+        get: operations["list-user-sessions"];
         put?: never;
         post?: never;
         /**
          * Revoke all of a user's sessions
          * @description Revokes every active session for a user and returns the count revoked.
          */
-        delete: operations["delete-users-user_id-sessions-4c86483a"];
+        delete: operations["revoke-all-user-sessions"];
         options?: never;
         head?: never;
         patch?: never;
@@ -578,7 +578,7 @@ export interface paths {
          * Revoke a user's session
          * @description Revokes a single session by ID.
          */
-        delete: operations["delete-users-user_id-sessions-session_id-6acbfd7c"];
+        delete: operations["revoke-user-session"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1325,7 +1325,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    "get-applications-95fdd064": {
+    "list-applications": {
         parameters: {
             query?: never;
             header?: never;
@@ -1345,7 +1345,7 @@ export interface operations {
             };
         };
     };
-    "post-applications-d4f9a5d9": {
+    "create-application": {
         parameters: {
             query?: never;
             header?: never;
@@ -1378,7 +1378,7 @@ export interface operations {
             };
         };
     };
-    "post-applications-search-b726cbd7": {
+    "search-applications": {
         parameters: {
             query?: never;
             header?: never;
@@ -1411,7 +1411,7 @@ export interface operations {
             };
         };
     };
-    "get-applications-app_id-49948e56": {
+    "get-application": {
         parameters: {
             query?: never;
             header?: never;
@@ -1442,7 +1442,7 @@ export interface operations {
             };
         };
     };
-    "patch-applications-app_id-fca29560": {
+    "update-application": {
         parameters: {
             query?: never;
             header?: never;
@@ -1486,7 +1486,7 @@ export interface operations {
             };
         };
     };
-    "get-applications-app_id-grants-a8028de8": {
+    "list-grants": {
         parameters: {
             query?: {
                 tenant_id?: string;
@@ -1510,7 +1510,7 @@ export interface operations {
             };
         };
     };
-    "post-applications-app_id-grants-e41e4795": {
+    "create-grant": {
         parameters: {
             query?: never;
             header?: never;
@@ -1545,7 +1545,7 @@ export interface operations {
             };
         };
     };
-    "delete-applications-app_id-grants-tenant_id-user_id-dc650d03": {
+    "revoke-grant": {
         parameters: {
             query?: never;
             header?: never;
@@ -1578,7 +1578,7 @@ export interface operations {
             };
         };
     };
-    "patch-applications-app_id-grants-tenant_id-user_id-801fc1e3": {
+    "update-grant": {
         parameters: {
             query?: never;
             header?: never;
@@ -1615,7 +1615,7 @@ export interface operations {
             };
         };
     };
-    "get-applications-app_id-licenses-d3151d81": {
+    "list-licenses": {
         parameters: {
             query?: never;
             header?: never;
@@ -1637,7 +1637,7 @@ export interface operations {
             };
         };
     };
-    "post-applications-app_id-licenses-2d9551e8": {
+    "authorize-license": {
         parameters: {
             query?: never;
             header?: never;
@@ -1672,7 +1672,7 @@ export interface operations {
             };
         };
     };
-    "delete-applications-app_id-licenses-tenant_id-b1702939": {
+    "revoke-license": {
         parameters: {
             query?: never;
             header?: never;
@@ -1704,7 +1704,7 @@ export interface operations {
             };
         };
     };
-    "get-applications-app_id-scopes-bb001539": {
+    "list-scopes": {
         parameters: {
             query?: never;
             header?: never;
@@ -1726,7 +1726,7 @@ export interface operations {
             };
         };
     };
-    "post-applications-app_id-scopes-5b7cb4c4": {
+    "create-scope": {
         parameters: {
             query?: never;
             header?: never;
@@ -1761,7 +1761,7 @@ export interface operations {
             };
         };
     };
-    "delete-applications-app_id-scopes-scope_id-5d946dd4": {
+    "delete-scope": {
         parameters: {
             query?: never;
             header?: never;
@@ -1793,7 +1793,7 @@ export interface operations {
             };
         };
     };
-    "get-applications-app_id-tiers-76d8865e": {
+    "list-tiers": {
         parameters: {
             query?: never;
             header?: never;
@@ -1815,7 +1815,7 @@ export interface operations {
             };
         };
     };
-    "post-applications-app_id-tiers-0369e777": {
+    "create-tier": {
         parameters: {
             query?: never;
             header?: never;
@@ -1850,7 +1850,7 @@ export interface operations {
             };
         };
     };
-    "delete-applications-app_id-tiers-tier_id-8b34822b": {
+    "delete-tier": {
         parameters: {
             query?: never;
             header?: never;
@@ -1882,7 +1882,7 @@ export interface operations {
             };
         };
     };
-    "get-applications-app_id-tiers-tier_id-features-3aabb5ef": {
+    "list-features": {
         parameters: {
             query?: never;
             header?: never;
@@ -1905,7 +1905,7 @@ export interface operations {
             };
         };
     };
-    "post-applications-app_id-tiers-tier_id-features-f2e84ec7": {
+    "add-feature": {
         parameters: {
             query?: never;
             header?: never;
@@ -1941,7 +1941,7 @@ export interface operations {
             };
         };
     };
-    "delete-applications-app_id-tiers-tier_id-features-scope_id-a9b6e84e": {
+    "remove-feature": {
         parameters: {
             query?: never;
             header?: never;
@@ -1974,7 +1974,7 @@ export interface operations {
             };
         };
     };
-    "get-providers-b79ba169": {
+    "list-providers": {
         parameters: {
             query?: never;
             header?: never;
@@ -1994,7 +1994,7 @@ export interface operations {
             };
         };
     };
-    "get-tenants-bc5602b4": {
+    "list-tenants": {
         parameters: {
             query?: {
                 limit?: string;
@@ -2017,7 +2017,7 @@ export interface operations {
             };
         };
     };
-    "post-tenants-16e03dea": {
+    "create-tenant": {
         parameters: {
             query?: never;
             header?: never;
@@ -2050,7 +2050,7 @@ export interface operations {
             };
         };
     };
-    "post-tenants-search-dbf84c8a": {
+    "search-tenants": {
         parameters: {
             query?: never;
             header?: never;
@@ -2083,7 +2083,7 @@ export interface operations {
             };
         };
     };
-    "get-tenants-tenant_id-121bd7df": {
+    "get-tenant": {
         parameters: {
             query?: never;
             header?: never;
@@ -2114,7 +2114,7 @@ export interface operations {
             };
         };
     };
-    "patch-tenants-tenant_id-a5662f1f": {
+    "update-tenant": {
         parameters: {
             query?: never;
             header?: never;
@@ -2158,7 +2158,7 @@ export interface operations {
             };
         };
     };
-    "get-tenants-tenant_id-members-7a200357": {
+    "list-members": {
         parameters: {
             query?: {
                 limit?: string;
@@ -2183,7 +2183,7 @@ export interface operations {
             };
         };
     };
-    "post-tenants-tenant_id-members-9dca2309": {
+    "add-member": {
         parameters: {
             query?: never;
             header?: never;
@@ -2218,7 +2218,7 @@ export interface operations {
             };
         };
     };
-    "delete-tenants-tenant_id-members-user_id-995b0890": {
+    "remove-member": {
         parameters: {
             query?: never;
             header?: never;
@@ -2259,7 +2259,7 @@ export interface operations {
             };
         };
     };
-    "patch-tenants-tenant_id-members-user_id-09410691": {
+    "update-member-role": {
         parameters: {
             query?: never;
             header?: never;
@@ -2313,7 +2313,7 @@ export interface operations {
             };
         };
     };
-    "get-users-ea06f17d": {
+    "list-users": {
         parameters: {
             query?: {
                 email?: string;
@@ -2337,7 +2337,7 @@ export interface operations {
             };
         };
     };
-    "post-users-f6cb2532": {
+    "create-user": {
         parameters: {
             query?: never;
             header?: never;
@@ -2370,7 +2370,7 @@ export interface operations {
             };
         };
     };
-    "post-users-search-002a16d9": {
+    "search-users": {
         parameters: {
             query?: never;
             header?: never;
@@ -2403,7 +2403,7 @@ export interface operations {
             };
         };
     };
-    "get-users-user_id-90f0cdbf": {
+    "get-user": {
         parameters: {
             query?: never;
             header?: never;
@@ -2434,7 +2434,7 @@ export interface operations {
             };
         };
     };
-    "patch-users-user_id-e2a65134": {
+    "update-user": {
         parameters: {
             query?: never;
             header?: never;
@@ -2478,7 +2478,7 @@ export interface operations {
             };
         };
     };
-    "get-users-user_id-accounts-f62eec64": {
+    "list-user-accounts": {
         parameters: {
             query?: never;
             header?: never;
@@ -2500,7 +2500,7 @@ export interface operations {
             };
         };
     };
-    "delete-users-user_id-accounts-account_id-88d1ae20": {
+    "unlink-user-account": {
         parameters: {
             query?: never;
             header?: never;
@@ -2532,7 +2532,7 @@ export interface operations {
             };
         };
     };
-    "get-users-user_id-sessions-8fb04a63": {
+    "list-user-sessions": {
         parameters: {
             query?: never;
             header?: never;
@@ -2554,7 +2554,7 @@ export interface operations {
             };
         };
     };
-    "delete-users-user_id-sessions-4c86483a": {
+    "revoke-all-user-sessions": {
         parameters: {
             query?: never;
             header?: never;
@@ -2576,7 +2576,7 @@ export interface operations {
             };
         };
     };
-    "delete-users-user_id-sessions-session_id-6acbfd7c": {
+    "revoke-user-session": {
         parameters: {
             query?: never;
             header?: never;

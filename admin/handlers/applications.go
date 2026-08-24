@@ -20,6 +20,7 @@ var listApplications = rocco.GET[rocco.NoBody, wire.ApplicationListResponse]("/a
 }).
 	WithName("list-applications").
 	WithSummary("List all applications").
+	WithScopes("directory:read").
 	WithDescription("Returns every application on the mesh, including inactive ones. The public catalog only exposes active applications.").
 	WithTags("Applications").
 	WithAuthentication()
@@ -34,6 +35,7 @@ var getApplication = rocco.GET[rocco.NoBody, wire.ApplicationResponse]("/applica
 }).
 	WithName("get-application").
 	WithSummary("Get an application").
+	WithScopes("directory:read").
 	WithDescription("Fetches a single application by ID, including its current status.").
 	WithTags("Applications").
 	WithPathParams("app_id").
@@ -51,6 +53,7 @@ var createApplication = rocco.POST[wire.CreateApplicationRequest, wire.Applicati
 }).
 	WithName("create-application").
 	WithSummary("Register an application").
+	WithScopes("applications:manage").
 	WithDescription("Registers a new application. The slug must match the certificate CN of the service's mesh nodes.").
 	WithTags("Applications").
 	WithSuccessStatus(201).
@@ -69,6 +72,7 @@ var searchApplications = rocco.POST[wire.SearchApplicationsRequest, wire.Applica
 }).
 	WithName("search-applications").
 	WithSummary("Search applications").
+	WithScopes("directory:read").
 	WithDescription("Query applications with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.").
 	WithTags("Applications").
 	WithAuthentication().
@@ -85,6 +89,7 @@ var updateApplication = rocco.PATCH[wire.UpdateApplicationRequest, wire.Applicat
 }).
 	WithName("update-application").
 	WithSummary("Update an application").
+	WithScopes("applications:manage").
 	WithDescription("Updates an application's name and status. Set status to 'inactive' to soft-disable it — there is no hard delete.").
 	WithTags("Applications").
 	WithPathParams("app_id").

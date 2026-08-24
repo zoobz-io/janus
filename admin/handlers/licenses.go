@@ -24,6 +24,7 @@ var listLicenses = rocco.GET[rocco.NoBody, wire.LicenseListResponse]("/applicati
 }).
 	WithName("list-licenses").
 	WithSummary("List tenants licensed for an application").
+	WithScopes("directory:read").
 	WithDescription("Returns the tenants authorized to use an application.").
 	WithTags("Licenses").
 	WithPathParams("app_id").
@@ -40,6 +41,7 @@ var authorizeLicense = rocco.POST[wire.AuthorizeLicenseRequest, wire.LicenseResp
 }).
 	WithName("authorize-license").
 	WithSummary("Authorize a tenant for an application").
+	WithScopes("applications:manage").
 	WithDescription("Licenses a tenant to use the application. A user cannot be granted access in a tenant that is not licensed.").
 	WithTags("Licenses").
 	WithPathParams("app_id").
@@ -56,6 +58,7 @@ var revokeLicense = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/applications/{app
 }).
 	WithName("revoke-license").
 	WithSummary("Revoke a tenant's license for an application").
+	WithScopes("applications:manage").
 	WithDescription("Removes a tenant's authorization to use the application.").
 	WithTags("Licenses").
 	WithPathParams("app_id", "tenant_id").

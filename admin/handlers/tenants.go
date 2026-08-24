@@ -19,6 +19,7 @@ var listTenants = rocco.GET[rocco.NoBody, wire.TenantListResponse]("/tenants", f
 }).
 	WithName("list-tenants").
 	WithSummary("List tenants").
+	WithScopes("directory:read").
 	WithDescription("Returns a paginated list of all tenants. Use limit and offset to page.").
 	WithTags("Tenants").
 	WithQueryParams("limit", "offset").
@@ -36,6 +37,7 @@ var searchTenants = rocco.POST[wire.SearchTenantsRequest, wire.TenantSearchRespo
 }).
 	WithName("search-tenants").
 	WithSummary("Search tenants").
+	WithScopes("directory:read").
 	WithDescription("Query tenants with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.").
 	WithTags("Tenants").
 	WithAuthentication().
@@ -51,6 +53,7 @@ var getTenant = rocco.GET[rocco.NoBody, wire.TenantResponse]("/tenants/{tenant_i
 }).
 	WithName("get-tenant").
 	WithSummary("Get a tenant").
+	WithScopes("directory:read").
 	WithDescription("Fetches a single tenant by ID.").
 	WithTags("Tenants").
 	WithPathParams("tenant_id").
@@ -67,6 +70,7 @@ var createTenant = rocco.POST[wire.CreateTenantRequest, wire.TenantResponse]("/t
 }).
 	WithName("create-tenant").
 	WithSummary("Create a tenant").
+	WithScopes("tenants:manage").
 	WithDescription("Creates a new customer organization.").
 	WithTags("Tenants").
 	WithSuccessStatus(201).
@@ -83,6 +87,7 @@ var updateTenant = rocco.PATCH[wire.UpdateTenantRequest, wire.TenantResponse]("/
 }).
 	WithName("update-tenant").
 	WithSummary("Update a tenant").
+	WithScopes("tenants:manage").
 	WithDescription("Updates a tenant's name and status. Set status to 'suspended' to disable it.").
 	WithTags("Tenants").
 	WithPathParams("tenant_id").

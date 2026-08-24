@@ -16,13 +16,15 @@
         },
         "summary": "List all applications",
         "description": "Returns every application on the mesh, including inactive ones. The public catalog only exposes active applications.",
-        "operationId": "get-applications-95fdd064",
+        "operationId": "list-applications",
         "tags": [
           "Applications"
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -61,13 +63,15 @@
         },
         "summary": "Register an application",
         "description": "Registers a new application. The slug must match the certificate CN of the service's mesh nodes.",
-        "operationId": "post-applications-d4f9a5d9",
+        "operationId": "create-application",
         "tags": [
           "Applications"
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -108,13 +112,15 @@
         },
         "summary": "Search applications",
         "description": "Query applications with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.",
-        "operationId": "post-applications-search-b726cbd7",
+        "operationId": "search-applications",
         "tags": [
           "Applications"
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       }
@@ -145,7 +151,7 @@
         },
         "summary": "Get an application",
         "description": "Fetches a single application by ID, including its current status.",
-        "operationId": "get-applications-app_id-49948e56",
+        "operationId": "get-application",
         "tags": [
           "Applications"
         ],
@@ -161,7 +167,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -210,7 +218,7 @@
         },
         "summary": "Update an application",
         "description": "Updates an application's name and status. Set status to 'inactive' to soft-disable it — there is no hard delete.",
-        "operationId": "patch-applications-app_id-fca29560",
+        "operationId": "update-application",
         "tags": [
           "Applications"
         ],
@@ -226,7 +234,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -247,7 +257,7 @@
         },
         "summary": "List user grants for an application in a tenant",
         "description": "Returns the per-user grants for an application within a tenant. Pass tenant_id as a query parameter.",
-        "operationId": "get-applications-app_id-grants-a8028de8",
+        "operationId": "list-grants",
         "tags": [
           "Grants"
         ],
@@ -270,7 +280,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -309,7 +321,7 @@
         },
         "summary": "Grant a user access to an application",
         "description": "Grants a user access to an application within a tenant, with explicit roles/scopes and an optional tier. Explicit scopes are admin-assigned; tier scopes are inherited.",
-        "operationId": "post-applications-app_id-grants-e41e4795",
+        "operationId": "create-grant",
         "tags": [
           "Grants"
         ],
@@ -325,7 +337,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -356,7 +370,7 @@
         },
         "summary": "Revoke a user's grant",
         "description": "Removes a user's access to an application within a tenant.",
-        "operationId": "delete-applications-app_id-grants-tenant_id-user_id-dc650d03",
+        "operationId": "revoke-grant",
         "tags": [
           "Grants"
         ],
@@ -388,7 +402,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       },
@@ -427,7 +443,7 @@
         },
         "summary": "Update a user's grant",
         "description": "Replaces a grant's roles and scopes and sets (or clears) its tier.",
-        "operationId": "patch-applications-app_id-grants-tenant_id-user_id-801fc1e3",
+        "operationId": "update-grant",
         "tags": [
           "Grants"
         ],
@@ -459,7 +475,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -480,7 +498,7 @@
         },
         "summary": "List tenants licensed for an application",
         "description": "Returns the tenants authorized to use an application.",
-        "operationId": "get-applications-app_id-licenses-d3151d81",
+        "operationId": "list-licenses",
         "tags": [
           "Licenses"
         ],
@@ -496,7 +514,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -535,7 +555,7 @@
         },
         "summary": "Authorize a tenant for an application",
         "description": "Licenses a tenant to use the application. A user cannot be granted access in a tenant that is not licensed.",
-        "operationId": "post-applications-app_id-licenses-2d9551e8",
+        "operationId": "authorize-license",
         "tags": [
           "Licenses"
         ],
@@ -551,7 +571,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -582,7 +604,7 @@
         },
         "summary": "Revoke a tenant's license for an application",
         "description": "Removes a tenant's authorization to use the application.",
-        "operationId": "delete-applications-app_id-licenses-tenant_id-b1702939",
+        "operationId": "revoke-license",
         "tags": [
           "Licenses"
         ],
@@ -606,7 +628,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -627,7 +651,7 @@
         },
         "summary": "List application scopes",
         "description": "Returns the scope catalog defined for an application.",
-        "operationId": "get-applications-app_id-scopes-bb001539",
+        "operationId": "list-scopes",
         "tags": [
           "Scopes"
         ],
@@ -643,7 +667,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -682,7 +708,7 @@
         },
         "summary": "Define an application scope",
         "description": "Adds a scope to an application's catalog. Scopes are opaque permission strings the application interprets itself.",
-        "operationId": "post-applications-app_id-scopes-5b7cb4c4",
+        "operationId": "create-scope",
         "tags": [
           "Scopes"
         ],
@@ -698,7 +724,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -729,7 +757,7 @@
         },
         "summary": "Delete an application scope",
         "description": "Removes a scope from the catalog. Any tier features referencing it are cascaded automatically.",
-        "operationId": "delete-applications-app_id-scopes-scope_id-5d946dd4",
+        "operationId": "delete-scope",
         "tags": [
           "Scopes"
         ],
@@ -753,7 +781,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -774,7 +804,7 @@
         },
         "summary": "List application tiers",
         "description": "Returns the subscription tiers defined for an application, ordered by rank.",
-        "operationId": "get-applications-app_id-tiers-76d8865e",
+        "operationId": "list-tiers",
         "tags": [
           "Tiers"
         ],
@@ -790,7 +820,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -829,7 +861,7 @@
         },
         "summary": "Define an application tier",
         "description": "Adds a subscription tier to an application. Bundle scopes into it via its features.",
-        "operationId": "post-applications-app_id-tiers-0369e777",
+        "operationId": "create-tier",
         "tags": [
           "Tiers"
         ],
@@ -845,7 +877,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -876,7 +910,7 @@
         },
         "summary": "Delete an application tier",
         "description": "Removes a tier. Its feature bundles are cascaded; grants that referenced it keep their explicit scopes.",
-        "operationId": "delete-applications-app_id-tiers-tier_id-8b34822b",
+        "operationId": "delete-tier",
         "tags": [
           "Tiers"
         ],
@@ -900,7 +934,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -921,7 +957,7 @@
         },
         "summary": "List scopes bundled into a tier",
         "description": "Returns the scopes bundled into a tier — the features every subscriber on this tier inherits.",
-        "operationId": "get-applications-app_id-tiers-tier_id-features-3aabb5ef",
+        "operationId": "list-features",
         "tags": [
           "Tiers"
         ],
@@ -945,7 +981,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -984,7 +1022,7 @@
         },
         "summary": "Bundle a scope into a tier",
         "description": "Adds a scope to a tier's bundle. Users on the tier inherit it immediately — scope composition is dynamic.",
-        "operationId": "post-applications-app_id-tiers-tier_id-features-f2e84ec7",
+        "operationId": "add-feature",
         "tags": [
           "Tiers"
         ],
@@ -1008,7 +1046,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -1039,7 +1079,7 @@
         },
         "summary": "Unbundle a scope from a tier",
         "description": "Removes a scope from a tier's bundle.",
-        "operationId": "delete-applications-app_id-tiers-tier_id-features-scope_id-a9b6e84e",
+        "operationId": "remove-feature",
         "tags": [
           "Tiers"
         ],
@@ -1071,7 +1111,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "applications:manage"
+            ]
           }
         ]
       }
@@ -1092,13 +1134,15 @@
         },
         "summary": "List supported identity providers",
         "description": "Returns the external identity providers janus supports for account linking.",
-        "operationId": "get-providers-b79ba169",
+        "operationId": "list-providers",
         "tags": [
           "Providers"
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       }
@@ -1119,7 +1163,7 @@
         },
         "summary": "List tenants",
         "description": "Returns a paginated list of all tenants. Use limit and offset to page.",
-        "operationId": "get-tenants-bc5602b4",
+        "operationId": "list-tenants",
         "tags": [
           "Tenants"
         ],
@@ -1141,7 +1185,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -1180,13 +1226,15 @@
         },
         "summary": "Create a tenant",
         "description": "Creates a new customer organization.",
-        "operationId": "post-tenants-16e03dea",
+        "operationId": "create-tenant",
         "tags": [
           "Tenants"
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "tenants:manage"
+            ]
           }
         ]
       }
@@ -1227,13 +1275,15 @@
         },
         "summary": "Search tenants",
         "description": "Query tenants with text search over name and slug, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.",
-        "operationId": "post-tenants-search-dbf84c8a",
+        "operationId": "search-tenants",
         "tags": [
           "Tenants"
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       }
@@ -1264,7 +1314,7 @@
         },
         "summary": "Get a tenant",
         "description": "Fetches a single tenant by ID.",
-        "operationId": "get-tenants-tenant_id-121bd7df",
+        "operationId": "get-tenant",
         "tags": [
           "Tenants"
         ],
@@ -1280,7 +1330,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -1329,7 +1381,7 @@
         },
         "summary": "Update a tenant",
         "description": "Updates a tenant's name and status. Set status to 'suspended' to disable it.",
-        "operationId": "patch-tenants-tenant_id-a5662f1f",
+        "operationId": "update-tenant",
         "tags": [
           "Tenants"
         ],
@@ -1345,7 +1397,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "tenants:manage"
+            ]
           }
         ]
       }
@@ -1366,7 +1420,7 @@
         },
         "summary": "List tenant members",
         "description": "Returns the members of a tenant with their roles, paginated.",
-        "operationId": "get-tenants-tenant_id-members-7a200357",
+        "operationId": "list-members",
         "tags": [
           "Tenants"
         ],
@@ -1396,7 +1450,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -1435,7 +1491,7 @@
         },
         "summary": "Add a tenant member",
         "description": "Adds a user to a tenant with a role (viewer, editor, admin, or owner).",
-        "operationId": "post-tenants-tenant_id-members-9dca2309",
+        "operationId": "add-member",
         "tags": [
           "Tenants"
         ],
@@ -1451,7 +1507,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "tenants:manage"
+            ]
           }
         ]
       }
@@ -1492,7 +1550,7 @@
         },
         "summary": "Remove a tenant member",
         "description": "Removes a user from a tenant. Removing the last owner is rejected.",
-        "operationId": "delete-tenants-tenant_id-members-user_id-995b0890",
+        "operationId": "remove-member",
         "tags": [
           "Tenants"
         ],
@@ -1516,7 +1574,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "tenants:manage"
+            ]
           }
         ]
       },
@@ -1575,7 +1635,7 @@
         },
         "summary": "Update a member's role",
         "description": "Changes a member's role within a tenant. Demoting the last owner is rejected.",
-        "operationId": "patch-tenants-tenant_id-members-user_id-09410691",
+        "operationId": "update-member-role",
         "tags": [
           "Tenants"
         ],
@@ -1599,7 +1659,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "tenants:manage"
+            ]
           }
         ]
       }
@@ -1620,7 +1682,7 @@
         },
         "summary": "List users",
         "description": "Returns a paginated list of users. Pass email to look up a single user by address.",
-        "operationId": "get-users-ea06f17d",
+        "operationId": "list-users",
         "tags": [
           "Users"
         ],
@@ -1649,7 +1711,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -1688,13 +1752,15 @@
         },
         "summary": "Create a user",
         "description": "Creates a user directly. Normally users are provisioned automatically via the OIDC login flow.",
-        "operationId": "post-users-f6cb2532",
+        "operationId": "create-user",
         "tags": [
           "Users"
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "users:manage"
+            ]
           }
         ]
       }
@@ -1735,13 +1801,15 @@
         },
         "summary": "Search users",
         "description": "Query users with text search over email and display name, status faceting, date-range filters, sorting, and pagination. An empty body returns page 1, size 25, sorted updated_at desc, unfiltered.",
-        "operationId": "post-users-search-002a16d9",
+        "operationId": "search-users",
         "tags": [
           "Users"
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       }
@@ -1772,7 +1840,7 @@
         },
         "summary": "Get a user",
         "description": "Fetches a single user by ID.",
-        "operationId": "get-users-user_id-90f0cdbf",
+        "operationId": "get-user",
         "tags": [
           "Users"
         ],
@@ -1788,7 +1856,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -1837,7 +1907,7 @@
         },
         "summary": "Update a user",
         "description": "Updates a user's display name and status. Set status to 'inactive' to disable the account.",
-        "operationId": "patch-users-user_id-e2a65134",
+        "operationId": "update-user",
         "tags": [
           "Users"
         ],
@@ -1853,7 +1923,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "users:manage"
+            ]
           }
         ]
       }
@@ -1874,7 +1946,7 @@
         },
         "summary": "List a user's linked accounts",
         "description": "Returns the external identity-provider accounts linked to a user.",
-        "operationId": "get-users-user_id-accounts-f62eec64",
+        "operationId": "list-user-accounts",
         "tags": [
           "Users"
         ],
@@ -1890,7 +1962,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       }
@@ -1921,7 +1995,7 @@
         },
         "summary": "Unlink a user's account",
         "description": "Removes a linked external account from a user.",
-        "operationId": "delete-users-user_id-accounts-account_id-88d1ae20",
+        "operationId": "unlink-user-account",
         "tags": [
           "Users"
         ],
@@ -1945,7 +2019,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "users:manage"
+            ]
           }
         ]
       }
@@ -1966,7 +2042,7 @@
         },
         "summary": "List a user's sessions",
         "description": "Returns the active sessions for a user.",
-        "operationId": "get-users-user_id-sessions-8fb04a63",
+        "operationId": "list-user-sessions",
         "tags": [
           "Users"
         ],
@@ -1982,7 +2058,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "directory:read"
+            ]
           }
         ]
       },
@@ -2001,7 +2079,7 @@
         },
         "summary": "Revoke all of a user's sessions",
         "description": "Revokes every active session for a user and returns the count revoked.",
-        "operationId": "delete-users-user_id-sessions-4c86483a",
+        "operationId": "revoke-all-user-sessions",
         "tags": [
           "Users"
         ],
@@ -2017,7 +2095,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "users:manage"
+            ]
           }
         ]
       }
@@ -2048,7 +2128,7 @@
         },
         "summary": "Revoke a user's session",
         "description": "Revokes a single session by ID.",
-        "operationId": "delete-users-user_id-sessions-session_id-6acbfd7c",
+        "operationId": "revoke-user-session",
         "tags": [
           "Users"
         ],
@@ -2072,7 +2152,9 @@
         ],
         "security": [
           {
-            "bearerAuth": null
+            "bearerAuth": [
+              "users:manage"
+            ]
           }
         ]
       }
