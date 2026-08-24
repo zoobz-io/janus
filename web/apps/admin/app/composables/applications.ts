@@ -1,6 +1,7 @@
 import { useWorkspace } from "@zoobzio/foundation/composables/workspace";
 import { useTable } from "@zoobzio/foundation/factories/table";
 
+import { navigateTo } from "#imports";
 import { useAdminApi } from "~/composables/api";
 import { APPLICATIONS_WORKSPACE } from "~/constants/applications";
 
@@ -26,6 +27,9 @@ export const useApplicationsPage = () => {
           total: meta.total_items,
           pageCount: meta.total_pages,
         };
+      },
+      actions: {
+        view: (row) => navigateTo(`/applications/${row.id}`),
       },
     },
   );
