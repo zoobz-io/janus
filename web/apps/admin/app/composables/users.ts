@@ -8,17 +8,19 @@ export const useUsersPage = () => {
   const api = useAdminApi();
 
   const users = useTable("users", USERS_WORKSPACE.slots.users.widget, {
-    fetch: async ({ page, pageSize }) => {
-      const { users: data, total } = await api.users.list({
-        query: {
-          limit: String(pageSize),
-          offset: String((page - 1) * pageSize),
+    fetch: async ({ page, pageSize, sortField, sortDirection }) => {
+      const { users: data, page: meta } = await api.users.search({
+        body: {
+          page: { number: page, size: pageSize },
+          ...(sortField !== null && {
+            sort: { field: sortField, order: sortDirection },
+          }),
         },
       });
       return {
         data,
-        total,
-        pageCount: Math.max(1, Math.ceil(total / pageSize)),
+        total: meta.total_items,
+        pageCount: meta.total_pages,
       };
     },
   });

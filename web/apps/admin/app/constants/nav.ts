@@ -9,8 +9,8 @@ import { defineDirectory } from "@zoobzio/foundation/definitions/directory";
 export const NAV = defineDirectory<DirectoryItem>({
   groups: [
     {
-      key: "catalog",
-      label: "Catalog",
+      key: "directory",
+      label: "Directory",
       items: [
         {
           key: "applications",
@@ -18,43 +18,13 @@ export const NAV = defineDirectory<DirectoryItem>({
           icon: "applications",
           link: { to: "/applications" },
         },
-        {
-          key: "scopes",
-          label: "Scopes",
-          icon: "scopes",
-          link: { to: "/scopes" },
-        },
-        {
-          key: "tiers",
-          label: "Tiers",
-          icon: "tiers",
-          link: { to: "/tiers" },
-        },
-        {
-          key: "licenses",
-          label: "Licenses",
-          icon: "licenses",
-          link: { to: "/licenses" },
-        },
-        {
-          key: "grants",
-          label: "Grants",
-          icon: "grants",
-          link: { to: "/grants" },
-        },
-      ],
-    },
-    {
-      key: "directory",
-      label: "Directory",
-      items: [
+        { key: "users", label: "Users", icon: "users", link: { to: "/users" } },
         {
           key: "tenants",
           label: "Tenants",
           icon: "tenants",
           link: { to: "/tenants" },
         },
-        { key: "users", label: "Users", icon: "users", link: { to: "/users" } },
         {
           key: "providers",
           label: "Providers",

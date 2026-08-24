@@ -7,18 +7,16 @@ export type User = components["schemas"]["UserResponse"];
 
 const users = defineEntity<User>();
 
+// Sortable columns are limited to the search contract's sort allowlist
+// (created_at / updated_at) — the fetch action forwards the sort straight
+// to POST /users/search.
 export const USERS_TABLE = users.defineTable({
   columns: [
-    { key: "display_name", label: "Name", sortable: true },
+    { key: "display_name", label: "Name" },
     { key: "email", label: "Email" },
     { key: "status", label: "Status" },
-    { key: "created_at", label: "Created", type: "datetime" },
-    {
-      key: "last_seen_at",
-      label: "Last seen",
-      type: "datetime",
-      sortable: true,
-    },
+    { key: "created_at", label: "Created", type: "datetime", sortable: true },
+    { key: "last_seen_at", label: "Last seen", type: "datetime" },
   ],
   rowKey: "id",
 });
