@@ -24,6 +24,7 @@ var listTiers = rocco.GET[rocco.NoBody, wire.TierListResponse]("/applications/{a
 }).
 	WithName("list-tiers").
 	WithSummary("List application tiers").
+	WithScopes("directory:read").
 	WithDescription("Returns the subscription tiers defined for an application, ordered by rank.").
 	WithTags("Tiers").
 	WithPathParams("app_id").
@@ -40,6 +41,7 @@ var createTier = rocco.POST[wire.CreateTierRequest, wire.TierResponse]("/applica
 }).
 	WithName("create-tier").
 	WithSummary("Define an application tier").
+	WithScopes("applications:manage").
 	WithDescription("Adds a subscription tier to an application. Bundle scopes into it via its features.").
 	WithTags("Tiers").
 	WithPathParams("app_id").
@@ -56,6 +58,7 @@ var deleteTier = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/applications/{app_id
 }).
 	WithName("delete-tier").
 	WithSummary("Delete an application tier").
+	WithScopes("applications:manage").
 	WithDescription("Removes a tier. Its feature bundles are cascaded; grants that referenced it keep their explicit scopes.").
 	WithTags("Tiers").
 	WithPathParams("app_id", "tier_id").

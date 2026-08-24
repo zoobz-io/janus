@@ -2,9 +2,12 @@ package handlers
 
 import "github.com/zoobz-io/rocco"
 
-// All returns the admin API endpoints. Authentication is identical to the
-// public API — any authenticated session is accepted; a finer operator
-// authorization model is layered on separately.
+// All returns the admin API endpoints. Access requires a janus-admin operator
+// entitlement (enforced by the admin authenticator), and each endpoint declares
+// the operator scope it needs via WithScopes: directory:read for reads,
+// users:manage / tenants:manage / applications:manage for the respective
+// mutations. An auditor (directory:read only) can read everything and mutate
+// nothing.
 func All() []rocco.Endpoint {
 	return []rocco.Endpoint{
 		// Applications

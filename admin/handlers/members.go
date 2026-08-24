@@ -7,8 +7,8 @@ import (
 	"github.com/zoobz-io/janus/admin/contracts"
 	"github.com/zoobz-io/janus/admin/transformers"
 	"github.com/zoobz-io/janus/admin/wire"
-	"github.com/zoobz-io/janus/internal/authz"
 	"github.com/zoobz-io/janus/database/models"
+	"github.com/zoobz-io/janus/internal/authz"
 )
 
 var listMembers = rocco.GET[rocco.NoBody, wire.MemberListResponse]("/tenants/{tenant_id}/members", func(r *rocco.Request[rocco.NoBody]) (wire.MemberListResponse, error) {
@@ -21,6 +21,7 @@ var listMembers = rocco.GET[rocco.NoBody, wire.MemberListResponse]("/tenants/{te
 }).
 	WithName("list-members").
 	WithSummary("List tenant members").
+	WithScopes("directory:read").
 	WithDescription("Returns the members of a tenant with their roles, paginated.").
 	WithTags("Tenants").
 	WithPathParams("tenant_id").
@@ -37,6 +38,7 @@ var addMember = rocco.POST[wire.AddMemberRequest, wire.MemberResponse]("/tenants
 }).
 	WithName("add-member").
 	WithSummary("Add a tenant member").
+	WithScopes("tenants:manage").
 	WithDescription("Adds a user to a tenant with a role (viewer, editor, admin, or owner).").
 	WithTags("Tenants").
 	WithPathParams("tenant_id").
@@ -71,6 +73,7 @@ var updateMemberRole = rocco.PATCH[wire.UpdateMemberRoleRequest, wire.MemberResp
 }).
 	WithName("update-member-role").
 	WithSummary("Update a member's role").
+	WithScopes("tenants:manage").
 	WithDescription("Changes a member's role within a tenant. Demoting the last owner is rejected.").
 	WithTags("Tenants").
 	WithPathParams("tenant_id", "user_id").
@@ -103,6 +106,7 @@ var removeMember = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/tenants/{tenant_id
 }).
 	WithName("remove-member").
 	WithSummary("Remove a tenant member").
+	WithScopes("tenants:manage").
 	WithDescription("Removes a user from a tenant. Removing the last owner is rejected.").
 	WithTags("Tenants").
 	WithPathParams("tenant_id", "user_id").

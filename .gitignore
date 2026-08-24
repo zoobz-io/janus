@@ -47,3 +47,6 @@ build-errors*.log
 
 # Generated OpenAPI spec (regenerate with `make openapi-admin`)
 web/packages/admin-sdk/openapi.json
+
+# pnpm content-addressable store (created if pnpm runs without a global store)
+.pnpm-store/

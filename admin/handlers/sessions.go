@@ -19,6 +19,7 @@ var listUserSessions = rocco.GET[rocco.NoBody, wire.SessionListResponse]("/users
 }).
 	WithName("list-user-sessions").
 	WithSummary("List a user's sessions").
+	WithScopes("directory:read").
 	WithDescription("Returns the active sessions for a user.").
 	WithTags("Users").
 	WithPathParams("user_id").
@@ -33,6 +34,7 @@ var revokeUserSession = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/users/{user_i
 }).
 	WithName("revoke-user-session").
 	WithSummary("Revoke a user's session").
+	WithScopes("users:manage").
 	WithDescription("Revokes a single session by ID.").
 	WithTags("Users").
 	WithPathParams("user_id", "session_id").
@@ -50,6 +52,7 @@ var revokeAllUserSessions = rocco.DELETE[rocco.NoBody, wire.RevokeAllSessionsRes
 }).
 	WithName("revoke-all-user-sessions").
 	WithSummary("Revoke all of a user's sessions").
+	WithScopes("users:manage").
 	WithDescription("Revokes every active session for a user and returns the count revoked.").
 	WithTags("Users").
 	WithPathParams("user_id").

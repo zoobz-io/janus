@@ -24,6 +24,7 @@ var listGrants = rocco.GET[rocco.NoBody, wire.GrantListResponse]("/applications/
 }).
 	WithName("list-grants").
 	WithSummary("List user grants for an application in a tenant").
+	WithScopes("directory:read").
 	WithDescription("Returns the per-user grants for an application within a tenant. Pass tenant_id as a query parameter.").
 	WithTags("Grants").
 	WithPathParams("app_id").
@@ -49,6 +50,7 @@ var createGrant = rocco.POST[wire.CreateGrantRequest, wire.GrantResponse]("/appl
 }).
 	WithName("create-grant").
 	WithSummary("Grant a user access to an application").
+	WithScopes("applications:manage").
 	WithDescription("Grants a user access to an application within a tenant, with explicit roles/scopes and an optional tier. Explicit scopes are admin-assigned; tier scopes are inherited.").
 	WithTags("Grants").
 	WithPathParams("app_id").
@@ -74,6 +76,7 @@ var updateGrant = rocco.PATCH[wire.UpdateGrantRequest, wire.GrantResponse]("/app
 }).
 	WithName("update-grant").
 	WithSummary("Update a user's grant").
+	WithScopes("applications:manage").
 	WithDescription("Replaces a grant's roles and scopes and sets (or clears) its tier.").
 	WithTags("Grants").
 	WithPathParams("app_id", "tenant_id", "user_id").
@@ -89,6 +92,7 @@ var revokeGrant = rocco.DELETE[rocco.NoBody, rocco.NoBody]("/applications/{app_i
 }).
 	WithName("revoke-grant").
 	WithSummary("Revoke a user's grant").
+	WithScopes("applications:manage").
 	WithDescription("Removes a user's access to an application within a tenant.").
 	WithTags("Grants").
 	WithPathParams("app_id", "tenant_id", "user_id").
