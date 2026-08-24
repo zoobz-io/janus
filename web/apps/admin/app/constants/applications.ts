@@ -7,11 +7,16 @@ export type Application = components["schemas"]["ApplicationResponse"];
 
 const applications = defineEntity<Application>();
 
+// Sortable columns are limited to the search contract's sort allowlist
+// (created_at / updated_at) — the fetch action forwards the sort straight
+// to POST /applications/search.
 export const APPLICATIONS_TABLE = applications.defineTable({
   columns: [
-    { key: "name", label: "Name", sortable: true },
+    { key: "name", label: "Name" },
     { key: "slug", label: "Slug" },
-    { key: "status", label: "Status", sortable: true },
+    { key: "status", label: "Status" },
+    { key: "created_at", label: "Created", type: "datetime", sortable: true },
+    { key: "updated_at", label: "Updated", type: "datetime", sortable: true },
   ],
   rowKey: "id",
 });

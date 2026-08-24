@@ -22,6 +22,12 @@ describe("createAdminClient", () => {
     expect(typeof client.tenants.get).toBe("function");
   });
 
+  it("exposes the search operations", () => {
+    expect(typeof client.applications.search).toBe("function");
+    expect(typeof client.tenants.search).toBe("function");
+    expect(typeof client.users.search).toBe("function");
+  });
+
   it("exposes nested sub-namespaces", () => {
     expect(typeof client.tenants.members.list).toBe("function");
     expect(typeof client.tenants.members.add).toBe("function");

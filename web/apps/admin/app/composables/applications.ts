@@ -3,7 +3,6 @@ import { useTable } from "@zoobzio/foundation/factories/table";
 
 import { useAdminApi } from "~/composables/api";
 import { APPLICATIONS_WORKSPACE } from "~/constants/applications";
-import { toPage } from "~/utils/rows";
 
 export const useApplicationsPage = () => {
   const api = useAdminApi();
@@ -12,9 +11,21 @@ export const useApplicationsPage = () => {
     "applications",
     APPLICATIONS_WORKSPACE.slots.applications.widget,
     {
-      fetch: async (params) => {
-        const { applications: rows } = await api.applications.list();
-        return toPage(rows, params);
+      fetch: async ({ page, pageSize, sortField, sortDirection }) => {
+        const { applications: data, page: meta } =
+          await api.applications.search({
+            body: {
+              page: { number: page, size: pageSize },
+              ...(sortField !== null && {
+                sort: { field: sortField, order: sortDirection },
+              }),
+            },
+          });
+        return {
+          data,
+          total: meta.total_items,
+          pageCount: meta.total_pages,
+        };
       },
     },
   );

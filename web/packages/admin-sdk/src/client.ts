@@ -18,6 +18,7 @@ const { op, client } = definePress<paths>();
 export const createAdminClient = client({
   applications: {
     list: op("get", "/applications"),
+    search: op("post", "/applications/search"),
     create: op("post", "/applications"),
     get: op("get", "/applications/{app_id}"),
     update: op("patch", "/applications/{app_id}"),
@@ -67,6 +68,7 @@ export const createAdminClient = client({
   },
   tenants: {
     list: op("get", "/tenants"),
+    search: op("post", "/tenants/search"),
     create: op("post", "/tenants"),
     get: op("get", "/tenants/{tenant_id}"),
     update: op("patch", "/tenants/{tenant_id}"),
@@ -80,6 +82,7 @@ export const createAdminClient = client({
   },
   users: {
     list: op("get", "/users"),
+    search: op("post", "/users/search"),
     create: op("post", "/users"),
     get: op("get", "/users/{user_id}"),
     update: op("patch", "/users/{user_id}"),
