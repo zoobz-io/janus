@@ -28,10 +28,11 @@ func newEntitlementChecker(
 	tenants *stores.Tenants,
 	features *stores.Features,
 	scopes *stores.Scopes,
+	users *stores.Users,
 ) *entitlementChecker {
 	return &entitlementChecker{
 		entitlements: authz.NewEntitlements(
-			applications, licenses, grants, memberships, tenants, features, scopes,
+			applications, licenses, grants, memberships, tenants, features, scopes, users,
 		),
 	}
 }

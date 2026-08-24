@@ -63,6 +63,7 @@ func run() error {
 	sum.Register[apicontracts.Authorizations](rt.K, authz.NewEntitlements(
 		rt.Stores.Applications, rt.Stores.Licenses, rt.Stores.Grants,
 		rt.Stores.Memberships, rt.Stores.Tenants, rt.Stores.Features, rt.Stores.Scopes,
+		rt.Stores.Users,
 	))
 	// Internal services (not exposed on the HTTP API).
 	sum.Register[apicontracts.Config](rt.K, rt.Stores.Config)

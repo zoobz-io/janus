@@ -15,6 +15,7 @@ import (
 	"github.com/zoobz-io/janus/config"
 	"github.com/zoobz-io/janus/events"
 	"github.com/zoobz-io/janus/internal/auth"
+	"github.com/zoobz-io/janus/internal/authz"
 	"github.com/zoobz-io/janus/internal/boot"
 	"github.com/zoobz-io/janus/internal/labels"
 )
@@ -98,7 +99,16 @@ func run() error {
 	}
 	sessionStore := auth.NewSessionStore(rt.Stores.Sessions, rt.Stores.Users, rt.Redis)
 	cookieExtractor := auth.CookieExtractor(sessionStore, session.CookieConfig{SignKey: cookieKey})
-	authenticator := auth.NewAuthenticator(rt.Stores.Sessions, rt.Stores.Users, cookieExtractor)
+
+	// Admin authorization: a valid session is not enough — the caller must hold a
+	// janus-admin grant. The authenticator resolves the operator's scopes/roles
+	// so per-endpoint WithScopes can gate each handler.
+	entitlements := authz.NewEntitlements(
+		rt.Stores.Applications, rt.Stores.Licenses, rt.Stores.Grants,
+		rt.Stores.Memberships, rt.Stores.Tenants, rt.Stores.Features, rt.Stores.Scopes,
+		rt.Stores.Users,
+	)
+	authenticator := auth.NewAdminAuthenticator(rt.Stores.Sessions, rt.Stores.Users, entitlements, cookieExtractor)
 	rt.Svc.Engine().WithAuthenticator(authenticator)
 
 	adminhandlers.ConfigureOpenAPI(rt.Svc.Engine())

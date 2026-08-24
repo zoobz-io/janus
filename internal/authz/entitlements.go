@@ -37,6 +37,11 @@ type TenantLookup interface {
 	GetTenant(ctx context.Context, id string) (*models.Tenant, error)
 }
 
+// UserLookup resolves users by ID — needed to honor account status.
+type UserLookup interface {
+	GetUser(ctx context.Context, id string) (*models.User, error)
+}
+
 // FeatureLookup lists the features bundled into a tier.
 type FeatureLookup interface {
 	ListByTier(ctx context.Context, tierID string) ([]*models.Feature, error)
@@ -60,6 +65,7 @@ type Entitlements struct {
 	tenants      TenantLookup
 	features     FeatureLookup
 	scopes       ScopeLookup
+	users        UserLookup
 }
 
 // NewEntitlements creates an entitlement resolver over the given stores.
@@ -71,6 +77,7 @@ func NewEntitlements(
 	tenants TenantLookup,
 	features FeatureLookup,
 	scopes ScopeLookup,
+	users UserLookup,
 ) *Entitlements {
 	return &Entitlements{
 		applications: applications,
@@ -80,6 +87,7 @@ func NewEntitlements(
 		tenants:      tenants,
 		features:     features,
 		scopes:       scopes,
+		users:        users,
 	}
 }
 
@@ -91,6 +99,16 @@ func (e *Entitlements) ForApplication(ctx context.Context, userID, appSlug strin
 	app, err := e.applications.GetBySlug(ctx, appSlug)
 	if err != nil || app == nil {
 		return nil, nil, fmt.Errorf("looking up application %q: %w", appSlug, ErrApplicationNotFound)
+	}
+
+	// A deactivated user has no entitlements, regardless of grants — access is
+	// lost on the next request, not at token expiry.
+	user, err := e.users.GetUser(ctx, userID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("looking up user: %w", err)
+	}
+	if user.Status != models.UserStatusActive {
+		return app, nil, nil
 	}
 
 	mems, err := e.memberships.ListByUser(ctx, userID)
@@ -119,6 +137,10 @@ func (e *Entitlements) ForApplication(ctx context.Context, userID, appSlug strin
 		tenant, err := e.tenants.GetTenant(ctx, mem.TenantID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("looking up tenant: %w", err)
+		}
+		// A suspended tenant entitles no one, even members with live grants.
+		if tenant.Status != models.TenantStatusActive {
+			continue
 		}
 
 		scopes, err := e.effectiveScopes(ctx, grant)
